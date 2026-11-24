@@ -21,6 +21,12 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from . import CONTRACT_VERSION, __version__
+from .adapters.registry import (
+    NotImplementedAdapterError,
+    available_adapters,
+    detect_adapter,
+    get_adapter,
+)
 from .capabilities import CapabilitySet, Tier
 from .errors import PactHarnessError, VendorError
 from .paths import (
@@ -31,6 +37,8 @@ from .paths import (
     resolve_python,
     resolve_state_root,
 )
+from .runtime.registry import HookRegistry, RegistryError
+from .runtime.transport import warm_supported
 from .vendor import inspect_vendor, load_pin
 
 EXIT_OK = 0
@@ -38,31 +46,17 @@ EXIT_PROBLEM = 1
 
 PASSTHROUGH_AGENT = "PACT:pact-orchestrator"
 
-#: Capabilities each adapter declares. Empty at M0: no adapter is wired yet,
-#: and an empty set is the honest answer rather than a placeholder.
-ADAPTER_CAPABILITIES: dict[str, CapabilitySet] = {}
-
 _HARNESS_HELP_FLAGS = frozenset({"-h", "--help", "-V", "--version"})
 
 _SCHEMA_DIR = Path(__file__).resolve().parent / "contract" / "schema"
 
 
-def detect_adapter(env: Mapping[str, str] | None = None) -> str:
-    """Guess the platform from the environment, refusing to prefer a guess."""
-    environ = os.environ if env is None else env
-    explicit = (environ.get("PACT_ADAPTER") or "").strip()
-    if explicit:
-        return explicit
-    if (environ.get("DSH_SESSION_ID") or "").strip() or (environ.get("DSH_PROFILE") or "").strip():
-        return "dsh"
-    if (environ.get("CLAUDE_PLUGIN_ROOT") or "").strip():
-        return "claude-code"
-    return "generic"
-
-
 def capabilities_for(adapter: str) -> CapabilitySet:
-    """The capabilities a given adapter declares."""
-    return ADAPTER_CAPABILITIES.get(adapter, CapabilitySet())
+    """The capabilities an adapter declares, or nothing when it is not shipped."""
+    try:
+        return get_adapter(adapter).capabilities
+    except NotImplementedAdapterError:
+        return CapabilitySet()
 
 
 def _should_passthrough(argv: Sequence[str]) -> bool:
@@ -115,6 +109,7 @@ def _cmd_version(args: argparse.Namespace) -> int:
         "harness": __version__,
         "contract": CONTRACT_VERSION,
         "pact": pin_text,
+        "adapters": list(available_adapters()),
     }
     _emit(
         payload,
@@ -122,14 +117,15 @@ def _cmd_version(args: argparse.Namespace) -> int:
         text=(
             f"pact-harness {__version__}\n"
             f"contract     v{CONTRACT_VERSION}\n"
-            f"pact         {pin_text}"
+            f"pact         {pin_text}\n"
+            f"adapters     {', '.join(available_adapters())}"
         ),
     )
     return EXIT_OK
 
 
 def _cmd_paths(args: argparse.Namespace) -> int:
-    adapter = detect_adapter()
+    adapter = args.adapter or detect_adapter()
     state = resolve_state_root(adapter=adapter)
     root = find_harness_root()
     plugin = resolve_plugin_root(harness_root=root)
@@ -161,20 +157,24 @@ def _cmd_paths(args: argparse.Namespace) -> int:
 
 
 def _cmd_capabilities(args: argparse.Namespace) -> int:
-    adapter = detect_adapter()
+    adapter = args.adapter or detect_adapter()
     declared = capabilities_for(adapter)
     payload = {
         "adapter": adapter,
         "tier": declared.tier.value,
         "capabilities": list(declared.sorted_names()),
+        "implemented": adapter in available_adapters(),
     }
     body = (
         f"adapter      : {adapter}\n"
         f"tier         : {declared.tier.value}\n"
         f"capabilities : {len(declared.capabilities)} declared"
     )
-    if not declared.capabilities:
-        body += "\nnote         : no adapter is wired in this build, so nothing is claimed"
+    if not payload["implemented"]:
+        body += (
+            "\nnote         : this adapter is not implemented in this build, so nothing is claimed"
+            f" (available: {', '.join(available_adapters())})"
+        )
     _emit(payload, as_json=args.json, text=body)
     return EXIT_OK
 
@@ -196,21 +196,32 @@ def _schema_problems() -> list[str]:
             problems.append(f"contract schema unreadable: {path}: {exc}")
             continue
         if raw.get("$id") != schema_id:
-            problems.append(f"contract schema {name} has $id {raw.get('$id')!r}, expected {schema_id!r}")
+            problems.append(
+                f"contract schema {name} has $id {raw.get('$id')!r}, expected {schema_id!r}"
+            )
     return problems
 
 
 def _cmd_doctor(args: argparse.Namespace) -> int:
-    adapter = detect_adapter()
+    adapter = args.adapter or detect_adapter()
     declared = capabilities_for(adapter)
     tier = declared.tier
+    implemented = adapter in available_adapters()
     errors: list[str] = []
     warnings: list[str] = []
     notes: list[str] = []
 
+    if not implemented:
+        notes.append(
+            f"adapter {adapter!r} is not implemented in this build; "
+            f"available: {', '.join(available_adapters())}"
+        )
+
     root = find_harness_root()
     pin_payload: dict[str, Any] | None = None
     vendor_payload: dict[str, Any] | None = None
+    plugin = resolve_plugin_root(harness_root=root)
+    registry_payload: dict[str, Any] | None = None
     if root is None:
         errors.append("harness root not found (no harness/pact-pin.json above this package)")
     else:
@@ -229,9 +240,18 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         except VendorError as exc:
             errors.append(str(exc))
 
-    plugin = resolve_plugin_root(harness_root=root)
     if plugin is None:
         errors.append("plugin root unresolved: no PACT_PLUGIN_ROOT and no vendored tree")
+    else:
+        try:
+            registry = HookRegistry.from_plugin_root(plugin)
+            registry_payload = {
+                "registrations": len(registry),
+                "events": len(registry.events),
+                "modules": len(registry.modules()),
+            }
+        except RegistryError as exc:
+            errors.append(str(exc))
 
     python = resolve_python()
     if python.runtime is None:
@@ -247,7 +267,9 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     state = resolve_state_root(adapter=adapter)
     memory = resolve_memory_dir()
     if not memory.is_dir():
-        notes.append(f"memory directory not created yet: {memory} (upstream creates it on first memory use)")
+        notes.append(
+            f"memory directory not created yet: {memory} (upstream creates it on first memory use)"
+        )
 
     schema_problems = _schema_problems()
     errors.extend(schema_problems)
@@ -268,6 +290,8 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         "harness": __version__,
         "contract": CONTRACT_VERSION,
         "adapter": adapter,
+        "adapter_implemented": implemented,
+        "available_adapters": list(available_adapters()),
         "tier": tier.value,
         "capabilities": list(declared.sorted_names()),
         "python": python.runtime.to_dict() if python.runtime else None,
@@ -277,6 +301,8 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         "plugin_root": str(plugin) if plugin else None,
         "pin": pin_payload,
         "vendor": vendor_payload,
+        "registry": registry_payload,
+        "transport": {"cold": True, "warm": warm_supported()},
         "errors": errors,
         "warnings": warnings,
         "notes": notes,
@@ -286,36 +312,46 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
         print(f"pact-harness doctor  {__version__} (contract v{CONTRACT_VERSION})")
-        print(f"adapter      : {adapter}{'' if declared.capabilities else ' (no adapter wired in this build)'}")
+        label = adapter if implemented else f"{adapter} (not implemented in this build)"
+        print(f"adapter      : {label}")
         print(f"tier         : {tier.value}")
         runtime = python.runtime
-        print(
-            "python       : "
-            + (
-                f"{runtime.version_text} at {runtime.executable} via {runtime.source}"
-                + ("" if runtime.certified else " (uncertified; upstream certifies 3.12)")
-                if runtime
-                else "none resolved"
-            )
-        )
+        if runtime:
+            note = "" if runtime.certified else " (uncertified; upstream certifies 3.12)"
+            print(f"python       : {runtime.version_text} at {runtime.executable} via {runtime.source}{note}")
+        else:
+            print("python       : none resolved")
         print(f"state root   : {state.path} ({state.source})")
         print(f"memory       : {memory} (upstream-pinned)")
         print(f"plugin root  : {plugin}")
+        if registry_payload:
+            print(
+                "hook registry: "
+                f"{registry_payload['registrations']} registrations, "
+                f"{registry_payload['events']} events, "
+                f"{registry_payload['modules']} modules"
+            )
         if vendor_payload:
             describe = vendor_payload.get("describe") or "no exact tag"
+            suffix = "" if vendor_payload.get("at_pin") else ", not at pin"
             print(
                 "vendor       : "
-                f"{(vendor_payload.get('commit') or 'unknown')[:12]} ({describe})"
-                + ("" if vendor_payload.get("at_pin") else ", not at pin")
+                f"{(vendor_payload.get('commit') or 'unknown')[:12]} ({describe}){suffix}"
             )
         print(
             "contract     : "
             + ("event.v1 + directive.v1 OK" if not schema_problems else "schema problems (see errors)")
         )
-        print(f"checks       : {len(errors)} error(s), {len(warnings)} warning(s), {len(notes)} note(s)")
-        for label, items in (("error", errors), ("warning", warnings), ("note", notes)):
+        print(
+            "transport    : cold"
+            + ("; warm available" if warm_supported() else "; warm unavailable on this platform")
+        )
+        print(
+            f"checks       : {len(errors)} error(s), {len(warnings)} warning(s), {len(notes)} note(s)"
+        )
+        for label_kind, items in (("error", errors), ("warning", warnings), ("note", notes)):
             for item in items:
-                print(f"  {label}: {item}")
+                print(f"  {label_kind}: {item}")
 
     return EXIT_PROBLEM if errors else EXIT_OK
 
@@ -338,14 +374,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     paths = subparsers.add_parser("paths", help="print every resolved path")
     paths.add_argument("--json", action="store_true", help="print JSON")
+    paths.add_argument("--adapter", metavar="ID", help="resolve paths for this adapter")
     paths.set_defaults(func=_cmd_paths)
 
-    capabilities = subparsers.add_parser("capabilities", help="print the adapter's declared capabilities")
+    capabilities = subparsers.add_parser(
+        "capabilities", help="print the adapter's declared capabilities"
+    )
     capabilities.add_argument("--json", action="store_true", help="print JSON")
+    capabilities.add_argument("--adapter", metavar="ID", help="report this adapter")
     capabilities.set_defaults(func=_cmd_capabilities)
 
     doctor = subparsers.add_parser("doctor", help="report what is actually wired")
     doctor.add_argument("--json", action="store_true", help="print JSON")
+    doctor.add_argument("--adapter", metavar="ID", help="report this adapter")
     doctor.add_argument(
         "--require-tier",
         metavar="TIER",

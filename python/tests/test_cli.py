@@ -44,11 +44,40 @@ def test_version_json(capsys: pytest.CaptureFixture[str]) -> None:
     assert "pact" in payload
 
 
-def test_capabilities_claims_nothing_in_m0(capsys: pytest.CaptureFixture[str]) -> None:
+def test_undetected_adapter_claims_nothing(capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main(["capabilities", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
+    if payload["implemented"]:
+        pytest.skip("the detected adapter is implemented in this build")
     assert payload["tier"] == "T0"
     assert payload["capabilities"] == []
+
+
+def test_claude_code_declares_the_reference_tier(capsys: pytest.CaptureFixture[str]) -> None:
+    assert cli.main(["capabilities", "--adapter", "claude-code", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["implemented"] is True
+    assert payload["tier"] == "T3"
+    assert "control.tool.veto" in payload["capabilities"]
+
+
+def test_doctor_reports_the_live_hook_registry(capsys: pytest.CaptureFixture[str]) -> None:
+    if paths.find_harness_root() is None:
+        pytest.skip("not running inside the harness checkout")
+    cli.main(["doctor", "--adapter", "claude-code", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["registry"] == {"registrations": 34, "events": 13, "modules": 28}
+    assert payload["adapter_implemented"] is True
+    assert payload["tier"] == "T3"
+
+
+def test_unimplemented_adapter_is_a_note_not_a_claim(capsys: pytest.CaptureFixture[str]) -> None:
+    code = cli.main(["doctor", "--adapter", "dsh", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["adapter_implemented"] is False
+    assert payload["tier"] == "T0"
+    assert any("not implemented" in note for note in payload["notes"])
+    assert code == (1 if payload["errors"] else 0)
 
 
 def test_paths_json_reports_separate_memory(capsys: pytest.CaptureFixture[str]) -> None:

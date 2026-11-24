@@ -38,6 +38,12 @@ DSH_BUNDLED_PYTHON = (
 _PIN_RELATIVE = Path("harness/pact-pin.json")
 _VENDOR_RELATIVE = Path("vendor/pact-plugin")
 
+#: Upstream's repository wraps the plugin in a directory of the same name, so
+#: the tree that contains hooks/, agents/ and skills/ is one level below the
+#: submodule. Resolution accepts either shape: a caller may point
+#: PACT_PLUGIN_ROOT at the repository or at the plugin directory.
+_PLUGIN_MARKER = Path("hooks/hooks.json")
+
 
 def _expanded(value: str, home: Path) -> Path:
     text = value.strip()
@@ -59,6 +65,21 @@ def find_harness_root(start: Path | None = None) -> Path | None:
     return None
 
 
+def plugin_dir(base: Path) -> Path:
+    """Return the directory that actually contains hooks/.
+
+    Upstream's repository root holds a pact-plugin/ directory with the same
+    contents one level down. Accepting either shape means a caller can name the
+    checkout they see in their editor, not the internal path convention.
+    """
+    if (base / _PLUGIN_MARKER).is_file():
+        return base
+    nested = base / "pact-plugin"
+    if (nested / _PLUGIN_MARKER).is_file():
+        return nested
+    return base
+
+
 def resolve_plugin_root(
     *,
     env: Mapping[str, str] | None = None,
@@ -72,12 +93,14 @@ def resolve_plugin_root(
     environ = os.environ if env is None else env
     override = (environ.get("PACT_PLUGIN_ROOT") or "").strip()
     if override:
-        return _expanded(override, Path.home())
+        return plugin_dir(_expanded(override, Path.home()))
     root = harness_root if harness_root is not None else find_harness_root()
     if root is None:
         return None
     candidate = root / _VENDOR_RELATIVE
-    return candidate if candidate.is_dir() else None
+    if not candidate.is_dir():
+        return None
+    return plugin_dir(candidate)
 
 
 @dataclass(frozen=True, slots=True)

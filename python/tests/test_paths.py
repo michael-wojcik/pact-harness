@@ -116,8 +116,18 @@ def test_plugin_root_override_wins(tmp_path: Path) -> None:
     assert paths.resolve_plugin_root(env={"PACT_PLUGIN_ROOT": str(tmp_path)}) == tmp_path
 
 
+def test_plugin_dir_accepts_either_shape(tmp_path: Path) -> None:
+    repo_root = tmp_path / "repo"
+    nested = repo_root / "pact-plugin"
+    (nested / "hooks").mkdir(parents=True)
+    (nested / "hooks" / "hooks.json").write_text("{}")
+    assert paths.plugin_dir(repo_root) == nested
+    assert paths.plugin_dir(nested) == nested
+
+
 def test_plugin_root_falls_back_to_vendor() -> None:
     root = paths.find_harness_root()
     assert root is not None
     plugin = paths.resolve_plugin_root(env={}, harness_root=root)
-    assert plugin == root / "vendor" / "pact-plugin"
+    assert plugin is not None
+    assert (plugin / "hooks" / "hooks.json").is_file()

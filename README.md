@@ -17,7 +17,23 @@ Because the core is unmodified, upstream's test suite stays the regression oracl
 
 ## Status
 
-Milestone M0 (skeleton). The contract, capability model, vendor pin and CLI exist; no platform adapter is wired yet, so `pact doctor` reports tier T0 and says so.
+Milestone M1 in progress. The contract, capability model, vendor pin, CLI, hook
+registry, output decoder and the Claude Code adapter exist. A real vendored gate
+(`merge_guard_pre`) refuses a real force-push through the harness, and
+`pact doctor --adapter claude-code` reports the live registry and the reference
+tier. The DeepSeek Harness adapter is not implemented yet, so `pact doctor`
+reports tier T0 for it and says so.
+
+Measured decisions worth knowing before extending this:
+
+- **Latency.** A single file edit runs five hooks. Cold, that is 4.1-4.8 s; with
+  a warm process and one fork per hook it is 261 ms plus a 0.9 s one-time warm
+  import. The warm transport is therefore a requirement for any platform whose
+  extension point sits in the edit path, not an optimization. See
+  [docs/latency.md](docs/latency.md).
+- **Counts.** Upstream's manifest registers 34 hooks on **13** event names
+  (PACT's own model folds `PostToolUseFailure` into `PostToolUse`), across 28
+  modules; **three** are async, not four.
 
 ## Layout
 
