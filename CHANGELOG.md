@@ -23,7 +23,18 @@ for any MCP client, plus a measured pipeline for absorbing upstream releases.
   Claude's argument placeholder.
 - An upstream pipeline: surface extraction, L0–L4 classification, verification,
   release-distance checking, and a sync script that never commits.
-- A conformance suite covering all 34 registrations.
+- A conformance suite covering all 34 registrations, plus a byte-parity proof
+  (48 cells, stdout and exit code) that gates bridged Claude Code mode: the
+  installer rewrites all 34 hook commands to call the harness, and refuses to
+  install unless the bridged run is byte-identical to a direct one.
+- A corpus verdict matrix (48 cells, 28 hooks) recorded for the pin and replayed
+  after an upstream bump, and an upstream suite runner whose 19 macOS-only
+  failures are inventoried with reasons rather than hidden.
+- An advisory installer for §AGENTS.md§ platforms and an MCP client surface whose
+  tools say, in their own text, that nothing on that path can enforce a verdict.
+- §pact dev link§, §pact hook§, §pact migrate-state§, and a doctor that prints the
+  hook-module inventory, a derived applicability table, and the last activation
+  record.
 
 ### Why
 

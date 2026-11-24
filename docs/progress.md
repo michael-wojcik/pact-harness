@@ -180,7 +180,6 @@ gap:
 - Publishing the first release needs a tagged remote. The release lane is
   committed; what remains is pushing a tag and watching it run.
 
-Everything else in [plan.md](plan.md) is implemented. If work continues, the
-next useful steps are the ones the plan defers: a bridged Claude Code install
-(the conformance suite is already the gate it must pass), and running the model
-lane nightly once a key exists.
+Everything else in [plan.md](plan.md) is implemented. The next useful step is
+running the model lane nightly once a key and a DSH-capable CI runner exist, and
+publishing the first release from a tagged remote.
