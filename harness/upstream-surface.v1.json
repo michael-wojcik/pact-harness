@@ -1,0 +1,912 @@
+{
+  "artifacts": [
+    {
+      "bytes": 11468,
+      "kind": "agents",
+      "path": "agents/pact-architect.md",
+      "sha256": "ab5e57fff7d0cf5f5d3c30c8d9b6cafe1a94bfb8300728c2171e048579080efb"
+    },
+    {
+      "bytes": 16743,
+      "kind": "agents",
+      "path": "agents/pact-auditor.md",
+      "sha256": "6c5f9fa6f30a60d97bdc3ff4092fefc9585871ad378148bdf4737ccd04515a2a"
+    },
+    {
+      "bytes": 7872,
+      "kind": "agents",
+      "path": "agents/pact-backend-coder.md",
+      "sha256": "9b5ef550efad72b3794a6f28e44addf1882a80f4d78bcd3753cb753a13b96361"
+    },
+    {
+      "bytes": 9552,
+      "kind": "agents",
+      "path": "agents/pact-database-engineer.md",
+      "sha256": "980aca451a487375064329fa8d072156fcf9552d19825cfa44f9160f0d8d2552"
+    },
+    {
+      "bytes": 7987,
+      "kind": "agents",
+      "path": "agents/pact-devops-engineer.md",
+      "sha256": "0275c2706e09e2309ce5eb3b42d3d4c169f2da269aec90eeee9258fc85ac8227"
+    },
+    {
+      "bytes": 7357,
+      "kind": "agents",
+      "path": "agents/pact-frontend-coder.md",
+      "sha256": "2b729598821f4dbf6ad51e08763dcd655b17ed9e89defc5dc4e45d77120a6bef"
+    },
+    {
+      "bytes": 7708,
+      "kind": "agents",
+      "path": "agents/pact-n8n.md",
+      "sha256": "ec7229b08178c7c7e04425a0af9144ed8da9044c6004b084db13b3a2ff0d4f7d"
+    },
+    {
+      "bytes": 87314,
+      "kind": "agents",
+      "path": "agents/pact-orchestrator.md",
+      "sha256": "b8cef63370054d566054f1cd1e12d8180f1a543343a9b73f269c4fe50cc2b093"
+    },
+    {
+      "bytes": 8775,
+      "kind": "agents",
+      "path": "agents/pact-preparer.md",
+      "sha256": "d43f7aa0b923b649d6398da67d42ac13825a267cb4c71d6430acf7ef9ac8553c"
+    },
+    {
+      "bytes": 7529,
+      "kind": "agents",
+      "path": "agents/pact-qa-engineer.md",
+      "sha256": "f4f00be4088bc451b4d7edbc814aebe14c201fdc855be3b9b51249a04750ad05"
+    },
+    {
+      "bytes": 33649,
+      "kind": "agents",
+      "path": "agents/pact-secretary.md",
+      "sha256": "4245b7dc94ef513a4dad507639a049f940f6d8b9b5aa275d94be084d2013b6be"
+    },
+    {
+      "bytes": 6682,
+      "kind": "agents",
+      "path": "agents/pact-security-engineer.md",
+      "sha256": "8fa0981809766c6dc66b90b17cc7b58b4353d6feb5a9e81ab1d970afc49a46d8"
+    },
+    {
+      "bytes": 13632,
+      "kind": "agents",
+      "path": "agents/pact-test-engineer.md",
+      "sha256": "4a815fbaf6f59d03491cf7dc8204ee721617429a41b58071a727a57d6fd21652"
+    },
+    {
+      "bytes": 15107,
+      "kind": "commands",
+      "path": "commands/bootstrap.md",
+      "sha256": "d664a288ee26beb6ebf44103e6571add8f93d8b1d388a7f1fe7e3a175001e128"
+    },
+    {
+      "bytes": 40056,
+      "kind": "commands",
+      "path": "commands/comPACT.md",
+      "sha256": "c229de52765b41ab7a88a9c50a1784baa26bc0405b053063e3b7453ddaea1178"
+    },
+    {
+      "bytes": 11617,
+      "kind": "commands",
+      "path": "commands/imPACT.md",
+      "sha256": "4ff0f66dc33a9148c304380eee37a57ae379187a001e2014420dff9bbdde67d1"
+    },
+    {
+      "bytes": 14934,
+      "kind": "commands",
+      "path": "commands/next.md",
+      "sha256": "5114f5866c97d2d19ad0f897a3f549a2582c99c3bce03250415914f2fcfad465"
+    },
+    {
+      "bytes": 78040,
+      "kind": "commands",
+      "path": "commands/orchestrate.md",
+      "sha256": "c57c82bd403b38f5bea06ca638d7feb408f7d71cd8d2f0002b4f3a9513df854d"
+    },
+    {
+      "bytes": 7994,
+      "kind": "commands",
+      "path": "commands/pause.md",
+      "sha256": "bccc6a423695c01eaa9e0e5ed2f896843eb47a54a053b612937f7f969ce4cc41"
+    },
+    {
+      "bytes": 73456,
+      "kind": "commands",
+      "path": "commands/peer-review.md",
+      "sha256": "3f80dbfa148f0b84c9f7fbe7fe995f115dc7a46fdd4eba6d09d6dd573f76c27a"
+    },
+    {
+      "bytes": 8601,
+      "kind": "commands",
+      "path": "commands/pin-memory.md",
+      "sha256": "970cbd9a0ac02b923036f18e0940df2624245c1acfca508d23cecd58c428d586"
+    },
+    {
+      "bytes": 32066,
+      "kind": "commands",
+      "path": "commands/plan-mode.md",
+      "sha256": "de8a18362fd08897048b21f2d5d2de2e2f30e086235145e9e7eb4b6c197c815f"
+    },
+    {
+      "bytes": 29907,
+      "kind": "commands",
+      "path": "commands/prune-memory.md",
+      "sha256": "bec0576c6c7fd06f40f8ad522d70344982698079326466613a41d7ea2799b56a"
+    },
+    {
+      "bytes": 25542,
+      "kind": "commands",
+      "path": "commands/rePACT.md",
+      "sha256": "c18a68eeab76328526331d52e837f384eeb6a354adfa76a66242c0f6915b7520"
+    },
+    {
+      "bytes": 11064,
+      "kind": "commands",
+      "path": "commands/refresh.md",
+      "sha256": "f004bd93424f1681ee92d7b1479d730e77a8550ca487db5d803d6d42f5730b8b"
+    },
+    {
+      "bytes": 7153,
+      "kind": "commands",
+      "path": "commands/telegram-setup.md",
+      "sha256": "261ad402c7715d83fd096e8833baa7406de5058c5020aa411053098c88a201cd"
+    },
+    {
+      "bytes": 65061,
+      "kind": "commands",
+      "path": "commands/wrap-up.md",
+      "sha256": "10f9332d89ee1442da19ce606b1708d7b3f27407171ffdb38d3fcda6bca5b9d5"
+    },
+    {
+      "bytes": 15342,
+      "kind": "protocols",
+      "path": "protocols/algedonic.md",
+      "sha256": "4dd268b836796de3fd5d1aef9c123e353a116f737553c762d39b0be85cf0782f"
+    },
+    {
+      "bytes": 2860,
+      "kind": "protocols",
+      "path": "protocols/pact-agent-stall.md",
+      "sha256": "846de6123a32dfd4c88fe3a03b75a659e3dce414c309d3a8654d541b06e7a772"
+    },
+    {
+      "bytes": 13768,
+      "kind": "protocols",
+      "path": "protocols/pact-audit.md",
+      "sha256": "12283236d136c8647a718a219b94689665bc8825ce4893c906176389575eb13c"
+    },
+    {
+      "bytes": 13512,
+      "kind": "protocols",
+      "path": "protocols/pact-communication-charter.md",
+      "sha256": "4e36888c50740288bceabdffc76dadeab6d9b18a6dc5f00881685c85988ec2a4"
+    },
+    {
+      "bytes": 3489,
+      "kind": "protocols",
+      "path": "protocols/pact-completeness.md",
+      "sha256": "46ff824eb7e229509926c18368ff4e7ed57af2d6d318811adaebdf30e56cd98c"
+    },
+    {
+      "bytes": 29368,
+      "kind": "protocols",
+      "path": "protocols/pact-completion-authority.md",
+      "sha256": "3eb739eb9ba50eda3da97d317210004715f516d6e5ab5e8b71e4b149058de1a9"
+    },
+    {
+      "bytes": 10988,
+      "kind": "protocols",
+      "path": "protocols/pact-ct-teachback.md",
+      "sha256": "780150580427663332dd0ab6d064f602beb7fa523800b76aada9cbcadae2bae4"
+    },
+    {
+      "bytes": 3947,
+      "kind": "protocols",
+      "path": "protocols/pact-phase-transitions.md",
+      "sha256": "a9880867cbbab0264760b7cb39b6d2f11753151309ae0004fd023e7ab4cc227f"
+    },
+    {
+      "bytes": 186779,
+      "kind": "protocols",
+      "path": "protocols/pact-protocols.md",
+      "sha256": "098a39d1a637cef657541569aeaaf0220a05cd85ab5dd2978776ac3d81ba3987"
+    },
+    {
+      "bytes": 3245,
+      "kind": "protocols",
+      "path": "protocols/pact-s1-autonomy.md",
+      "sha256": "04dda60c230e3efa503fb5ceb1f7992ff6d2f6197b06914039a02e93079358d1"
+    },
+    {
+      "bytes": 8792,
+      "kind": "protocols",
+      "path": "protocols/pact-s2-coordination.md",
+      "sha256": "cd28ce228dac7fe5157761127552836fea5dace86cd9b49b91651475354a0bf4"
+    },
+    {
+      "bytes": 3228,
+      "kind": "protocols",
+      "path": "protocols/pact-s4-checkpoints.md",
+      "sha256": "4dca29678cb3ed0c6864a3fb8ef700a7b6b7298177005d5ae348e37e3209a45c"
+    },
+    {
+      "bytes": 2504,
+      "kind": "protocols",
+      "path": "protocols/pact-s4-environment.md",
+      "sha256": "44e1b42a2c12606f5ad84d2bcbf254eba6951004844b1b2186d4251d0cb585fa"
+    },
+    {
+      "bytes": 2234,
+      "kind": "protocols",
+      "path": "protocols/pact-s4-tension.md",
+      "sha256": "59e139c34509870b90bbf4ed66014a5270326fb500104737861890c4ee0770de"
+    },
+    {
+      "bytes": 6702,
+      "kind": "protocols",
+      "path": "protocols/pact-s5-policy.md",
+      "sha256": "57159c6d911691fbf724b59ad82686d64fd3916f12f366be4a59bcf76de1c83d"
+    },
+    {
+      "bytes": 9772,
+      "kind": "protocols",
+      "path": "protocols/pact-scope-contract.md",
+      "sha256": "1bcf547123023d9ce7e705446a6d78354c8b074f046239b602bf5ac76e82bf98"
+    },
+    {
+      "bytes": 8017,
+      "kind": "protocols",
+      "path": "protocols/pact-scope-detection.md",
+      "sha256": "6f6bd73942403e3be8e473c54ee04516e617f595a77674804fd335880bc25b85"
+    },
+    {
+      "bytes": 5444,
+      "kind": "protocols",
+      "path": "protocols/pact-scope-phases.md",
+      "sha256": "772675e1892a9fa12818f7b51eeb25b44ef92bdb4ea76e98e68ec6ed21c50dad"
+    },
+    {
+      "bytes": 16011,
+      "kind": "protocols",
+      "path": "protocols/pact-state-recovery.md",
+      "sha256": "0ceb1a3e3b78e6e6b30e34e6b9be40422485cf83bf5976fe151c3a8c749b0108"
+    },
+    {
+      "bytes": 6152,
+      "kind": "protocols",
+      "path": "protocols/pact-task-hierarchy.md",
+      "sha256": "6d4a9d64c5afe41c2ddbaf03410f7c1c45e80c91f624e8ef74ca0455cdf397fe"
+    },
+    {
+      "bytes": 34701,
+      "kind": "protocols",
+      "path": "protocols/pact-variety.md",
+      "sha256": "897bb9305a1a89a21241741a2a5f9bb77334867655618b6a5a13489a41988fb2"
+    },
+    {
+      "bytes": 12552,
+      "kind": "protocols",
+      "path": "protocols/pact-workflows.md",
+      "sha256": "5c7e3154f336814b1feb1920b91f3c9359d0e7106be5e70bd7bd128399d6ecf6"
+    },
+    {
+      "bytes": 8277,
+      "kind": "reference",
+      "path": "reference/config.md",
+      "sha256": "adaac2d8fa19c9f37ab5945abfdfcd4917facb32b001dfdeac27a30b42c596ca"
+    },
+    {
+      "bytes": 3108,
+      "kind": "reference",
+      "path": "reference/unattended-runs.md",
+      "sha256": "91eb1b12ea7e25885e5327aebb1e1aa8efc057feaea0f915d163f5bfcaf8e261"
+    },
+    {
+      "bytes": 20067,
+      "kind": "reference",
+      "path": "reference/vsm-glossary.md",
+      "sha256": "dd7f5d64ea9c33a6b03f7e97aac142aaa16d98a032b68da5c7abf978b9711c88"
+    },
+    {
+      "bytes": 16110,
+      "kind": "skills",
+      "path": "skills/n8n-code-javascript/SKILL.md",
+      "sha256": "63920d4e44c5fd7ee5d78396de9b5b1917ce450193fb77fbdb7131a04ae85a74"
+    },
+    {
+      "bytes": 17971,
+      "kind": "skills",
+      "path": "skills/n8n-code-python/SKILL.md",
+      "sha256": "fa65b75a3605abbec6b4f1e038b526168bab1b3929a262156621be9c9348251d"
+    },
+    {
+      "bytes": 9600,
+      "kind": "skills",
+      "path": "skills/n8n-expression-syntax/SKILL.md",
+      "sha256": "9184e19661c5c1bca7fab28594c4b596aceae80a18b328604f661cb82c1fb85f"
+    },
+    {
+      "bytes": 16447,
+      "kind": "skills",
+      "path": "skills/n8n-mcp-tools-expert/SKILL.md",
+      "sha256": "abb7737f1ef3e7087c840b8bb8c1e5315414a7fb503c539c6b117e79852c2114"
+    },
+    {
+      "bytes": 17353,
+      "kind": "skills",
+      "path": "skills/n8n-node-configuration/SKILL.md",
+      "sha256": "d97fee27ece97bf1bd1e9feae8c26acc834ce07be8752fcf490699176b87d6a0"
+    },
+    {
+      "bytes": 14552,
+      "kind": "skills",
+      "path": "skills/n8n-validation-expert/SKILL.md",
+      "sha256": "29bd4926b335b6412da177fa3a34489c5522e8af3e38573f05e77c93ead27822"
+    },
+    {
+      "bytes": 11697,
+      "kind": "skills",
+      "path": "skills/n8n-workflow-patterns/SKILL.md",
+      "sha256": "e4d16a16db4723b35f81f8e4146b0310b87961ad9fe4f1bdef619a19604670d5"
+    },
+    {
+      "bytes": 61319,
+      "kind": "skills",
+      "path": "skills/pact-agent-teams/SKILL.md",
+      "sha256": "96b9fe9659f22c03a115b6f53be167da5cfc45bd9a5f0a02513416e6713a6234"
+    },
+    {
+      "bytes": 11915,
+      "kind": "skills",
+      "path": "skills/pact-architecture-patterns/SKILL.md",
+      "sha256": "ec2e887471de7602f62276c00d11f544b18da25cdb86ecffdf13df3a6b088b7d"
+    },
+    {
+      "bytes": 16198,
+      "kind": "skills",
+      "path": "skills/pact-coding-standards/SKILL.md",
+      "sha256": "05bdc7ebf2cec62bb3524156228a35eba7fe58569f5c62cd95157d1ef1446310"
+    },
+    {
+      "bytes": 105113,
+      "kind": "skills",
+      "path": "skills/pact-handoff-harvest/SKILL.md",
+      "sha256": "18d11426a78c649495030cf24f45a3665f92b3ee2e443f262bddb824e8e8faaf"
+    },
+    {
+      "bytes": 33497,
+      "kind": "skills",
+      "path": "skills/pact-memory/SKILL.md",
+      "sha256": "7010fe7c2542d55b42f8f57bd27548c9e00720306a081a500f252869cefa336a"
+    },
+    {
+      "bytes": 8434,
+      "kind": "skills",
+      "path": "skills/pact-prepare-research/SKILL.md",
+      "sha256": "609f2d9d688eda29ee582ff00883fa0c604e9d6050f1beaa7f7af57f380d1141"
+    },
+    {
+      "bytes": 7340,
+      "kind": "skills",
+      "path": "skills/pact-security-patterns/SKILL.md",
+      "sha256": "9ea97c15e4cc03c8854691dc45661562eac6414352973e9498ff329308cf711b"
+    },
+    {
+      "bytes": 18847,
+      "kind": "skills",
+      "path": "skills/pact-teachback/SKILL.md",
+      "sha256": "4c94467ad1b42056e28a3f019e517bdb15384cbe2fdfbb24865eec851a25f384"
+    },
+    {
+      "bytes": 758,
+      "kind": "skills",
+      "path": "skills/pact-team-registration/SKILL.md",
+      "sha256": "e98d5a2e4de6fcc9d246f43c8be213698920b041c9f6d97d99c501147524647b"
+    },
+    {
+      "bytes": 31254,
+      "kind": "skills",
+      "path": "skills/pact-testing-strategies/SKILL.md",
+      "sha256": "727d0bf2d76db0257ae609c114c40a471ce2fa00690bc5c3a5322c4b5c9df3d2"
+    },
+    {
+      "bytes": 1081,
+      "kind": "skills",
+      "path": "skills/request-more-context/SKILL.md",
+      "sha256": "9ce45e6f2aa661b42bfab23f3992ead796850f75557c88008b1923b901c589c2"
+    },
+    {
+      "bytes": 1939,
+      "kind": "skills",
+      "path": "skills/telegram-guide/SKILL.md",
+      "sha256": "9baad3d80ec9c3756ed1b34eaf9c9f8b8d2a026b1120660768d6b10cf6a85b99"
+    },
+    {
+      "bytes": 14554,
+      "kind": "skills",
+      "path": "skills/worktree-cleanup/SKILL.md",
+      "sha256": "d64508b102c94f95091d04b049028d55b3c1faaee46068952dfb46dde58faa9e"
+    },
+    {
+      "bytes": 20863,
+      "kind": "skills",
+      "path": "skills/worktree-setup/SKILL.md",
+      "sha256": "51fa26e8d69e849ee505cbfc919fffbd1ff606f637e2e23b30a2a58b9d370a25"
+    }
+  ],
+  "decision_tokens": {
+    "additionalContext": 111,
+    "custom_instructions": 15,
+    "decision": 287,
+    "hookSpecificOutput": 66,
+    "permissionDecision": 58,
+    "suppressOutput": 69,
+    "systemMessage": 51
+  },
+  "env_reads": [
+    {
+      "file": "hooks/shared/pact_context.py",
+      "line": 1704,
+      "name": "CLAUDE_CODE_REMOTE"
+    },
+    {
+      "file": "hooks/shared/project_scope.py",
+      "line": 1108,
+      "name": "CLAUDE_CODE_SESSION_ID"
+    },
+    {
+      "file": "hooks/session_end.py",
+      "line": 1288,
+      "name": "CLAUDE_CODE_TASK_LIST_ID"
+    },
+    {
+      "file": "hooks/bootstrap_gate.py",
+      "line": 267,
+      "name": "CLAUDE_CONFIG_DIR"
+    },
+    {
+      "file": "hooks/session_init.py",
+      "line": 1382,
+      "name": "CLAUDE_ENV_FILE"
+    },
+    {
+      "file": "hooks/shared/pact_context.py",
+      "line": 1079,
+      "name": "CLAUDE_PID"
+    },
+    {
+      "file": "hooks/session_init.py",
+      "line": 310,
+      "name": "CLAUDE_PLUGIN_ROOT"
+    },
+    {
+      "file": "hooks/bootstrap_prompt_gate.py",
+      "line": 418,
+      "name": "CLAUDE_PROJECT_DIR"
+    },
+    {
+      "file": "hooks/shared/backlog.py",
+      "line": 1288,
+      "name": "GH_REPO"
+    },
+    {
+      "file": "hooks/shared/project_scope.py",
+      "line": 291,
+      "name": "GIT_CEILING_DIRECTORIES"
+    },
+    {
+      "file": "hooks/shared/project_scope.py",
+      "line": 334,
+      "name": "GIT_DISCOVERY_ACROSS_FILESYSTEM"
+    },
+    {
+      "file": "hooks/worktree_guard.py",
+      "line": 237,
+      "name": "PACT_WORKTREE_PATH"
+    },
+    {
+      "file": "hooks/shared/project_scope.py",
+      "line": 1301,
+      "name": "PWD"
+    },
+    {
+      "file": "hooks/shared/project_scope.py",
+      "line": 1106,
+      "name": "PYTEST_CURRENT_TEST"
+    }
+  ],
+  "matchers": [
+    "Agent",
+    "AskUserQuestion|Bash",
+    "Bash",
+    "Edit|Write",
+    "Edit|Write|Bash",
+    "Skill",
+    "TaskCreate|TaskUpdate",
+    "TaskUpdate"
+  ],
+  "pact": {
+    "commit": "4607c7a079203b97aa1a0c0f1baa006ebb0982a4",
+    "tag": "v4.8.36",
+    "version": "4.8.36"
+  },
+  "plugin_root": "<plugin>",
+  "registry": {
+    "events": 13,
+    "items": [
+      {
+        "async": false,
+        "command": 0,
+        "event": "UserPromptSubmit",
+        "group": 0,
+        "hook": "bootstrap_marker_writer",
+        "matcher": null,
+        "script": "bootstrap_marker_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "UserPromptSubmit",
+        "group": 1,
+        "hook": "bootstrap_prompt_gate",
+        "matcher": null,
+        "script": "bootstrap_prompt_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "UserPromptSubmit",
+        "group": 2,
+        "hook": "missed_wake_scan",
+        "matcher": null,
+        "script": "missed_wake_scan.py",
+        "timeout_s": null
+      },
+      {
+        "async": true,
+        "command": 0,
+        "event": "UserPromptSubmit",
+        "group": 3,
+        "hook": "pin_marker_writer",
+        "matcher": null,
+        "script": "pin_marker_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "SessionStart",
+        "group": 0,
+        "hook": "session_init",
+        "matcher": null,
+        "script": "session_init.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "SessionStart",
+        "group": 1,
+        "hook": "missed_wake_scan",
+        "matcher": null,
+        "script": "missed_wake_scan.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreCompact",
+        "group": 0,
+        "hook": "precompact_state_reminder",
+        "matcher": null,
+        "script": "precompact_state_reminder.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostCompact",
+        "group": 0,
+        "hook": "postcompact_archive",
+        "matcher": null,
+        "script": "postcompact_archive.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 0,
+        "hook": "bootstrap_gate",
+        "matcher": null,
+        "script": "bootstrap_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 1,
+        "hook": "git_commit_check",
+        "matcher": "Bash",
+        "script": "git_commit_check.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 1,
+        "event": "PreToolUse",
+        "group": 1,
+        "hook": "merge_guard_pre",
+        "matcher": "Bash",
+        "script": "merge_guard_pre.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 2,
+        "event": "PreToolUse",
+        "group": 1,
+        "hook": "wait_filler_gate",
+        "matcher": "Bash",
+        "script": "wait_filler_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 2,
+        "hook": "dispatch_gate",
+        "matcher": "Agent",
+        "script": "dispatch_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 3,
+        "hook": "worktree_guard",
+        "matcher": "Edit|Write",
+        "script": "worktree_guard.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 1,
+        "event": "PreToolUse",
+        "group": 3,
+        "hook": "pin_staleness_gate",
+        "matcher": "Edit|Write",
+        "script": "pin_staleness_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 2,
+        "event": "PreToolUse",
+        "group": 3,
+        "hook": "pin_caps_gate",
+        "matcher": "Edit|Write",
+        "script": "pin_caps_gate.py",
+        "timeout_s": 600.0
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 4,
+        "hook": "handoff_ordering_gate",
+        "matcher": "TaskUpdate",
+        "script": "handoff_ordering_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PreToolUse",
+        "group": 5,
+        "hook": "task_claim_gate",
+        "matcher": "Edit|Write|Bash",
+        "script": "task_claim_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "SubagentStop",
+        "group": 0,
+        "hook": "validate_handoff",
+        "matcher": null,
+        "script": "validate_handoff.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "Stop",
+        "group": 0,
+        "hook": "stop_background_gate",
+        "matcher": null,
+        "script": "stop_background_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "SubagentStart",
+        "group": 0,
+        "hook": "peer_inject",
+        "matcher": null,
+        "script": "peer_inject.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "SubagentStart",
+        "group": 1,
+        "hook": "roster_writer",
+        "matcher": null,
+        "script": "roster_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": true,
+        "command": 0,
+        "event": "SessionEnd",
+        "group": 0,
+        "hook": "session_end",
+        "matcher": null,
+        "script": "session_end.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "TaskCompleted",
+        "group": 0,
+        "hook": "agent_handoff_emitter",
+        "matcher": null,
+        "script": "agent_handoff_emitter.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "TeammateIdle",
+        "group": 0,
+        "hook": "teammate_idle",
+        "matcher": null,
+        "script": "teammate_idle.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 0,
+        "hook": "track_files",
+        "matcher": "Edit|Write|Bash",
+        "script": "track_files.py",
+        "timeout_s": null
+      },
+      {
+        "async": true,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 1,
+        "hook": "file_tracker",
+        "matcher": "Edit|Write",
+        "script": "file_tracker.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 2,
+        "hook": "merge_guard_post",
+        "matcher": "AskUserQuestion|Bash",
+        "script": "merge_guard_post.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 3,
+        "hook": "task_lifecycle_gate",
+        "matcher": "TaskCreate|TaskUpdate",
+        "script": "task_lifecycle_gate.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 4,
+        "hook": "bootstrap_marker_writer",
+        "matcher": "Agent",
+        "script": "bootstrap_marker_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 5,
+        "hook": "roster_writer",
+        "matcher": "Agent",
+        "script": "roster_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": true,
+        "command": 0,
+        "event": "PostToolUse",
+        "group": 6,
+        "hook": "pin_marker_writer",
+        "matcher": "Skill",
+        "script": "pin_marker_writer.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 0,
+        "event": "PostToolUseFailure",
+        "group": 0,
+        "hook": "track_files",
+        "matcher": "Bash",
+        "script": "track_files.py",
+        "timeout_s": null
+      },
+      {
+        "async": false,
+        "command": 1,
+        "event": "PostToolUseFailure",
+        "group": 0,
+        "hook": "merge_guard_post",
+        "matcher": "Bash",
+        "script": "merge_guard_post.py",
+        "timeout_s": null
+      }
+    ],
+    "modules": 28,
+    "registrations": 34
+  },
+  "schemaVersion": 1,
+  "tool_sets": {
+    "_BLOCKED_TOOLS": [
+      "Agent",
+      "Edit",
+      "NotebookEdit",
+      "Write"
+    ],
+    "_DEGRADED_ASK_TOOLS": [
+      "WebFetch",
+      "WebSearch"
+    ],
+    "_READ_ONLY_TOOLS": [
+      "AskUserQuestion",
+      "ExitPlanMode",
+      "Glob",
+      "Grep",
+      "Read",
+      "Skill",
+      "TaskGet",
+      "TaskList",
+      "ToolSearch",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}

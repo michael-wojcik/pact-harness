@@ -31,6 +31,7 @@ from .capabilities import CapabilitySet, Tier
 from .errors import PactHarnessError, VendorError
 from .paths import (
     find_harness_root,
+    plugin_dir,
     resolve_backlog_dir,
     resolve_memory_dir,
     resolve_plugin_root,
@@ -447,7 +448,7 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
     """Run every registration against the corpus and report."""
     from .conformance.suite import run_conformance
 
-    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    plugin_root = _plugin_root_from(args.plugin_root)
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
@@ -482,7 +483,7 @@ def _cmd_playbook_build(args: argparse.Namespace) -> int:
     from .playbook.compile import PlaybookError, compile_playbook
     from .vendor import VendorError, load_pin
 
-    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    plugin_root = _plugin_root_from(args.plugin_root)
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
@@ -543,11 +544,87 @@ def _cmd_playbook_build(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _plugin_root_from(value: str | None) -> Path | None:
+    """Resolve an explicit --plugin-root, accepting a repository or a plugin dir.
+
+    A caller who clones upstream points at the repository, whose plugin lives in
+    a directory of the same name. Accepting both means the flag matches what the
+    caller sees in their editor.
+    """
+    if value:
+        return plugin_dir(Path(value))
+    return resolve_plugin_root()
+
+
+def _cmd_upstream(args: argparse.Namespace) -> int:
+    """Inspect or verify the upstream surface."""
+    from .upstream.inspect import InspectError, inspect_surface
+    from .upstream.verify import verify_surface
+    from .vendor import VendorError, load_pin
+
+    plugin_root = _plugin_root_from(args.plugin_root)
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    pact_version = ""
+    commit = ""
+    tag = ""
+    harness = find_harness_root()
+    if harness is not None:
+        try:
+            pin = load_pin(harness)
+            pact_version, commit, tag = pin.pact_version, pin.commit, pin.tag or ""
+        except VendorError:
+            pass
+    try:
+        surface = inspect_surface(
+            plugin_root, pact_version=pact_version, commit=commit, tag=tag
+        )
+    except InspectError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+
+    if args.action == "inspect":
+        document = surface.to_dict()
+        if args.out:
+            destination = Path(args.out)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(
+                json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            print(f"surface      : {destination}")
+            registry = document["registry"]
+            print(
+                "contents     : "
+                f"{registry['registrations']} registrations, {registry['events']} events, "
+                f"{registry['modules']} modules, {len(document['env_reads'])} env reads, "
+                f"{len(document['artifacts'])} artifacts"
+            )
+        else:
+            print(json.dumps(document, indent=2, sort_keys=True))
+        return EXIT_OK
+
+    report = verify_surface(surface, allow_unknown_env=getattr(args, "allow_unknown_env", False))
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    else:
+        facts = report.facts
+        print(f"registrations: {facts.get('registrations')}")
+        print(f"env reads    : {facts.get('env_reads')}")
+        print(f"artifacts    : {facts.get('artifacts')}")
+        print(f"errors       : {len(report.errors)}")
+        for item in report.errors:
+            print(f"  error: {item}")
+        for item in report.warnings:
+            print(f"  warning: {item}")
+    return EXIT_OK if report.ok else EXIT_PROBLEM
+
+
 def _cmd_memory_status(args: argparse.Namespace) -> int:
     """Report the memory backend's location and presence."""
     from .memory import CliMemoryBackend, MemoryBackendError
 
-    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    plugin_root = _plugin_root_from(args.plugin_root)
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
@@ -574,7 +651,7 @@ def _cmd_mcp_serve(args: argparse.Namespace) -> int:
     from .mcp.server import McpServer
     from .mcp.tools import ToolOptions
 
-    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    plugin_root = _plugin_root_from(args.plugin_root)
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
@@ -591,7 +668,7 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
 
-    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    plugin_root = _plugin_root_from(args.plugin_root)
     if plugin_root is None:
         print(
             "pact: no plugin root: pass --plugin-root, set PACT_PLUGIN_ROOT, "
@@ -705,6 +782,23 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    upstream = subparsers.add_parser("upstream", help="inspect or verify the upstream surface")
+    upstream_actions = upstream.add_subparsers(dest="action", required=True)
+    upstream_inspect = upstream_actions.add_parser("inspect", help="extract the surface manifest")
+    upstream_inspect.add_argument("--plugin-root", metavar="DIR")
+    upstream_inspect.add_argument("--out", metavar="PATH", help="write the manifest here")
+    upstream_inspect.add_argument("--json", action="store_true", help="print JSON when no --out")
+    upstream_inspect.set_defaults(func=_cmd_upstream)
+    upstream_verify = upstream_actions.add_parser("verify", help="check the tree against the harness")
+    upstream_verify.add_argument("--plugin-root", metavar="DIR")
+    upstream_verify.add_argument("--json", action="store_true", help="print JSON")
+    upstream_verify.add_argument(
+        "--allow-unknown-env",
+        action="store_true",
+        help="report an unclassified environment read as a warning",
+    )
+    upstream_verify.set_defaults(func=_cmd_upstream)
 
     memory = subparsers.add_parser("memory", help="inspect the memory backend")
     memory_actions = memory.add_subparsers(dest="action", required=True)

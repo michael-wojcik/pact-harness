@@ -33,9 +33,11 @@ CANONICAL_TOOLS: frozenset[str] = frozenset(
         "TaskStop",
         "TaskUpdate",
         "TodoWrite",
+        "ToolSearch",
         "WebFetch",
         "WebSearch",
         "Write",
+        "ExitPlanMode",
     }
 )
 

@@ -18,6 +18,15 @@ reads this and [plan.md](plan.md) before touching code.
   directive folding, the Python DSH adapter, the cordis bridge,
   install/uninstall, and a real DSH profile that composes and boots are done.
   The only unproven assertion is a model-backed turn, which needs a key.
+- **M5 — in progress.** `pact upstream inspect` extracts the surface: 34
+  registrations, the matcher vocabulary, the three gate tool-sets, 14
+  environment reads with their sites (including reads that go through a module
+  constant), 73 hashed artifacts and the decision-token counts. A baseline is
+  committed at `harness/upstream-surface.v1.json` and a test fails if the pin
+  moves without regenerating it. `pact upstream verify` classifies each read and
+  each tool name against the harness's contract and names the gaps. A nightly
+  lane runs verify against upstream `main`. Remaining: the L0-L4 diff
+  classification and the sync PR.
 - **M4 — in progress.** The generic MCP adapter serves newline-delimited
   JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
   `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools

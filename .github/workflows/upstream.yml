@@ -1,0 +1,45 @@
+name: upstream
+
+# The harness follows upstream main, not only the pin. This lane answers one
+# question daily: does the tree the harness will absorb next still fit? A failure
+# is the signal -- it names the matcher, tool name or environment read that the
+# harness does not classify, which is exactly the work an upstream bump creates.
+#
+# It is separate from the contract lane on purpose: that lane protects the pin,
+# and this one protects the next bump. A red here does not block a pull request.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: upstream-main-compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the harness
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the test runner
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Fetch upstream main
+        run: git clone --depth 1 https://github.com/Synaptic-Labs-AI/PACT-Plugin.git "$RUNNER_TEMP/upstream"
+
+      - name: Verify the harness still fits upstream main
+        run: PYTHONPATH=python/src python -m pact_harness upstream verify --plugin-root "$RUNNER_TEMP/upstream"
+
+      - name: Conformance against the pinned tree
+        run: PYTHONPATH=python/src python -m pact_harness conformance
