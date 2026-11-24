@@ -232,6 +232,30 @@ test('role is derived structurally', () => {
   assert.equal(events.roleOf({ subagents }, 'child'), 'teammate');
 });
 
+test('the optional team service is read through ctx.get, never the property', () => {
+  const subagents = { rootOf: (agent) => (agent === 'root' ? 'root' : 'other') };
+  const services = { subagents };
+  const ctx = {
+    get(name) {
+      return services[name];
+    },
+  };
+  assert.equal(events.roleOf(ctx, 'root'), 'lead');
+  assert.equal(events.roleOf(ctx, 'child'), 'teammate');
+});
+
+test('a cordis-style property read failure does not break role detection', () => {
+  const ctx = {
+    get() {
+      return undefined;
+    },
+    get subagents() {
+      throw new Error('cannot get property "subagents" without inject');
+    },
+  };
+  assert.equal(events.roleOf(ctx, { session: { id: 's' } }), 'lead');
+});
+
 test('event ids are contract-safe', () => {
   const id = events.eventId('session/with spaces:and:colons');
   assert.match(id, /^[A-Za-z0-9][A-Za-z0-9_-]*$/);

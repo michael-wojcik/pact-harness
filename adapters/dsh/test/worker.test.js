@@ -82,3 +82,35 @@ test('the worker evaluates a DSH event end to end', { skip: !pythonAvailable() }
   assert.ok(envelope.directives.length > 0);
   assert.ok(envelope.meta.elapsed_ms >= 0);
 });
+
+test('a real gate refuses a real force-push through the worker', { skip: !pythonAvailable() }, async (t) => {
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-dsh-deny-'));
+  const worker = new HarnessWorker({
+    python: 'python3',
+    pluginRoot: PLUGIN,
+    stateRoot,
+    env: { ...process.env, PYTHONPATH: SRC },
+    timeoutMs: 60000,
+  });
+  t.after(() => worker.stop());
+
+  const envelope = await worker.evaluate({
+    v: 1,
+    id: 'evt_node_deny',
+    kind: 'tool.pre',
+    at: new Date().toISOString(),
+    adapter: 'dsh',
+    session: { id: 'sess-deny', cwd: REPO_ROOT, project_dir: REPO_ROOT },
+    actor: { role: 'lead', name: 'lead', type: 'pact-orchestrator' },
+    tool: {
+      canonical: 'Bash',
+      native: 'bash',
+      input: { command: 'git push --force origin main' },
+    },
+  });
+
+  const refusal = envelope.directives.find((directive) => directive.kind === 'deny');
+  assert.ok(refusal, 'merge_guard_pre should refuse a force-push');
+  assert.equal(refusal.rule, 'merge_guard_pre');
+  assert.match(refusal.reason, /approval/i);
+});

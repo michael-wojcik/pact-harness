@@ -10,9 +10,25 @@ reads this and [plan.md](plan.md) before touching code.
   transport seam, per-group concurrency, Claude Code adapter, and a real
   refusal proven end to end. Remaining: the conformance corpus and the 34/34
   registration parity sweep.
-- **M2 — in progress.** Warm transport, event engine, directive folding, the
-  Python DSH adapter, the cordis bridge and `pact install/uninstall dsh` are
-  done. Remaining: the headless end-to-end harness and the conformance corpus.
+- **M2 — in progress, near complete.** Warm transport, event engine, directive
+  folding, the Python DSH adapter, the cordis bridge, install/uninstall, and a
+  real DSH profile that composes and boots are done. Remaining: a model-backed
+  end-to-end turn (needs a key) and the conformance corpus.
+
+### DSH end-to-end evidence
+
+- `pact install dsh --profile pact-e2e` ran `dsh plugin add`, which created the
+  profile and linked the bundle; `dsh --dump-config` then showed the
+  `pact-dsh` row with the enforced-gate config.
+- Booting that profile wrote `~/.pact/pact-harness/dsh-activation.json`
+  (mode shadow, the two command gates), which proves the plugin loaded and
+  `apply()` ran. The run then stopped at `MISSING_CREDENTIAL`, which is the
+  expected outcome on a machine with no `DEEPSEEK_API_KEY`; that is the only
+  assertion a model-backed run would add.
+- A real gate refuses a real command through the bridge's worker:
+  `merge_guard_pre` denies `git push --force origin main` and carries its rule
+  and reason into the envelope (Node test, ~295 ms).
+- The profile was removed after measurement.
 
 ## Next actions, in order
 

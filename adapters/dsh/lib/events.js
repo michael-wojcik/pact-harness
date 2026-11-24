@@ -42,7 +42,16 @@ export function cwdOf(agent, fallback = process.cwd()) {
 /** Whether this agent is the tree root, and therefore the team lead. */
 export function roleOf(ctx, agent) {
   if (!agent) return 'unknown';
-  const subagents = ctx?.subagents;
+  // Read the service through ctx.get rather than the property: a cordis
+  // context throws on a property read for a service the plugin did not
+  // declare, and the team service is optional. The property path exists only
+  // for plain objects in tests.
+  let subagents;
+  try {
+    subagents = typeof ctx?.get === 'function' ? ctx.get('subagents') : ctx?.subagents;
+  } catch {
+    subagents = undefined;
+  }
   if (subagents && typeof subagents.rootOf === 'function') {
     try {
       return subagents.rootOf(agent) === agent ? 'lead' : 'teammate';
