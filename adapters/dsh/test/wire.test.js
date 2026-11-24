@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import { loadPlaybook, normalizeConfig, registerPersona, wire } from '../index.js';
+import { loadPlaybook, normalizeConfig, registerCommands, registerPersona, wire } from '../index.js';
 import * as events from '../lib/events.js';
 
 export function fakeCtx(services = {}) {
@@ -345,4 +345,55 @@ test('loadPlaybook reads a document and rejects a non-object', () => {
 test('the playbook path is part of the resolved config', () => {
   const config = normalizeConfig({ playbook: '/tmp/p.json' }, {});
   assert.equal(config.playbook, '/tmp/p.json');
+});
+
+function commandDocument() {
+  return {
+    v: 1,
+    platform: 'dsh',
+    personas: [],
+    commands: [
+      {
+        name: 'pact-orchestrate',
+        description: 'Delegate a task to PACT specialists',
+        argument_hint: '[implement feature X]',
+        body: 'Orchestrate the PACT cycle to address: {arguments}',
+        source: 'commands/orchestrate.md',
+      },
+    ],
+  };
+}
+
+test('commands are registered with the platform name and hint', () => {
+  const registered = [];
+  const ctx = fakeCtx({ commands: { register: (definition) => registered.push(definition) } });
+  const playbook = writePlaybook(commandDocument());
+  const count = registerCommands(ctx, { playbook }, { makeMessage: (text) => ({ text }) }, ctx.logger);
+  assert.equal(count, 1);
+  assert.equal(registered[0].name, 'pact-orchestrate');
+  assert.equal(registered[0].input.hint, '[implement feature X]');
+});
+
+test('a command handler injects the body with the user text substituted', async () => {
+  const registered = [];
+  const ctx = fakeCtx({ commands: { register: (definition) => registered.push(definition) } });
+  const playbook = writePlaybook(commandDocument());
+  const delivered = [];
+  const deps = { makeMessage: (text) => ({ text }) };
+  registerCommands(ctx, { playbook }, deps, ctx.logger);
+  const result = await registered[0].handler({
+    rawInput: 'build authentication',
+    agent: { followup: (message) => delivered.push(message) },
+  });
+  assert.equal(result.kind, 'success');
+  assert.equal(delivered.length, 1);
+  assert.match(delivered[0].text, /build authentication/);
+  assert.ok(!delivered[0].text.includes('{arguments}'));
+});
+
+test('a missing command service is a warning, not a failure', () => {
+  const ctx = fakeCtx({});
+  const playbook = writePlaybook(commandDocument());
+  assert.equal(registerCommands(ctx, { playbook }, { makeMessage: () => ({}) }, ctx.logger), 0);
+  assert.match(ctx.warnings.join('\n'), /command service unavailable/);
 });

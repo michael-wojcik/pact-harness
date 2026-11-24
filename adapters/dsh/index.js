@@ -143,6 +143,58 @@ export function registerPersona(ctx, settings, logger) {
   return text;
 }
 
+/**
+ * Register PACT's commands from the compiled playbook.
+ *
+ * A DSH command handler returns UI text; it does not talk to the model. The
+ * handler therefore injects the command body as a follow-up message, with the
+ * user's text substituted for the platform placeholder, and returns a short
+ * receipt. Returning the body as the result text instead would show it to the
+ * human and leave the agent with nothing to act on.
+ */
+export function registerCommands(ctx, settings, deps, logger) {
+  if (!settings.playbook) {
+    logger?.info?.('pact-dsh: no playbook configured; commands are not registered');
+    return 0;
+  }
+  let playbook;
+  try {
+    playbook = loadPlaybook(settings.playbook);
+  } catch (error) {
+    logger?.warn?.(`pact-dsh: cannot read the playbook: ${error?.message ?? error}`);
+    return 0;
+  }
+  const service = safeService(ctx, 'commands');
+  if (!service || typeof service.register !== 'function') {
+    logger?.warn?.('pact-dsh: command service unavailable; commands are not registered');
+    return 0;
+  }
+  const commands = Array.isArray(playbook.commands) ? playbook.commands : [];
+  let registered = 0;
+  for (const command of commands) {
+    if (!command || typeof command.name !== 'string' || typeof command.body !== 'string') continue;
+    const definition = {
+      definitionId: 'pact-harness',
+      name: command.name,
+      description: command.description || command.name,
+      input: { hint: command.argument_hint || '' },
+      handler: async (invocation) => {
+        const supplied = String(invocation?.rawInput ?? '').trim();
+        const body = command.body.split('{arguments}').join(supplied);
+        invocation?.agent?.followup?.(deps.makeMessage(body));
+        return { kind: 'success', text: `PACT ${command.name} delivered` };
+      },
+    };
+    const dispose = service.register(definition);
+    if (typeof dispose === 'function' && typeof ctx.effect === 'function') {
+      ctx.effect(() => dispose);
+    }
+    registered += 1;
+  }
+  logger?.info?.(`pact-dsh: registered ${registered} commands`);
+  return registered;
+}
+
 /** Write a startup record so a boot can be proven without a model. */
 export function recordActivation(settings, extra = {}) {
   const root = settings.stateRoot ?? path.join(os.homedir(), '.pact');
@@ -348,4 +400,5 @@ export function apply(ctx, config = {}) {
   }
   wire(ctx, settings, deps);
   registerPersona(ctx, settings, ctx.logger);
+  registerCommands(ctx, settings, deps, ctx.logger);
 }
