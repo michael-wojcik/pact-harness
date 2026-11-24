@@ -95,7 +95,7 @@ def test_install_writes_the_patch_and_reports_it(tmp_path: Path) -> None:
     assert any("skipped dsh plugin add" in note for note in result.notes)
 
 
-def test_install_registers_through_the_dsh_cli(tmp_path: Path) -> None:
+def test_install_materialises_a_bootable_profile_then_registers(tmp_path: Path) -> None:
     calls, runner = recorder()
     result = install_dsh(
         profile="pact",
@@ -108,14 +108,56 @@ def test_install_registers_through_the_dsh_cli(tmp_path: Path) -> None:
     assert calls == [
         [
             "/usr/local/bin/dsh",
+            "--profile",
+            "pact",
+            "--from-default-profile",
+            "headless",
+            "--dump-config",
+        ],
+        [
+            "/usr/local/bin/dsh",
             "plugin",
             "--profile",
             "pact",
             "add",
             str(adapter(tmp_path)),
-        ]
+        ],
     ]
-    assert result.commands[0].returncode == 0
+    assert [command.returncode for command in result.commands] == [0, 0]
+
+
+def test_an_existing_profile_is_not_recreated(tmp_path: Path) -> None:
+    home = tmp_path / "dsh"
+    profile = home / "profiles" / "pact"
+    profile.mkdir(parents=True)
+    (profile / "package.json").write_text("{}")
+    calls, runner = recorder()
+    install_dsh(
+        profile="pact",
+        dsh_home=home,
+        adapter_dir=adapter(tmp_path),
+        cli="/usr/local/bin/dsh",
+        runner=runner,
+        register=True,
+    )
+    assert calls == [
+        ["/usr/local/bin/dsh", "plugin", "--profile", "pact", "add", str(adapter(tmp_path))]
+    ]
+
+
+def test_base_profile_can_be_disabled(tmp_path: Path) -> None:
+    calls, runner = recorder()
+    install_dsh(
+        profile="pact",
+        dsh_home=tmp_path / "dsh",
+        adapter_dir=adapter(tmp_path),
+        cli="/usr/local/bin/dsh",
+        runner=runner,
+        register=True,
+        base_profile=None,
+    )
+    assert len(calls) == 1
+    assert calls[0][1] == "plugin"
 
 
 def test_a_failed_registration_stops_the_install(tmp_path: Path) -> None:

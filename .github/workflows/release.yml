@@ -1,0 +1,72 @@
+name: release
+
+# A tag is a promise: it says the tree at that commit passed the suite, the pin
+# is intact, and the version in every manifest agrees with the tag. This lane
+# checks those three before it builds anything, then attaches the artifacts to a
+# GitHub release.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: verify-and-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out with the vendored tree
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install the test runner and builder
+        run: python -m pip install --upgrade pip pytest build
+
+      - name: The tag matches the version in every manifest
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import tomllib
+          from pathlib import Path
+
+          tag = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          version = tomllib.loads(Path("python/pyproject.toml").read_text())["project"]["version"]
+          adapter = json.loads(Path("adapters/dsh/package.json").read_text())["version"]
+          if not (tag == version == adapter):
+              raise SystemExit(f"tag {tag}, harness {version}, bridge {adapter}")
+          print(f"version {version} agrees with tag {tag}")
+          PY
+
+      - name: Contract tests
+        run: PYTHONPATH=python/src python -m pytest python/tests -q
+
+      - name: Bridge tests
+        run: node --test adapters/dsh/test/
+
+      - name: Vendor pin invariant
+        run: tools/check-vendor-pin.sh
+
+      - name: Build the distribution
+        run: python -m build python --outdir dist
+
+      - name: Attach the artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          fail_on_unmatched_files: true

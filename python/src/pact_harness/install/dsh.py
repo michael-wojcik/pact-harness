@@ -267,10 +267,18 @@ def install_dsh(
     enforce_gates: Sequence[str] | None = None,
     cli: str | None = None,
     register: bool = True,
+    base_profile: str | None = "headless",
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
     env: Mapping[str, str] | None = None,
 ) -> InstallResult:
-    """Install the bridge into one profile."""
+    """Install the bridge into one profile.
+
+    A profile created by registering a bundle alone has no application bundle,
+    so it composes but cannot boot. When the profile does not exist yet and a
+    base profile is named, the host's own template is materialised first. That
+    ordering is why the flag is on this installer rather than in the docs: a
+    quickstart that produces a profile which cannot start is not a quickstart.
+    """
     if mode not in _MODES:
         raise InstallError(f"mode must be one of {sorted(_MODES)}, got {mode!r}")
     gates = tuple(_DEFAULT_GATES if enforce_gates is None else enforce_gates)
@@ -281,6 +289,7 @@ def install_dsh(
     adapter = adapter_dir if adapter_dir is not None else resolve_adapter_dir()
     commands: list[CommandResult] = []
     notes: list[str] = []
+    profile_dir = home / "profiles" / profile
 
     if register:
         executable = cli if cli is not None else resolve_dsh_cli(env)
@@ -288,6 +297,24 @@ def install_dsh(
             raise InstallError(
                 "dsh CLI not found: pass --dsh-cli, set DSH_CLI, or use --no-register"
             )
+        if base_profile and not (profile_dir / "package.json").is_file():
+            template = _run(
+                [
+                    executable,
+                    "--profile",
+                    profile,
+                    "--from-default-profile",
+                    base_profile,
+                    "--dump-config",
+                ],
+                runner=runner,
+            )
+            commands.append(template)
+            if template.returncode != 0:
+                notes.append(
+                    f"could not materialise the {base_profile!r} profile template "
+                    f"({template.returncode}); the profile may not boot"
+                )
         result = _run(
             [executable, "plugin", "--profile", profile, "add", str(adapter)],
             runner=runner,
@@ -300,7 +327,6 @@ def install_dsh(
     else:
         notes.append("skipped dsh plugin add; the profile must be registered separately")
 
-    profile_dir = home / "profiles" / profile
     profile_dir.mkdir(parents=True, exist_ok=True)
     if not (profile_dir / "package.json").is_file():
         notes.append(

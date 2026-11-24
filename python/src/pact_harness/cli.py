@@ -372,6 +372,7 @@ def _cmd_install(args: argparse.Namespace) -> int:
             enforce_gates=args.enforce_gate,
             cli=args.dsh_cli,
             register=not args.no_register,
+            base_profile=None if args.no_base_profile else args.base_profile,
         )
     except (InstallError, PactHarnessError) as exc:
         print(f"pact: {exc}", file=sys.stderr)
@@ -816,6 +817,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-register",
         action="store_true",
         help="skip dsh plugin add and only write the patch block",
+    )
+    install.add_argument(
+        "--base-profile",
+        default="headless",
+        metavar="NAME",
+        help="template used to create a bootable profile (default: headless)",
+    )
+    install.add_argument(
+        "--no-base-profile",
+        action="store_true",
+        help="do not materialise a template; the caller owns the profile",
     )
     install.add_argument("--json", action="store_true", help="print JSON")
     install.set_defaults(func=_cmd_install)

@@ -18,7 +18,12 @@ reads this and [plan.md](plan.md) before touching code.
   directive folding, the Python DSH adapter, the cordis bridge,
   install/uninstall, and a real DSH profile that composes and boots are done.
   The only unproven assertion is a model-backed turn, which needs a key.
-- **M5 — in progress.** `pact upstream inspect` extracts the surface: 34
+- **M6 — in progress.** Release docs landed: a rewritten README with an install
+  path per platform, [docs/architecture.md](architecture.md), per-platform
+  quickstarts, a changelog, a version-identity test that holds pyproject,
+  package and schemas to one number, and a tag-triggered release lane that
+  refuses a tag which disagrees with any manifest.
+- **M5 — complete.** `pact upstream inspect` extracts the surface: 34
   registrations, the matcher vocabulary, the three gate tool-sets, 14
   environment reads with their sites (including reads that go through a module
   constant), 73 hashed artifacts and the decision-token counts. A baseline is
