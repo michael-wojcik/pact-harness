@@ -356,6 +356,67 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return EXIT_PROBLEM if errors else EXIT_OK
 
 
+def _cmd_install(args: argparse.Namespace) -> int:
+    """Install the bridge into a host platform."""
+    from .install.dsh import InstallError, install_dsh
+
+    if args.platform != "dsh":
+        print(f"pact: install for {args.platform!r} is not implemented yet", file=sys.stderr)
+        return EXIT_PROBLEM
+    try:
+        result = install_dsh(
+            profile=args.profile,
+            dsh_home=Path(args.dsh_home) if args.dsh_home else None,
+            mode=args.mode,
+            enforce_gates=args.enforce_gate,
+            cli=args.dsh_cli,
+            register=not args.no_register,
+        )
+    except (InstallError, PactHarnessError) as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if args.json:
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"installed {args.platform} into profile {result.profile!r}")
+        print(f"profile dir : {result.profile_dir}")
+        print(f"patch       : {result.patch_path}")
+        print(f"mode        : {result.mode}")
+        print(f"enforcing   : {', '.join(result.enforce_gates) or 'nothing'}")
+        for note in result.notes:
+            print(f"note        : {note}")
+        print("next        : dsh --profile " + result.profile + " --dump-config | grep pact-dsh")
+    return EXIT_OK
+
+
+def _cmd_uninstall(args: argparse.Namespace) -> int:
+    """Remove the bridge from a host platform."""
+    from .install.dsh import InstallError, uninstall_dsh
+
+    if args.platform != "dsh":
+        print(f"pact: uninstall for {args.platform!r} is not implemented yet", file=sys.stderr)
+        return EXIT_PROBLEM
+    try:
+        result = uninstall_dsh(
+            profile=args.profile,
+            dsh_home=Path(args.dsh_home) if args.dsh_home else None,
+            cli=args.dsh_cli,
+            unregister=not args.no_unregister,
+        )
+    except (InstallError, PactHarnessError) as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if args.json:
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"uninstalled {args.platform} from profile {result.profile!r}")
+        print(f"patch       : {result.patch_path}")
+        print(f"block       : {'removed' if result.block_removed else 'not present'}")
+        for note in result.notes:
+            print(f"note        : {note}")
+    return EXIT_OK
+
+
 def _cmd_event(args: argparse.Namespace) -> int:
     """Evaluate one pact.event.v1 document from stdin and print its envelope."""
     from .adapters.registry import get_adapter
@@ -439,6 +500,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="fail unless the adapter reaches this tier (T0, T1, T2, T3)",
     )
     doctor.set_defaults(func=_cmd_doctor)
+
+    install = subparsers.add_parser("install", help="install the bridge into a host platform")
+    install.add_argument("platform", choices=["dsh"], help="platform to install into")
+    install.add_argument("--profile", default="pact", help="DSH profile to create or update")
+    install.add_argument("--dsh-home", metavar="DIR", help="DSH configuration root")
+    install.add_argument("--dsh-cli", metavar="PATH", help="dsh executable to use")
+    install.add_argument("--mode", default="shadow", choices=["off", "shadow", "enforce"])
+    install.add_argument(
+        "--enforce-gate",
+        action="append",
+        metavar="GATE",
+        help="gate to enforce in shadow mode (repeatable; defaults to the two command gates)",
+    )
+    install.add_argument(
+        "--no-register",
+        action="store_true",
+        help="skip dsh plugin add and only write the patch block",
+    )
+    install.add_argument("--json", action="store_true", help="print JSON")
+    install.set_defaults(func=_cmd_install)
+
+    uninstall = subparsers.add_parser("uninstall", help="remove the bridge from a host platform")
+    uninstall.add_argument("platform", choices=["dsh"], help="platform to uninstall from")
+    uninstall.add_argument("--profile", default="pact", help="DSH profile to update")
+    uninstall.add_argument("--dsh-home", metavar="DIR", help="DSH configuration root")
+    uninstall.add_argument("--dsh-cli", metavar="PATH", help="dsh executable to use")
+    uninstall.add_argument(
+        "--no-unregister",
+        action="store_true",
+        help="skip dsh plugin remove and only remove the patch block",
+    )
+    uninstall.add_argument("--json", action="store_true", help="print JSON")
+    uninstall.set_defaults(func=_cmd_uninstall)
 
     event = subparsers.add_parser("event", help="evaluate one pact.event.v1 document from stdin")
     event.add_argument("--adapter", required=True, metavar="ID", help="adapter to evaluate for")
