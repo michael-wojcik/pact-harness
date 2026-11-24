@@ -31,6 +31,14 @@ class HookTransport(Protocol):
 
     name: str
 
+    #: Whether the runtime may run one group's commands concurrently.
+    #:
+    #: A subprocess transport is safe to call from several threads. A transport
+    #: that forks is not: a child forked from a worker thread can deadlock on a
+    #: lock another thread held at the moment of the fork, which showed up as an
+    #: intermittent hook that never returned.
+    supports_parallel: bool
+
     def run(
         self,
         registration_script: Path,
@@ -49,6 +57,7 @@ class ColdTransport:
     """One fresh interpreter per hook: the native Claude Code behaviour."""
 
     name: str = "cold"
+    supports_parallel: bool = True
 
     def run(
         self,

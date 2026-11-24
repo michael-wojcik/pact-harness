@@ -36,7 +36,30 @@ The case for warm is still strong for three reasons:
 3. It also removes variance: a cold first call after any cache invalidation is
    seconds, and warm is flat.
 
-## Two fork hazards, both measured
+## Forking from a thread deadlocks (the most expensive finding)
+
+The runtime originally ran a group's hooks concurrently in a thread pool. With
+the warm transport that means **forking from worker threads**, and a child
+forked that way inherits whatever locks the other threads held at that instant.
+If one of those locks is needed by the hook's first import, the child never
+returns.
+
+The symptom was an evaluation child that hung roughly once every five calls,
+with no error and no indication of which hook stalled. Three separate fixes were
+needed to see it:
+
+1. A watchdog so one hung evaluation cannot wedge the whole worker.
+2. Moving the result across the process boundary through a temp file rather than
+   a pipe, since a pipe's end-of-file waits for every process that inherited the
+   write end -- including any descendant a hook left behind.
+3. Making group concurrency conditional on the transport: `supports_parallel` is
+   true for the subprocess transport and false for any transport that forks.
+
+The third is the actual fix. Sequential forked hooks cost tens of milliseconds
+and cannot deadlock. After it, 15 consecutive evaluations ran in 34 to 40 ms
+each with no hang, and the Node suite passed eight consecutive stress runs.
+
+## Two more fork hazards, both measured
 
 - **The child must flush stdout and stderr before `os._exit`.** A forked hook
   that calls `os._exit` skips interpreter shutdown, so a buffered `print` is

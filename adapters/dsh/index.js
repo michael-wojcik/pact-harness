@@ -52,7 +52,10 @@ export function normalizeConfig(config = {}, env = process.env) {
     ...merged,
     python: config.python ?? env.PACT_DSH_PYTHON ?? env.PACT_PYTHON ?? 'python3',
     pluginRoot: config.pluginRoot ?? env.PACT_PLUGIN_ROOT ?? undefined,
-    stateRoot: config.stateRoot ?? env.PACT_HOME ?? undefined,
+    // The same default the Python side resolves: a DSH install keeps its state
+    // under ~/.pact, separate from Claude Code's ~/.claude. A record written to
+    // the temporary directory instead would be invisible to pact doctor.
+    stateRoot: config.stateRoot ?? env.PACT_HOME ?? path.join(os.homedir(), '.pact'),
     socketPath: config.socketPath,
   };
 }
@@ -80,7 +83,7 @@ export async function loadMessageFactory(logger) {
 
 /** Write a startup record so a boot can be proven without a model. */
 export function recordActivation(settings, extra = {}) {
-  const root = settings.stateRoot ?? path.join(os.tmpdir(), 'pact-harness');
+  const root = settings.stateRoot ?? path.join(os.homedir(), '.pact');
   const directory = path.join(String(root), 'pact-harness');
   mkdirSync(directory, { recursive: true });
   const record = {

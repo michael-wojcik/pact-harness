@@ -111,6 +111,7 @@ def run_forked(
 
     sys.stdout.flush()
     sys.stderr.flush()
+    _debug(f"hook begin {script.name} timeout={timeout_s}")
     pid = os.fork()
     if pid == 0:  # pragma: no cover -- child process
         code = 1
@@ -203,6 +204,7 @@ def run_forked(
 
     _, status = os.waitpid(pid, 0)
     elapsed_ms = int((time.monotonic() - started) * 1000)
+    _debug(f"hook end {script.name} timed_out={timed_out} ms={elapsed_ms}")
     exit_code = None if timed_out else os.waitstatus_to_exitcode(status)
     return {
         "exit": exit_code,
@@ -224,6 +226,9 @@ class ForkTransport:
     """
 
     name: str = "fork"
+    # Forking from a worker thread can deadlock the child on a lock held at the
+    # moment of the fork, so this transport never runs a group concurrently.
+    supports_parallel: bool = False
 
     def run(
         self,
@@ -255,6 +260,7 @@ class WarmTransport:
 
     socket_path: Path
     name: str = "warm"
+    supports_parallel: bool = False
 
     def _roundtrip(self, payload: Mapping[str, Any], timeout_s: float | None) -> dict[str, Any]:
         """Send one request and read one JSON response."""
@@ -452,6 +458,100 @@ def _handle(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
     }
 
 
+#: How long one evaluation may take before the worker kills it.
+DEFAULT_EVALUATE_TIMEOUT_S = 120.0
+
+
+def _debug(message: str) -> None:
+    """Append a diagnostic line when PACT_WARM_DEBUG names a file."""
+    path = (os.environ.get("PACT_WARM_DEBUG") or "").strip()
+    if not path:
+        return
+    try:
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(f"{os.getpid()} {time.monotonic():.3f} {message}\n")
+    except OSError:
+        pass
+
+
+def _fork_call(func, timeout_s: float | None) -> dict[str, Any]:
+    """Run a callable in a forked child and read back its JSON result.
+
+    The evaluation gets its own child so a hung hook cannot wedge the worker;
+    without it, one blocked fork inside a serial worker stops every later
+    request for the life of the plugin.
+
+    The result crosses the boundary through a temporary file rather than a
+    pipe. A pipe must reach end-of-file before the parent can read, and
+    end-of-file waits for every process that inherited the write end -- which
+    includes any descendant a hook leaves behind. That produced an intermittent
+    hang whose only symptom was a caller timeout. A file plus a polled waitpid
+    has no such dependency, and the deadline is enforced by the same loop that
+    collects the result.
+    """
+    handle, path = tempfile.mkstemp(prefix="pact-eval-", suffix=".json")
+    os.close(handle)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    _debug(f"fork_call begin timeout={timeout_s}")
+    pid = os.fork()
+    if pid == 0:  # pragma: no cover -- child process
+        try:
+            try:
+                payload = json.dumps(func())
+            except BaseException as exc:  # noqa: BLE001 -- reported to the parent
+                payload = json.dumps(
+                    {"status": "error", "error": f"{type(exc).__name__}: {exc}"}
+                )
+            with open(path, "w", encoding="utf-8") as out:
+                out.write(payload)
+        finally:
+            try:
+                sys.stdout.flush()
+                sys.stderr.flush()
+            except BaseException:
+                pass
+            os._exit(0)
+
+    deadline = None if timeout_s is None else time.monotonic() + timeout_s
+    timed_out = False
+    while True:
+        finished, _ = os.waitpid(pid, os.WNOHANG)
+        if finished == pid:
+            break
+        if deadline is not None and time.monotonic() >= deadline:
+            timed_out = True
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+            os.waitpid(pid, 0)
+            break
+        time.sleep(0.002)
+    _debug(f"fork_call parent done pid={pid} timed_out={timed_out}")
+
+    try:
+        if timed_out:
+            return {
+                "type": "evaluate",
+                "status": "error",
+                "error": f"evaluation exceeded {timeout_s:g}s and was killed",
+            }
+        with open(path, "r", encoding="utf-8") as result_file:
+            parsed = json.loads(result_file.read())
+    except (OSError, json.JSONDecodeError, ValueError):
+        return {"type": "evaluate", "status": "error", "error": "unreadable evaluation result"}
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+    if not isinstance(parsed, dict):
+        return {"type": "evaluate", "status": "error", "error": "evaluation returned a non-object"}
+    return parsed
+
+
 def _evaluate(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
     """Evaluate one normalised event inside the warm worker.
 
@@ -460,6 +560,13 @@ def _evaluate(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
     of routing evaluation through the worker: a tool call pays one socket round
     trip and one fork per hook, not one interpreter start per hook.
     """
+    timeout = request.get("timeout_s")
+    timeout_s = float(timeout) if timeout else DEFAULT_EVALUATE_TIMEOUT_S
+    return _fork_call(lambda: _evaluate_now(request, plugin_root), timeout_s)
+
+
+def _evaluate_now(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
+    """The evaluation body, run inside the watchdog child."""
     try:
         from ..adapters.registry import get_adapter
         from ..contract import EventV1

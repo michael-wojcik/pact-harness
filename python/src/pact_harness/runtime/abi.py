@@ -1,14 +1,19 @@
 """Execute the hooks registered for one event.
 
-Groups run sequentially and the commands inside a group run concurrently. That
-mirrors the host contract the registrations were written against, and it keeps
-a three-command Bash event at the cost of its slowest hook rather than their
-sum.
+Groups always run sequentially, because that mirrors the host contract the
+registrations were written against. Inside a group, the commands run
+concurrently only when the transport allows it.
 
-Concurrency is safe here because each command is a separate process with its
-own stdin and its own files; the hooks that share state coordinate through
-upstream's own locks. Ordering is preserved in the returned tuple so a
-conformance report reads the same as hooks.json.
+A subprocess transport does. A forking transport does not: forking from a worker
+thread can deadlock the child on a lock another thread held at the instant of
+the fork. That defect was measured, not theorised -- a parallel group running
+three forked hooks hung roughly once every five evaluations, always with the
+same shape: an evaluation child that never returned and no indication of which
+hook stalled. The forked path therefore runs its group sequentially, which
+costs tens of milliseconds and cannot deadlock.
+
+Ordering is preserved in the returned tuple so a conformance report reads the
+same as hooks.json.
 """
 
 from __future__ import annotations
@@ -107,20 +112,22 @@ def run_event(
 ) -> tuple[HookRun, ...]:
     """Run every registration for one event, in manifest order."""
     registrations = registry.for_event(event, tool_name=tool_name)
+    parallel = bool(getattr(transport, "supports_parallel", False))
     runs: list[HookRun] = []
     for group in _grouped(registrations):
-        if len(group) == 1:
-            runs.append(
-                run_hook(
-                    group[0],
-                    stdin,
-                    env=env,
-                    python=python,
-                    cwd=cwd,
-                    inject_target=inject_target,
-                    transport=transport,
+        if len(group) == 1 or not parallel:
+            for registration in group:
+                runs.append(
+                    run_hook(
+                        registration,
+                        stdin,
+                        env=env,
+                        python=python,
+                        cwd=cwd,
+                        inject_target=inject_target,
+                        transport=transport,
+                    )
                 )
-            )
             continue
         workers = min(len(group), MAX_PARALLEL_PER_GROUP)
         with ThreadPoolExecutor(max_workers=workers) as pool:

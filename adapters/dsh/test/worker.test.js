@@ -44,6 +44,11 @@ test('config resolves interpreter and roots from the environment', () => {
   assert.equal(config.stateRoot, '/s');
 });
 
+test('the state root defaults to the same place the Python side uses', () => {
+  const config = normalizeConfig({}, {});
+  assert.equal(config.stateRoot, path.join(os.homedir(), '.pact'));
+});
+
 test('the worker evaluates a DSH event end to end', { skip: !pythonAvailable() }, async (t) => {
   const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-dsh-test-'));
   const worker = new HarnessWorker({

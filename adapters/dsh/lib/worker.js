@@ -121,7 +121,12 @@ export class HarnessWorker {
     await this.start();
     const response = await requestOverSocket(
       this.socketPath,
-      { type: 'evaluate', event, state_root: this.stateRoot },
+      {
+        type: 'evaluate',
+        event,
+        state_root: this.stateRoot,
+        timeout_s: Math.max(1, Math.floor(this.timeoutMs / 1000)),
+      },
       this.timeoutMs,
     );
     if (response?.status === 'error') {

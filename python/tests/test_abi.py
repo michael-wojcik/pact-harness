@@ -149,5 +149,49 @@ def test_registrations_are_executable(registry: HookRegistry) -> None:
 
 def test_cold_transport_is_the_default_and_warm_is_available_here() -> None:
     assert ColdTransport().name == "cold"
-    # The warm transport is POSIX-only and is the planned latency fix.
+    assert ColdTransport().supports_parallel is True
+    # The warm transport is POSIX-only.
     assert warm_supported() is True
+
+
+def test_a_forking_transport_opts_out_of_group_concurrency() -> None:
+    from pact_harness.runtime.warm import ForkTransport
+
+    # Forking from a worker thread can deadlock the child on a lock held at the
+    # instant of the fork, so the runtime must not call a forking transport from
+    # several threads. This flag is the contract that keeps that true.
+    assert ForkTransport().supports_parallel is False
+
+
+def test_a_sequential_transport_runs_every_hook_in_order(
+    registry: HookRegistry, adapter: ClaudeCodeAdapter, tmp_path: Path
+) -> None:
+    work = tmp_path / "proj"
+    work.mkdir()
+    state = tmp_path / "state"
+    state.mkdir()
+    frame = {
+        "session_id": "sess-seq",
+        "cwd": str(work),
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Edit",
+        "tool_input": {"file_path": str(work / "a.py")},
+        "agent_type": "pact-orchestrator",
+    }
+    event, context, env = invocation(adapter, frame, state)
+    runs = run_event(
+        registry,
+        "PreToolUse",
+        stdin=adapter.legacy_stdin(event).data,
+        env=env.values,
+        python=sys.executable,
+        tool_name="Edit",
+        cwd=str(work),
+    )
+    assert [run.registration.hook for run in runs] == [
+        "bootstrap_gate",
+        "worktree_guard",
+        "pin_staleness_gate",
+        "pin_caps_gate",
+        "task_claim_gate",
+    ]

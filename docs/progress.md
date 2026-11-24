@@ -11,11 +11,8 @@ reads this and [plan.md](plan.md) before touching code.
   refusal proven end to end. Remaining: the conformance corpus and the 34/34
   registration parity sweep.
 - **M2 — in progress.** Warm transport, event engine, directive folding, the
-  Python DSH adapter and the cordis bridge are done. The bridge maps the DSH
-  extension points onto `pact.event.v1`, evaluates through the warm worker, and
-  renders directives back into DSH decisions, with shadow/enforce policy.
-  Remaining: `pact install dsh`, the headless end-to-end harness, and the
-  conformance corpus.
+  Python DSH adapter, the cordis bridge and `pact install/uninstall dsh` are
+  done. Remaining: the headless end-to-end harness and the conformance corpus.
 
 ## Next actions, in order
 
@@ -29,6 +26,15 @@ reads this and [plan.md](plan.md) before touching code.
    synthetic frame per event and per role.
 5. **34/34 parity sweep**: for every registration, run the hook directly and
    through the harness, and assert identical stdout and exit code.
+
+## Defects found by measuring, not by reading
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Decisions silently missing from a forked hook | `os._exit` skips interpreter shutdown, discarding buffered stdout | flush before exit |
+| Decisions written into the embedder's buffer | the child inherited the parent's `sys.stdout` object | rebind the child's stdio to its descriptors |
+| A caller timeout with no error | a pipe's EOF waits on every process holding the write end | temp file plus polled `waitpid` |
+| An evaluation hung about 1 in 5 | forking from thread-pool workers deadlocks the child on a lock held at fork time | `supports_parallel` is false for forking transports |
 
 ## Measured facts that corrected the plan
 
