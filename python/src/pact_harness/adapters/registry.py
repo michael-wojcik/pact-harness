@@ -18,7 +18,7 @@ class NotImplementedAdapterError(NotImplementedError):
     """The adapter was named but is not part of this build."""
 
 
-_IMPLEMENTED = ("claude-code",)
+_IMPLEMENTED = ("claude-code", "dsh")
 
 
 def available_adapters() -> tuple[str, ...]:
@@ -45,6 +45,10 @@ def get_adapter(adapter_id: str) -> PlatformAdapter:
         from .claude_code import ClaudeCodeAdapter
 
         return ClaudeCodeAdapter()
+    if adapter_id == "dsh":
+        from .dsh import DshAdapter
+
+        return DshAdapter()
     raise NotImplementedAdapterError(
         f"adapter {adapter_id!r} is not implemented in this build; "
         f"available: {', '.join(_IMPLEMENTED)}"

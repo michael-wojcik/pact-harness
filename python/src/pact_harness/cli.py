@@ -356,6 +356,32 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return EXIT_PROBLEM if errors else EXIT_OK
 
 
+def _cmd_event(args: argparse.Namespace) -> int:
+    """Evaluate one pact.event.v1 document from stdin and print its envelope."""
+    from .adapters.registry import get_adapter
+    from .contract import EventV1
+    from .engine import config_for, evaluate
+
+    raw = sys.stdin.read()
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print(f"pact: event stdin is not JSON: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    event = EventV1.from_dict(payload)
+    adapter = get_adapter(args.adapter)
+    config = config_for(
+        adapter_id=args.adapter,
+        plugin_root=Path(args.plugin_root) if args.plugin_root else None,
+        state_root=Path(args.state_root) if args.state_root else None,
+        python=args.python,
+        base_env=dict(os.environ),
+    )
+    envelope = evaluate(event, config, adapter=adapter)
+    print(json.dumps(envelope.to_dict(), ensure_ascii=False, separators=(",", ":")))
+    return EXIT_OK
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
@@ -405,6 +431,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="fail unless the adapter reaches this tier (T0, T1, T2, T3)",
     )
     doctor.set_defaults(func=_cmd_doctor)
+
+    event = subparsers.add_parser("event", help="evaluate one pact.event.v1 document from stdin")
+    event.add_argument("--adapter", required=True, metavar="ID", help="adapter to evaluate for")
+    event.add_argument("--plugin-root", metavar="DIR", help="PACT tree to run")
+    event.add_argument("--state-root", metavar="DIR", help="state root for this evaluation")
+    event.add_argument("--python", metavar="PATH", help="interpreter for the hook children")
+    event.set_defaults(func=_cmd_event)
 
     serve = subparsers.add_parser("serve", help="run the warm hook worker")
     serve.add_argument("--socket", required=True, metavar="PATH", help="unix socket to bind")
