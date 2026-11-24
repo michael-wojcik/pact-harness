@@ -357,10 +357,62 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return EXIT_PROBLEM if errors else EXIT_OK
 
 
+def _cmd_install_generic(args: argparse.Namespace, *, uninstall: bool = False) -> int:
+    """Write or remove the advisory surface for an AGENTS.md platform."""
+    from .install.generic import (
+        GenericInstallError,
+        install_generic,
+        uninstall_generic,
+    )
+
+    plugin_root = _plugin_root_from(getattr(args, "plugin_root", None))
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    target = Path(args.target).expanduser()
+    skills_root = Path(args.skills_root).expanduser() if getattr(args, "skills_root", None) else None
+    try:
+        if uninstall:
+            result = uninstall_generic(target, plugin_root, skills_root=skills_root)
+        else:
+            result = install_generic(
+                target,
+                plugin_root,
+                skills_root=skills_root,
+                link_skills=not getattr(args, "no_skills", False),
+            )
+    except (GenericInstallError, PactHarnessError) as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if getattr(args, "json", False):
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        return EXIT_OK
+    verb = "uninstalled" if uninstall else "installed"
+    print(f"{verb} generic advisory surface")
+    print(f"target      : {result.target}")
+    print(f"agents.md   : {result.agents_md}")
+    print(f"skills root : {result.skills_root}")
+    print(f"skills      : {len(result.linked)} linked")
+    for name in result.skipped:
+        print(f"skipped     : {name}")
+    for note in result.notes:
+        print(f"note        : {note}")
+    if not uninstall:
+        print("next        : start the server with: pact mcp serve")
+    return EXIT_OK
+
+
+def _cmd_uninstall_generic(args: argparse.Namespace) -> int:
+    """Remove the advisory surface."""
+    return _cmd_install_generic(args, uninstall=True)
+
+
 def _cmd_install(args: argparse.Namespace) -> int:
     """Install the bridge into a host platform."""
     from .install.dsh import InstallError, install_dsh
 
+    if args.platform == "generic":
+        return _cmd_install_generic(args)
     if args.platform != "dsh":
         print(f"pact: install for {args.platform!r} is not implemented yet", file=sys.stderr)
         return EXIT_PROBLEM
@@ -395,6 +447,8 @@ def _cmd_uninstall(args: argparse.Namespace) -> int:
     """Remove the bridge from a host platform."""
     from .install.dsh import InstallError, uninstall_dsh
 
+    if args.platform == "generic":
+        return _cmd_uninstall_generic(args)
     if args.platform != "dsh":
         print(f"pact: uninstall for {args.platform!r} is not implemented yet", file=sys.stderr)
         return EXIT_PROBLEM
@@ -802,7 +856,15 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.set_defaults(func=_cmd_doctor)
 
     install = subparsers.add_parser("install", help="install the bridge into a host platform")
-    install.add_argument("platform", choices=["dsh"], help="platform to install into")
+    install.add_argument("platform", choices=["dsh", "generic"], help="platform to install into")
+    install.add_argument("--target", default=".", help="project directory for generic installs")
+    install.add_argument("--skills-root", metavar="DIR", help="shared skills root for generic installs")
+    install.add_argument(
+        "--no-skills",
+        action="store_true",
+        help="write the section without linking skills (generic)",
+    )
+    install.add_argument("--plugin-root", metavar="DIR", help="upstream tree to link (generic)")
     install.add_argument("--profile", default="pact", help="DSH profile to create or update")
     install.add_argument("--dsh-home", metavar="DIR", help="DSH configuration root")
     install.add_argument("--dsh-cli", metavar="PATH", help="dsh executable to use")
@@ -833,7 +895,10 @@ def build_parser() -> argparse.ArgumentParser:
     install.set_defaults(func=_cmd_install)
 
     uninstall = subparsers.add_parser("uninstall", help="remove the bridge from a host platform")
-    uninstall.add_argument("platform", choices=["dsh"], help="platform to uninstall from")
+    uninstall.add_argument("platform", choices=["dsh", "generic"], help="platform to uninstall from")
+    uninstall.add_argument("--target", default=".", help="project directory for generic uninstalls")
+    uninstall.add_argument("--skills-root", metavar="DIR", help="shared skills root for generic uninstalls")
+    uninstall.add_argument("--plugin-root", metavar="DIR", help="upstream tree whose links are removed")
     uninstall.add_argument("--profile", default="pact", help="DSH profile to update")
     uninstall.add_argument("--dsh-home", metavar="DIR", help="DSH configuration root")
     uninstall.add_argument("--dsh-cli", metavar="PATH", help="dsh executable to use")

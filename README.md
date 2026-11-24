@@ -56,10 +56,19 @@ Full quickstart, including how to prove the installation without a model key:
 pact mcp serve
 ```
 
-Any client that speaks MCP over stdio can call `pact_event`, `pact_gate` and the
-memory tools. This is the honest advisory tier: the tools report what PACT
-thinks, and nothing on this path can veto a tool call. See
+Any client that speaks MCP over stdio can call `pact_event`, `pact_gate`, the
+memory tools and the journal tools. This is the honest advisory tier: the tools
+report what PACT thinks, and nothing on this path can veto a tool call. See
 [docs/platforms/mcp.md](docs/platforms/mcp.md).
+
+Platforms that read an `AGENTS.md` file can also have the policy and the skills
+installed into the project:
+
+```sh
+pact install generic --target .
+```
+
+See [docs/platforms/generic.md](docs/platforms/generic.md).
 
 ### Claude Code
 
@@ -75,6 +84,7 @@ upstream's launcher does. See
 |---|---|
 | `pact doctor` | Report what is actually wired: adapter, tier, registry, pin, transport. Exits non-zero when a claim cannot be backed. |
 | `pact install dsh` / `pact uninstall dsh` | Install or remove the bridge in a DeepSeek Harness profile. |
+| `pact install generic` / `pact uninstall generic` | Write the managed `AGENTS.md` section and link the skills for an advisory platform. |
 | `pact capabilities` | The adapter's declared capability set and derived tier. |
 | `pact paths` | Every resolved path, including the upstream-pinned memory location. |
 | `pact memory status` | The memory backend's location and whether a store exists (never opens it). |
