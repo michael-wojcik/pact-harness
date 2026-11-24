@@ -85,6 +85,9 @@ upstream's launcher does. See
 | `pact doctor` | Report what is actually wired: adapter, tier, registry, pin, transport. Exits non-zero when a claim cannot be backed. |
 | `pact install dsh` / `pact uninstall dsh` | Install or remove the bridge in a DeepSeek Harness profile. |
 | `pact install generic` / `pact uninstall generic` | Write the managed `AGENTS.md` section and link the skills for an advisory platform. |
+| `pact install claude-code` | Report native mode; bridged mode is refused with the reason it is not shipped. |
+| `pact hook HOOK` | Run one hook against one frame and print what it did (add `--raw` for the process result). |
+| `pact migrate-state --to DIR` | Move a state root, refusing a partial move. |
 | `pact capabilities` | The adapter's declared capability set and derived tier. |
 | `pact paths` | Every resolved path, including the upstream-pinned memory location. |
 | `pact memory status` | The memory backend's location and whether a store exists (never opens it). |

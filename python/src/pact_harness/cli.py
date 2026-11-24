@@ -276,6 +276,35 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         )
 
     state = resolve_state_root(adapter=adapter)
+
+    modules_payload: list[dict[str, object]] | None = None
+    if plugin is not None:
+        try:
+            modules: dict[str, dict[str, object]] = {}
+            for registration in HookRegistry.from_plugin_root(plugin).registrations:
+                entry = modules.setdefault(
+                    registration.hook,
+                    {"hook": registration.hook, "registrations": 0, "events": [], "async": False},
+                )
+                entry["registrations"] = int(entry["registrations"]) + 1
+                entry["async"] = bool(entry["async"]) or registration.async_
+                events = entry["events"]
+                if isinstance(events, list) and registration.event not in events:
+                    events.append(registration.event)
+            modules_payload = [modules[name] for name in sorted(modules)]
+        except RegistryError:
+            modules_payload = None
+
+    activation_payload: dict[str, object] | None = None
+    activation_error: str | None = None
+    activation_path = state.path / "pact-harness" / "dsh-activation.json"
+    if activation_path.is_file():
+        try:
+            loaded = json.loads(activation_path.read_text(encoding="utf-8"))
+            activation_payload = loaded if isinstance(loaded, dict) else {"unreadable": True}
+        except (OSError, ValueError) as exc:
+            activation_error = f"cannot read {activation_path}: {exc}"
+
     memory = resolve_memory_dir()
     if not memory.is_dir():
         notes.append(
@@ -315,6 +344,9 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         "pin": pin_payload,
         "vendor": vendor_payload,
         "registry": registry_payload,
+        "modules": modules_payload,
+        "activation": activation_payload,
+        "activation_error": activation_error,
         "transport": {"cold": True, "warm": warm_supported()},
         "errors": errors,
         "warnings": warnings,
@@ -346,6 +378,15 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
                 f"{registry_payload['events']} events, "
                 f"{registry_payload['modules']} modules"
             )
+        if modules_payload:
+            print(f"hook modules : {len(modules_payload)}")
+            if activation_payload:
+                print(
+                    "activation   : "
+                    f"mode {activation_payload.get('mode')} at {activation_payload.get('activatedAt')}"
+                )
+            else:
+                print("activation   : none recorded for this adapter")
         if vendor_payload:
             describe = vendor_payload.get("describe") or "no exact tag"
             suffix = "" if vendor_payload.get("at_pin") else ", not at pin"
@@ -427,6 +468,8 @@ def _cmd_install(args: argparse.Namespace) -> int:
 
     if args.platform == "generic":
         return _cmd_install_generic(args)
+    if args.platform == "claude-code":
+        return _cmd_install_claude_code(args)
     if args.platform != "dsh":
         print(f"pact: install for {args.platform!r} is not implemented yet", file=sys.stderr)
         return EXIT_PROBLEM
@@ -463,6 +506,8 @@ def _cmd_uninstall(args: argparse.Namespace) -> int:
 
     if args.platform == "generic":
         return _cmd_uninstall_generic(args)
+    if args.platform == "claude-code":
+        return _cmd_uninstall_claude_code(args)
     if args.platform != "dsh":
         print(f"pact: uninstall for {args.platform!r} is not implemented yet", file=sys.stderr)
         return EXIT_PROBLEM
@@ -767,6 +812,175 @@ def _cmd_upstream(args: argparse.Namespace) -> int:
     return EXIT_OK if report.ok else EXIT_PROBLEM
 
 
+def _cmd_hook(args: argparse.Namespace) -> int:
+    """Run one hook against one frame and print what it did."""
+    from .adapters.base import AdapterContext
+    from .adapters.registry import get_adapter
+    from .contract import EventV1
+    from .runtime.abi import run_hook
+    from .runtime.registry import HookRegistry
+    from .runtime.vocabulary import inject_target_for
+
+    raw = sys.stdin.read()
+    try:
+        frame = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print(f"pact: stdin is not JSON: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if not isinstance(frame, dict):
+        print("pact: stdin must be a JSON object", file=sys.stderr)
+        return EXIT_PROBLEM
+    adapter = get_adapter(args.adapter)
+    if "kind" in frame and "adapter" in frame:
+        try:
+            event = EventV1.from_dict(frame)
+        except PactHarnessError as exc:
+            print(f"pact: not a pact.event.v1 document: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+    else:
+        try:
+            event = adapter.normalize(frame)
+        except Exception as exc:  # noqa: BLE001 -- a bad frame is a usage error
+            print(f"pact: frame is neither pact.event.v1 nor a native event: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+
+    plugin_root = _plugin_root_from(args.plugin_root)
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    from .engine import manifest_event_for, tool_name_for
+
+    manifest_event = manifest_event_for(event.kind)
+    registry = HookRegistry.from_plugin_root(plugin_root)
+    wanted = args.hook_id.removesuffix(".py")
+    candidates = [
+        registration
+        for registration in registry.for_event(manifest_event, tool_name=tool_name_for(event))
+        if registration.hook == wanted or registration.script.stem == wanted
+    ]
+    if not candidates:
+        modules = ", ".join(registry.modules())
+        print(
+            f"pact: no registration named {args.hook_id!r} on {manifest_event}; modules: {modules}",
+            file=sys.stderr,
+        )
+        return EXIT_PROBLEM
+    registration = candidates[0]
+    state_root = (
+        Path(args.state_root)
+        if args.state_root
+        else resolve_state_root(adapter=args.adapter).path
+    )
+    resolved_python = resolve_python()
+    interpreter = args.python or (resolved_python.runtime.executable if resolved_python.runtime else sys.executable)
+    context = AdapterContext(
+        plugin_root=plugin_root,
+        state_root=state_root,
+        python=interpreter,
+        base_env=dict(os.environ),
+    )
+    legacy = adapter.legacy_stdin(event)
+    env = adapter.hook_env(event, context)
+    run = run_hook(
+        registration,
+        legacy.data,
+        env=env.values,
+        python=interpreter,
+        cwd=event.session.cwd,
+        inject_target=inject_target_for(event.kind),
+    )
+    if args.raw:
+        payload: dict[str, Any] = {
+            "hook": registration.hook,
+            "event": registration.event,
+            "exit": run.result.exit,
+            "duration_ms": run.result.duration_ms,
+            "stdout": run.result.stdout_text,
+            "stderr": run.result.stderr_text,
+        }
+    else:
+        payload = run.to_dict()
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return EXIT_OK if run.decoded.problem is None else EXIT_PROBLEM
+
+
+def _cmd_migrate_state(args: argparse.Namespace) -> int:
+    """Move one state root to another, refusing partial moves."""
+    import shutil
+
+    adapter = args.adapter or detect_adapter()
+    source = (
+        Path(args.from_dir).expanduser()
+        if args.from_dir
+        else resolve_state_root(adapter=adapter).path
+    )
+    target = Path(args.to).expanduser()
+    if not source.is_dir():
+        print(f"pact: nothing to migrate: {source} does not exist")
+        return EXIT_OK
+    source_resolved = source.resolve()
+    target_resolved = target.resolve()
+    if (
+        target_resolved == source_resolved
+        or source_resolved in target_resolved.parents
+        or target_resolved in source_resolved.parents
+    ):
+        print("pact: source and target must not contain one another", file=sys.stderr)
+        return EXIT_PROBLEM
+    entries = sorted(source.iterdir())
+    conflicts = [entry.name for entry in entries if (target / entry.name).exists()]
+    if conflicts:
+        print(
+            "pact: refusing a partial move; target already has: " + ", ".join(conflicts),
+            file=sys.stderr,
+        )
+        return EXIT_PROBLEM
+    if args.dry_run:
+        print(f"would move {len(entries)} entries: {source} -> {target}")
+        for entry in entries:
+            print(f"  {entry.name}")
+        return EXIT_OK
+    target.mkdir(parents=True, exist_ok=True)
+    for entry in entries:
+        shutil.move(str(entry), str(target / entry.name))
+    if not any(source.iterdir()):
+        source.rmdir()
+    print(f"moved {len(entries)} entries: {source} -> {target}")
+    return EXIT_OK
+
+
+def _cmd_install_claude_code(args: argparse.Namespace) -> int:
+    """Report or refuse a Claude Code install."""
+    from .runtime.registry import HookRegistry
+
+    mode = args.mode if args.mode in ("native", "bridged") else "native"
+    plugin_root = _plugin_root_from(getattr(args, "plugin_root", None))
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    if mode == "bridged":
+        print(
+            "pact: bridged mode is not shipped. It requires every registration to be "
+            "byte-identical through the harness before hooks.json is rewritten, and the "
+            "conformance suite proves semantic parity, not byte parity. Use native mode; "
+            "Claude Code keeps its own hooks.",
+            file=sys.stderr,
+        )
+        return EXIT_PROBLEM
+    registry = HookRegistry.from_plugin_root(plugin_root)
+    print("claude-code native: nothing to install")
+    print(f"plugin root  : {plugin_root}")
+    print(f"hook registry: {len(registry)} registrations on {len(registry.events)} events")
+    print("note         : Claude Code keeps its own hooks; the harness reads the same tree")
+    return EXIT_OK
+
+
+def _cmd_uninstall_claude_code(args: argparse.Namespace) -> int:
+    """A native install leaves nothing behind to remove."""
+    print("claude-code native: nothing was installed, so there is nothing to remove")
+    return EXIT_OK
+
+
 def _cmd_corpus(args: argparse.Namespace) -> int:
     """Record or replay the corpus verdict matrix."""
     from .conformance.harvest import (
@@ -978,7 +1192,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.set_defaults(func=_cmd_doctor)
 
     install = subparsers.add_parser("install", help="install the bridge into a host platform")
-    install.add_argument("platform", choices=["dsh", "generic"], help="platform to install into")
+    install.add_argument("platform", choices=["dsh", "generic", "claude-code"], help="platform to install into")
     install.add_argument("--target", default=".", help="project directory for generic installs")
     install.add_argument("--skills-root", metavar="DIR", help="shared skills root for generic installs")
     install.add_argument(
@@ -990,7 +1204,11 @@ def build_parser() -> argparse.ArgumentParser:
     install.add_argument("--profile", default="pact", help="DSH profile to create or update")
     install.add_argument("--dsh-home", metavar="DIR", help="DSH configuration root")
     install.add_argument("--dsh-cli", metavar="PATH", help="dsh executable to use")
-    install.add_argument("--mode", default="shadow", choices=["off", "shadow", "enforce"])
+    install.add_argument(
+        "--mode",
+        default="shadow",
+        help="dsh: off, shadow or enforce; claude-code: native (default) or bridged",
+    )
     install.add_argument(
         "--enforce-gate",
         action="append",
@@ -1017,7 +1235,7 @@ def build_parser() -> argparse.ArgumentParser:
     install.set_defaults(func=_cmd_install)
 
     uninstall = subparsers.add_parser("uninstall", help="remove the bridge from a host platform")
-    uninstall.add_argument("platform", choices=["dsh", "generic"], help="platform to uninstall from")
+    uninstall.add_argument("platform", choices=["dsh", "generic", "claude-code"], help="platform to uninstall from")
     uninstall.add_argument("--target", default=".", help="project directory for generic uninstalls")
     uninstall.add_argument("--skills-root", metavar="DIR", help="shared skills root for generic uninstalls")
     uninstall.add_argument("--plugin-root", metavar="DIR", help="upstream tree whose links are removed")
@@ -1059,6 +1277,22 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    hook = subparsers.add_parser("hook", help="run one hook against one frame")
+    hook.add_argument("hook_id", metavar="HOOK")
+    hook.add_argument("--adapter", default="claude-code", metavar="ID")
+    hook.add_argument("--plugin-root", metavar="DIR")
+    hook.add_argument("--state-root", metavar="DIR")
+    hook.add_argument("--python", metavar="PATH")
+    hook.add_argument("--raw", action="store_true", help="print the raw process result")
+    hook.set_defaults(func=_cmd_hook)
+
+    migrate = subparsers.add_parser("migrate-state", help="move a state root")
+    migrate.add_argument("--to", metavar="DIR", required=True)
+    migrate.add_argument("--from", dest="from_dir", metavar="DIR")
+    migrate.add_argument("--adapter", default=None, metavar="ID")
+    migrate.add_argument("--dry-run", action="store_true")
+    migrate.set_defaults(func=_cmd_migrate_state)
 
     corpus = subparsers.add_parser("corpus", help="record or replay the corpus verdict matrix")
     corpus_actions = corpus.add_subparsers(dest="action", required=True)

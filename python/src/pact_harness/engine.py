@@ -201,11 +201,11 @@ def evaluate(
     )
     runs = run_event(
         registry,
-        _manifest_event_for(event.kind),
+        manifest_event_for(event.kind),
         stdin=legacy.data,
         env=env.values,
         python=config.python,
-        tool_name=_tool_name_for(event),
+        tool_name=tool_name_for(event),
         cwd=event.session.cwd,
         inject_target=inject_target_for(event.kind),
         transport=config.transport,
@@ -229,12 +229,12 @@ def evaluate(
     return EnvelopeV1(meta=meta, directives=tuple(directives))
 
 
-def _manifest_event_for(kind: str) -> str:
+def manifest_event_for(kind: str) -> str:
     """Map a contract kind to the manifest event name to execute."""
     return _KIND_TO_MANIFEST[kind]
 
 
-def _tool_name_for(event: EventV1) -> str | None:
+def tool_name_for(event: EventV1) -> str | None:
     """The tool name a matcher should see, in canonical vocabulary."""
     if event.kind == "agent.spawn.pre":
         return "Agent"
