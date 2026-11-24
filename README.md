@@ -35,6 +35,11 @@ Measured decisions worth knowing before extending this:
   (PACT's own model folds `PostToolUseFailure` into `PostToolUse`), across 28
   modules; **three** are async, not four.
 
+## Plan and progress
+
+- [docs/plan.md](docs/plan.md) — the approved plan: contract, adapters, milestones.
+- [docs/progress.md](docs/progress.md) — where the implementation is, and what is next.
+
 ## Layout
 
 - `vendor/pact-plugin` — PACT, pinned as a git submodule at `v4.8.36` (`4607c7a`). Never edited.
