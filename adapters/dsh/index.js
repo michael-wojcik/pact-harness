@@ -195,6 +195,106 @@ export function registerCommands(ctx, settings, deps, logger) {
   return registered;
 }
 
+/** Remove a leading YAML frontmatter block from a skill body. */
+export function stripFrontmatter(text) {
+  if (typeof text !== 'string') return '';
+  if (!text.startsWith('---\n')) return text;
+  const closing = text.indexOf('\n---\n', 4);
+  if (closing === -1) return text;
+  return text.slice(closing + 5);
+}
+
+/**
+ * Find the specialist persona for an agent name.
+ *
+ * DSH names a child agent with the short label the caller supplied ("architect"),
+ * while PACT's personas are named "pact-architect". Matching on the prefixed
+ * form first and then the bare form covers both spellings without guessing.
+ */
+export function findPersona(playbook, name) {
+  const personas = Array.isArray(playbook?.personas) ? playbook.personas : [];
+  if (!name) return undefined;
+  const forms = new Set([name, `pact-${name}`, String(name).replace(/^pact-/, '')]);
+  for (const form of forms) {
+    const found = personas.find(
+      (persona) => persona?.name === form || persona?.name === `pact-${form}`,
+    );
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/**
+ * Register PACT's skills over the vendored tree.
+ *
+ * Zero-copy: each skill is read from the path the compiler recorded, so a
+ * skill edit is visible on the next load without reinstalling anything. The
+ * provider ranks below project skills so a repository can override one, and
+ * carries its directory as a resource base so relative references resolve.
+ */
+export function registerSkills(ctx, settings, logger) {
+  if (!settings.playbook) {
+    logger?.info?.('pact-dsh: no playbook configured; skills are not registered');
+    return 0;
+  }
+  let playbook;
+  try {
+    playbook = loadPlaybook(settings.playbook);
+  } catch (error) {
+    logger?.warn?.(`pact-dsh: cannot read the playbook: ${error?.message ?? error}`);
+    return 0;
+  }
+  const service = safeService(ctx, 'skills');
+  if (!service || typeof service.registerProvider !== 'function') {
+    logger?.warn?.('pact-dsh: skill service unavailable; skills are not registered');
+    return 0;
+  }
+  const skills = (Array.isArray(playbook.skills) ? playbook.skills : []).filter(
+    (skill) => skill && typeof skill.name === 'string' && typeof skill.path === 'string',
+  );
+  if (!skills.length) {
+    logger?.info?.('pact-dsh: the playbook has no skills');
+    return 0;
+  }
+  const provider = {
+    name: 'pact',
+    async list() {
+      return skills.map((skill) => ({
+        name: skill.name,
+        description: skill.description ?? skill.name,
+        path: skill.path,
+        invocation: { modelInvocable: true, userInvocable: true },
+        source: 'custom',
+        provider: 'pact',
+        rank: 300,
+        locator: { path: skill.path },
+        resourceBase: { kind: 'directory', path: skill.path },
+      }));
+    },
+    async get(candidate) {
+      const directory = candidate?.locator?.path ?? candidate?.path;
+      if (typeof directory !== 'string') return undefined;
+      const raw = readFileSync(path.join(directory, 'SKILL.md'), 'utf8');
+      return {
+        name: candidate.name,
+        description: candidate.description,
+        path: candidate.path,
+        invocation: candidate.invocation,
+        source: candidate.source,
+        provider: 'pact',
+        resourceBase: candidate.resourceBase,
+        content: stripFrontmatter(raw),
+      };
+    },
+  };
+  const dispose = service.registerProvider(() => provider);
+  if (typeof dispose === 'function' && typeof ctx.effect === 'function') {
+    ctx.effect(() => dispose);
+  }
+  logger?.info?.(`pact-dsh: registered ${skills.length} skills`);
+  return skills.length;
+}
+
 /** Write a startup record so a boot can be proven without a model. */
 export function recordActivation(settings, extra = {}) {
   const root = settings.stateRoot ?? path.join(os.homedir(), '.pact');
@@ -309,8 +409,19 @@ export function wire(ctx, settings, deps) {
       .injectionsOf(directives)
       .concat(decisions.noticesOf(directives))
       .map((directive) => deps.makeMessage(directive.text));
+
+    // A teammate gets its specialist persona on creation. This is the DSH
+    // analogue of Claude Code loading the agent file named by subagent_type:
+    // the child starts with the role it was spawned as, not with a generic one.
+    const agent = payload?.agent;
+    if (agent && events.roleOf(ctx, agent) === 'teammate') {
+      const persona = findPersona(deps.playbook, agent.name);
+      if (persona && typeof persona.body === 'string' && persona.body) {
+        messages.unshift(deps.makeMessage(`PACT ROLE (${persona.name}):\n\n${persona.body}`));
+      }
+    }
     for (const message of messages) {
-      payload?.agent?.inject?.(message);
+      agent?.inject?.(message);
     }
   });
 
@@ -383,6 +494,12 @@ export function apply(ctx, config = {}) {
     ctx.effect(() => () => worker.stop(), 'pact-dsh worker');
   }
   const deps = dependenciesFor(ctx, worker);
+  try {
+    deps.playbook = loadPlaybook(settings.playbook);
+  } catch (error) {
+    deps.playbook = null;
+    ctx.logger?.warn?.(`pact-dsh: cannot read the playbook: ${error?.message ?? error}`);
+  }
   loadMessageFactory(ctx.logger)
     .then((makeMessage) => {
       deps.makeMessage = makeMessage;
@@ -401,4 +518,5 @@ export function apply(ctx, config = {}) {
   wire(ctx, settings, deps);
   registerPersona(ctx, settings, ctx.logger);
   registerCommands(ctx, settings, deps, ctx.logger);
+  registerSkills(ctx, settings, ctx.logger);
 }

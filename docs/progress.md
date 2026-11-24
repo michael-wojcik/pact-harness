@@ -23,9 +23,11 @@ reads this and [plan.md](plan.md) before touching code.
   plugin-relative reference to an absolute path, and replaces Claude's
   `$ARGUMENTS` with the platform placeholder. The installer compiles it next to
   the profile and the bridge registers the orchestrator persona as a system
-  prompt section at order 0, and registers the 13 `/pact-*` commands, whose
-  handlers inject the compiled body with the user's text substituted. Remaining:
-  the skill provider and the specialist personas for subagents.
+  prompt section at order 0, registers the 13 `/pact-*` commands (handlers
+  inject the compiled body with the user's text substituted), registers the 21
+  skills as a zero-copy provider, and gives a teammate agent its specialist
+  persona on creation. Remaining: a `pact_agent` compatibility tool so a spawn
+  that passes `subagent_type` instead of `name` still selects the right persona.
 
 ### DSH end-to-end evidence
 

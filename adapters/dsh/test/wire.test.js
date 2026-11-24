@@ -4,7 +4,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import { loadPlaybook, normalizeConfig, registerCommands, registerPersona, wire } from '../index.js';
+import {
+  findPersona,
+  loadPlaybook,
+  normalizeConfig,
+  registerCommands,
+  registerPersona,
+  registerSkills,
+  stripFrontmatter,
+  wire,
+} from '../index.js';
 import * as events from '../lib/events.js';
 
 export function fakeCtx(services = {}) {
@@ -396,4 +405,113 @@ test('a missing command service is a warning, not a failure', () => {
   const playbook = writePlaybook(commandDocument());
   assert.equal(registerCommands(ctx, { playbook }, { makeMessage: () => ({}) }, ctx.logger), 0);
   assert.match(ctx.warnings.join('\n'), /command service unavailable/);
+});
+
+test('frontmatter is stripped from a skill body', () => {
+  assert.equal(stripFrontmatter('---\nname: x\n---\n\nBody\n'), '\nBody\n');
+  assert.equal(stripFrontmatter('no frontmatter'), 'no frontmatter');
+  assert.equal(stripFrontmatter('---\nunclosed'), '---\nunclosed');
+});
+
+test('personas match on the bare and prefixed spelling', () => {
+  const playbook = { personas: [{ name: 'pact-architect', body: 'design' }] };
+  assert.equal(findPersona(playbook, 'architect').name, 'pact-architect');
+  assert.equal(findPersona(playbook, 'pact-architect').name, 'pact-architect');
+  assert.equal(findPersona(playbook, 'unknown'), undefined);
+  assert.equal(findPersona({}, 'architect'), undefined);
+});
+
+function skillDocument(directory) {
+  return {
+    v: 1,
+    platform: 'dsh',
+    personas: [],
+    commands: [],
+    skills: [
+      {
+        name: 'pact-memory',
+        description: 'Persistent memory for PACT agents.',
+        path: directory,
+        source: 'skills/pact-memory/SKILL.md',
+      },
+    ],
+  };
+}
+
+test('skills are registered as a zero-copy provider', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-skill-'));
+  fs.writeFileSync(
+    path.join(directory, 'SKILL.md'),
+    '---\nname: pact-memory\ndescription: memory\n---\n\n# Memory\nBody here.\n',
+  );
+  const providers = [];
+  const ctx = fakeCtx({ skills: { registerProvider: (factory) => providers.push(factory()) } });
+  const playbook = writePlaybook(skillDocument(directory));
+  const count = registerSkills(ctx, { playbook }, ctx.logger);
+  assert.equal(count, 1);
+  assert.equal(providers.length, 1);
+  assert.equal(providers[0].name, 'pact');
+
+  const candidates = await providers[0].list({});
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0].name, 'pact-memory');
+  assert.equal(candidates[0].rank, 300);
+  assert.equal(candidates[0].provider, 'pact');
+  assert.equal(candidates[0].resourceBase.kind, 'directory');
+
+  const definition = await providers[0].get(candidates[0]);
+  assert.match(definition.content, /# Memory/);
+  assert.ok(!definition.content.includes('name: pact-memory'));
+  assert.equal(definition.provider, 'pact');
+});
+
+test('a missing skill service is a warning, not a failure', () => {
+  const ctx = fakeCtx({});
+  const playbook = writePlaybook(skillDocument('/tmp/x'));
+  assert.equal(registerSkills(ctx, { playbook }, ctx.logger), 0);
+  assert.match(ctx.warnings.join('\n'), /skill service unavailable/);
+});
+
+test('a teammate agent receives its specialist persona on creation', async () => {
+  const ctx = fakeCtx({});
+  const injected = [];
+  const deps = depsFor(async () => envelope([]), ctx);
+  const playbook = writePlaybook({
+    v: 1,
+    platform: 'dsh',
+    personas: [{ name: 'pact-architect', body: 'You design systems.' }],
+    commands: [],
+    skills: [],
+  });
+  deps.playbook = loadPlaybook(playbook);
+  wire(ctx, settings(), deps);
+  await ctx.emit('agent/created', {
+    agent: {
+      session: { id: 's', header: { cwd: '/tmp' } },
+      name: 'architect',
+      parentSession: 'parent-1',
+      inject: (message) => injected.push(message),
+    },
+    source: 'startup',
+  });
+  const texts = injected.map((message) => message.content[0].text);
+  assert.ok(texts.some((text) => text.includes('PACT ROLE (pact-architect)')));
+  assert.ok(texts.some((text) => text.includes('You design systems.')));
+});
+
+test('the lead agent does not receive a specialist persona', async () => {
+  const ctx = fakeCtx({});
+  const injected = [];
+  const deps = depsFor(async () => envelope([]), ctx);
+  deps.playbook = { personas: [{ name: 'pact-architect', body: 'You design systems.' }] };
+  wire(ctx, settings(), deps);
+  await ctx.emit('agent/created', {
+    agent: {
+      session: { id: 's', header: { cwd: '/tmp' } },
+      name: 'architect',
+      inject: (message) => injected.push(message),
+    },
+    source: 'startup',
+  });
+  assert.equal(injected.length, 0);
 });
