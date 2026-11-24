@@ -37,5 +37,10 @@ jobs:
       - name: Vendor pin invariant
         run: tools/check-vendor-pin.sh
 
+      # The pin is only meaningful if the pinned tree satisfies its own tests.
+      # This runs the suite against a copy, so the checkout stays clean.
+      - name: Upstream suite, unmodified
+        run: tools/run-upstream-tests.sh
+
       - name: Doctor at the lowest tier
         run: PYTHONPATH=python/src python -m pact_harness doctor --require-tier T0

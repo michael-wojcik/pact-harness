@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# run-upstream-tests.sh [pytest args] -- run PACT's own suite, unmodified.
+#
+# The vendored tree is never edited, and pytest writes caches next to the tests
+# it runs, so the suite runs against a copy. A plain file copy is not enough:
+# several upstream tests shell out to git and require a repository with tracked
+# files, so the copy is a local clone instead.
+#
+# The working directory is the plugin subdirectory, because that is where the
+# suite lives; the clone root is the repository root, because several tests
+# resolve siblings such as scripts/ and .claude-plugin/ relative to it.
+#
+# Expected: the whole suite passes. A failure here means the harness is pinning
+# a tree that does not satisfy its own tests, which is a pin problem, not a
+# harness problem.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON="${PACT_PYTHON:-python3}"
+SOURCE="$ROOT/vendor/pact-plugin"
+PLUGIN="$SOURCE/pact-plugin"
+
+[ -d "$PLUGIN/tests" ] || { echo "run-upstream-tests: $PLUGIN/tests is missing" >&2; exit 2; }
+git -C "$SOURCE" rev-parse --git-dir >/dev/null 2>&1 \
+  || { echo "run-upstream-tests: $SOURCE is not a git checkout" >&2; exit 2; }
+command -v "$PYTHON" >/dev/null 2>&1 || { echo "run-upstream-tests: $PYTHON not found" >&2; exit 2; }
+
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+git clone --quiet --no-hardlinks "$SOURCE" "$WORK/repo"
+cd "$WORK/repo/pact-plugin"
+
+echo "run-upstream-tests: upstream suite in $WORK/repo"
+"$PYTHON" -m pytest tests -q -p no:cacheprovider "$@"
