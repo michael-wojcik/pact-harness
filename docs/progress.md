@@ -10,21 +10,24 @@ reads this and [plan.md](plan.md) before touching code.
   transport seam, per-group concurrency, Claude Code adapter, and a real
   refusal proven end to end. Remaining: the conformance corpus and the 34/34
   registration parity sweep.
-- **M2 — in progress.** Warm transport done. The event engine, directive
-  folding and the Python half of the DSH adapter are done; `pact event` is the
-  process boundary the cordis plugin will call. Remaining: the bridge itself,
-  install, and the end-to-end harness.
+- **M2 — in progress.** Warm transport, event engine, directive folding, the
+  Python DSH adapter and the cordis bridge are done. The bridge maps the DSH
+  extension points onto `pact.event.v1`, evaluates through the warm worker, and
+  renders directives back into DSH decisions, with shadow/enforce policy.
+  Remaining: `pact install dsh`, the headless end-to-end harness, and the
+  conformance corpus.
 
 ## Next actions, in order
 
 1. ~~Warm transport~~ — done (`runtime/warm.py`, `pact serve`).
-2. **DSH cordis bridge** (`adapters/dsh/`, TypeScript): map DSH extension points
-   to `pact.event.v1`, call `pact event`, render directives into DSH decisions,
-   register commands, persona section and skill provider.
-3. **Conformance corpus** (`conformance/corpus/`): fixtures from
+2. ~~DSH cordis bridge~~ — done (`adapters/dsh/`): events, tool map, decisions,
+   warm-worker client, shadow/enforce policy, 22 Node tests.
+3. **`pact install dsh`**: create the profile, add the bundle through
+   `dsh plugin add`, write the patch overrides, and make it reversible.
+4. **Conformance corpus** (`conformance/corpus/`): fixtures from
    `vendor/pact-plugin/pact-plugin/tests/fixtures/role_frames.py` plus a
    synthetic frame per event and per role.
-4. **34/34 parity sweep**: for every registration, run the hook directly and
+5. **34/34 parity sweep**: for every registration, run the hook directly and
    through the harness, and assert identical stdout and exit code.
 
 ## Measured facts that corrected the plan

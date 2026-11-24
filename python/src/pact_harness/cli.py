@@ -386,8 +386,16 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
 
+    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    if plugin_root is None:
+        print(
+            "pact: no plugin root: pass --plugin-root, set PACT_PLUGIN_ROOT, "
+            "or run from a checkout with the vendored tree",
+            file=sys.stderr,
+        )
+        return EXIT_PROBLEM
     try:
-        serve(Path(args.socket), Path(args.plugin_root))
+        serve(Path(args.socket), plugin_root)
     except WarmTransportError as exc:
         print(f"pact: {exc}", file=sys.stderr)
         return EXIT_PROBLEM
@@ -442,7 +450,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve = subparsers.add_parser("serve", help="run the warm hook worker")
     serve.add_argument("--socket", required=True, metavar="PATH", help="unix socket to bind")
     serve.add_argument(
-        "--plugin-root", required=True, metavar="DIR", help="vendored PACT tree to serve"
+        "--plugin-root", metavar="DIR", help="vendored PACT tree to serve (default: resolve)"
     )
     serve.set_defaults(func=_cmd_serve)
 

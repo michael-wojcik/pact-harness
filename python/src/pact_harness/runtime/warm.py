@@ -214,11 +214,92 @@ def run_forked(
 
 
 @dataclass(frozen=True, slots=True)
+class ForkTransport:
+    """A transport that forks from the current process.
+
+    This is what the worker uses to evaluate an event: the hooks run as forked
+    children of the warm worker, so they keep process isolation and inherit the
+    imported modules. It is not useful outside a process that has already paid
+    the warm import, which is exactly the worker.
+    """
+
+    name: str = "fork"
+
+    def run(
+        self,
+        registration_script: Path,
+        stdin: bytes,
+        *,
+        env: Mapping[str, str],
+        python: str,
+        timeout_s: float | None = None,
+        cwd: str | None = None,
+    ) -> HookResult:
+        result = run_forked(
+            registration_script, stdin, env=env, cwd=cwd, timeout_s=timeout_s
+        )
+        return HookResult(
+            hook=registration_script.stem,
+            script=registration_script,
+            exit=result["exit"],
+            stdout=result["stdout"],
+            stderr=result["stderr"],
+            duration_ms=int(result["duration_ms"]),
+            timed_out=bool(result["timed_out"]),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class WarmTransport:
     """A client of one warm worker."""
 
     socket_path: Path
     name: str = "warm"
+
+    def _roundtrip(self, payload: Mapping[str, Any], timeout_s: float | None) -> dict[str, Any]:
+        """Send one request and read one JSON response."""
+        data = (json.dumps(payload) + "\n").encode("utf-8")
+        if len(data) > MAX_FRAME_BYTES:
+            raise WarmTransportError("request exceeds the warm transport frame cap")
+        deadline = time.monotonic() + (timeout_s or 0) + RESPONSE_GRACE_S
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.settimeout(max(deadline - time.monotonic(), 1.0))
+            client.connect(str(self.socket_path))
+            client.sendall(data)
+            chunks: list[bytes] = []
+            while True:
+                chunk = client.recv(65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                if b"\n" in chunk:
+                    break
+        response = json.loads(b"".join(chunks).split(b"\n", 1)[0])
+        if not isinstance(response, dict):
+            raise WarmTransportError("warm worker sent a non-object response")
+        return response
+
+    def evaluate(
+        self,
+        event: Mapping[str, Any],
+        *,
+        adapter: str = "dsh",
+        state_root: str | None = None,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate one normalised event inside the worker."""
+        try:
+            return self._roundtrip(
+                {
+                    "type": "evaluate",
+                    "adapter": adapter,
+                    "event": dict(event),
+                    "state_root": state_root,
+                },
+                timeout_s,
+            )
+        except (OSError, socket.timeout, json.JSONDecodeError, WarmTransportError) as exc:
+            return {"type": "evaluate", "status": "error", "error": f"warm worker unreachable: {exc}"}
 
     def run(
         self,
@@ -237,8 +318,9 @@ class WarmTransport:
             "cwd": cwd,
             "timeout_s": timeout_s,
         }
-        payload = (json.dumps(request) + "\n").encode("utf-8")
-        if len(payload) > MAX_FRAME_BYTES:
+        try:
+            response = self._roundtrip(request, timeout_s)
+        except WarmTransportError as exc:
             return HookResult(
                 hook=registration_script.stem,
                 script=registration_script,
@@ -246,23 +328,9 @@ class WarmTransport:
                 stdout=b"",
                 stderr=b"",
                 duration_ms=0,
-                launch_error="request exceeds the warm transport frame cap",
+                launch_error=str(exc),
             )
-        deadline = time.monotonic() + (timeout_s or 0) + RESPONSE_GRACE_S
-        try:
-            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-                client.settimeout(max(deadline - time.monotonic(), 1.0))
-                client.connect(str(self.socket_path))
-                client.sendall(payload)
-                chunks: list[bytes] = []
-                while True:
-                    chunk = client.recv(65536)
-                    if not chunk:
-                        break
-                    chunks.append(chunk)
-                    if b"\n" in chunk:
-                        break
-        except (OSError, socket.timeout) as exc:
+        except (OSError, socket.timeout, json.JSONDecodeError) as exc:
             return HookResult(
                 hook=registration_script.stem,
                 script=registration_script,
@@ -271,18 +339,6 @@ class WarmTransport:
                 stderr=b"",
                 duration_ms=0,
                 launch_error=f"warm worker unreachable: {exc}",
-            )
-        try:
-            response = json.loads(b"".join(chunks).split(b"\n", 1)[0])
-        except (json.JSONDecodeError, IndexError) as exc:
-            return HookResult(
-                hook=registration_script.stem,
-                script=registration_script,
-                exit=None,
-                stdout=b"",
-                stderr=b"",
-                duration_ms=0,
-                launch_error=f"warm worker sent an unreadable response: {exc}",
             )
         return HookResult(
             hook=registration_script.stem,
@@ -364,6 +420,11 @@ def serve(socket_path: Path, plugin_root: Path) -> None:
 
 
 def _handle(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
+    """Dispatch one worker request."""
+    if request.get("type") == "ping":
+        return {"type": "ping", "status": "ok"}
+    if request.get("type") == "evaluate":
+        return _evaluate(request, plugin_root)
     script = Path(str(request.get("script", "")))
     if not _inside(script, plugin_root):
         return {
@@ -389,6 +450,51 @@ def _handle(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
         "timed_out": result["timed_out"],
         "launch_error": None,
     }
+
+
+def _evaluate(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
+    """Evaluate one normalised event inside the warm worker.
+
+    The worker already holds the imported shared tree, so the hooks run as forks
+    of this process rather than as fresh interpreters. That is the whole point
+    of routing evaluation through the worker: a tool call pays one socket round
+    trip and one fork per hook, not one interpreter start per hook.
+    """
+    try:
+        from ..adapters.registry import get_adapter
+        from ..contract import EventV1
+        from ..engine import EngineConfig, evaluate
+
+        adapter_id = str(request.get("adapter") or "dsh")
+        adapter = get_adapter(adapter_id)
+        event = EventV1.from_dict(request.get("event"))
+        state_root = request.get("state_root")
+        config = EngineConfig(
+            adapter_id=adapter_id,
+            plugin_root=plugin_root,
+            state_root=Path(str(state_root)) if state_root else _default_state_root(),
+            python=sys.executable,
+            transport=_FORK_TRANSPORT,
+            base_env=dict(os.environ),
+        )
+        envelope = evaluate(event, config, adapter=adapter)
+        return {"type": "evaluate", "status": "ok", "envelope": envelope.to_dict()}
+    except BaseException as exc:  # noqa: BLE001 -- report, never kill the worker
+        return {
+            "type": "evaluate",
+            "status": "error",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+
+_FORK_TRANSPORT = ForkTransport()
+
+
+def _default_state_root() -> Path:
+    override = (os.environ.get("PACT_HOME") or "").strip()
+    if override:
+        return Path(override).expanduser()
+    return Path.home() / ".pact"
 
 
 @dataclass

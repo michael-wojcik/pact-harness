@@ -154,3 +154,41 @@ def test_forked_child_gets_the_requested_environment(tmp_path: Path) -> None:
     script.write_text("import os\nprint(os.environ.get('CLAUDE_PROJECT_DIR', 'missing'))\n")
     result = warm.run_forked(script, b"", env={"CLAUDE_PROJECT_DIR": "/tmp/project"})
     assert result["stdout"].strip() == b"/tmp/project"
+
+
+def dsh_event(tmp_path: Path) -> dict:
+    return {
+        "v": 1,
+        "id": "evt_warm_eval",
+        "kind": "tool.pre",
+        "at": "2026-11-24T12:00:00Z",
+        "adapter": "dsh",
+        "session": {"id": "sess-warm-eval", "cwd": str(tmp_path), "project_dir": str(tmp_path)},
+        "actor": {"role": "lead", "name": "lead", "type": "pact-orchestrator"},
+        "tool": {
+            "canonical": "Edit",
+            "native": "edit",
+            "input": {"file_path": str(tmp_path / "a.py")},
+        },
+    }
+
+
+def test_worker_evaluates_an_event(worker, tmp_path: Path) -> None:
+    response = worker.transport.evaluate(
+        dsh_event(tmp_path), state_root=str(tmp_path / "state")
+    )
+    assert response["status"] == "ok", response
+    envelope = response["envelope"]
+    assert envelope["v"] == 1
+    assert envelope["meta"]["adapter"] == "dsh"
+    assert envelope["meta"]["event"] == "tool.pre"
+    assert envelope["directives"]
+
+
+def test_worker_reports_an_invalid_event(worker, tmp_path: Path) -> None:
+    response = worker.transport.evaluate(
+        {"v": 1, "id": "evt_bad", "kind": "not.a.kind"},
+        state_root=str(tmp_path / "state"),
+    )
+    assert response["status"] == "error"
+    assert "ContractError" in response["error"] or "kind" in response["error"]

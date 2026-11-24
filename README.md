@@ -17,12 +17,12 @@ Because the core is unmodified, upstream's test suite stays the regression oracl
 
 ## Status
 
-Milestone M1 in progress. The contract, capability model, vendor pin, CLI, hook
-registry, output decoder and the Claude Code adapter exist. A real vendored gate
-(`merge_guard_pre`) refuses a real force-push through the harness, and
-`pact doctor --adapter claude-code` reports the live registry and the reference
-tier. The DeepSeek Harness adapter is not implemented yet, so `pact doctor`
-reports tier T0 for it and says so.
+Milestone M2 in progress. The contract, capability model, vendor pin, CLI, hook
+registry, output decoder, warm transport, event engine and both adapters exist.
+A real vendored gate (`merge_guard_pre`) refuses a real force-push through the
+harness, and the DeepSeek Harness cordis bridge maps DSH's extension points onto
+the contract and renders directives back into DSH decisions. Install and the
+headless end-to-end harness are the remaining M2 work.
 
 Measured decisions worth knowing before extending this:
 

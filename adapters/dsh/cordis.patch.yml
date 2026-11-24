@@ -1,0 +1,21 @@
+# PACT for DeepSeek Harness.
+#
+# mode is one global switch:
+#   off     - register nothing; the plugin loads inert
+#   shadow  - run every gate, enforce only the gates named in enforceGates
+#   enforce - act on every verdict
+#
+# The default enforces exactly two gates. Both read tool_input.command, which
+# DSH's bash tool supplies under the identical key, so no name or argument
+# mapping sits between the gate and its input. Every other refusing gate stays
+# in shadow until the M2 conformance run proves its mapping; a mapping bug in
+# enforce mode would otherwise interrupt a user's work while looking like PACT
+# misbehaving.
+- insert:
+    - id: pact-dsh
+      name: '@pact-harness/dsh'
+      config:
+        mode: shadow
+        enforceGates:
+          - merge_guard_pre
+          - git_commit_check
