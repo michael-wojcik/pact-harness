@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pact.directive.v1",
+  "title": "PACT harness directive envelope v1",
+  "description": "What PACT tells a platform after evaluating one event. A field that does not belong to a directive kind is invalid rather than ignored.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "meta"],
+  "properties": {
+    "v": { "const": 1 },
+    "directives": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/deny" },
+          { "$ref": "#/$defs/ask" },
+          { "$ref": "#/$defs/cancel" },
+          { "$ref": "#/$defs/allow" },
+          { "$ref": "#/$defs/inject" },
+          { "$ref": "#/$defs/notify" },
+          { "$ref": "#/$defs/block" },
+          { "$ref": "#/$defs/compact_instructions" },
+          { "$ref": "#/$defs/silent" },
+          { "$ref": "#/$defs/hook_error" }
+        ]
+      }
+    },
+    "meta": { "$ref": "#/$defs/meta" }
+  },
+  "$defs": {
+    "deny": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reason"],
+      "properties": {
+        "kind": { "const": "deny" },
+        "reason": { "type": "string", "minLength": 1 },
+        "rule": { "type": "string", "minLength": 1 },
+        "info": { "type": "object" }
+      }
+    },
+    "ask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "const": "ask" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "cancel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": { "kind": { "const": "cancel" } }
+    },
+    "allow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": { "kind": { "const": "allow" } }
+    },
+    "inject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "target", "source"],
+      "properties": {
+        "kind": { "const": "inject" },
+        "text": { "type": "string", "minLength": 1 },
+        "target": { "enum": ["step", "turn", "user"] },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "notify": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "level"],
+      "properties": {
+        "kind": { "const": "notify" },
+        "text": { "type": "string", "minLength": 1 },
+        "level": { "enum": ["info", "warning"] }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reason"],
+      "properties": {
+        "kind": { "const": "block" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "compact_instructions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text"],
+      "properties": {
+        "kind": { "const": "compact_instructions" },
+        "text": { "type": "string", "minLength": 1 }
+      }
+    },
+    "silent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": { "kind": { "const": "silent" } }
+    },
+    "hook_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "hook", "stage", "message"],
+      "properties": {
+        "kind": { "const": "hook_error" },
+        "hook": { "type": "string", "minLength": 1 },
+        "stage": { "enum": ["launch", "exit", "decode"] },
+        "message": { "type": "string", "minLength": 1 },
+        "fatal": { "type": "boolean", "default": false }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "event", "adapter"],
+      "properties": {
+        "hook": { "type": "string", "minLength": 1 },
+        "event": { "type": "string", "minLength": 1 },
+        "adapter": { "type": "string", "minLength": 1 },
+        "tier": { "enum": ["T0", "T1", "T2", "T3"], "default": "T0" },
+        "exit": { "type": "integer" },
+        "elapsed_ms": { "type": "integer", "minimum": 0 },
+        "raw_stdout_bytes": { "type": "integer", "minimum": 0 },
+        "gate_skips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["gate", "reason"],
+            "properties": {
+              "gate": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

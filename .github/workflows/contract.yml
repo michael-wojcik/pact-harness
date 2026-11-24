@@ -1,0 +1,41 @@
+name: contract
+
+# The contract and the pin are the harness's two load-bearing invariants. This
+# lane runs on the same interpreter upstream certifies (3.12) and fails when the
+# vendored PACT tree drifts from harness/pact-pin.json.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: contract-and-pin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out with the vendored tree
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the test runner
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Contract tests
+        run: PYTHONPATH=python/src python -m pytest python/tests -q
+
+      - name: Vendor pin invariant
+        run: tools/check-vendor-pin.sh
+
+      - name: Doctor at the lowest tier
+        run: PYTHONPATH=python/src python -m pact_harness doctor --require-tier T0

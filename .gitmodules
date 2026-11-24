@@ -1,0 +1,3 @@
+[submodule "vendor/pact-plugin"]
+	path = vendor/pact-plugin
+	url = https://github.com/Synaptic-Labs-AI/PACT-Plugin.git

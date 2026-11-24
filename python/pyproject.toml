@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pact-harness"
+version = "0.1.0"
+description = "Platform-neutral harness that runs PACT on any agentic coding platform"
+readme = "../README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Michael Wojcik" }]
+keywords = ["pact", "agents", "orchestration", "harness", "claude-code", "deepseek-harness"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.scripts]
+pact = "pact_harness.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pact_harness"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"

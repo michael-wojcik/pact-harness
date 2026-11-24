@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pact.event.v1",
+  "title": "PACT harness event v1",
+  "description": "One platform occurrence, normalised for the harness. Published for adapter authors; the runtime validates the same rules by hand to keep the hook path dependency-free.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "id", "kind", "at", "adapter", "session"],
+  "properties": {
+    "v": { "const": 1 },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+    },
+    "kind": {
+      "enum": [
+        "session.start",
+        "session.end",
+        "prompt.submit",
+        "tool.pre",
+        "tool.post",
+        "tool.fail",
+        "agent.spawn.pre",
+        "agent.start",
+        "agent.stop",
+        "agent.idle",
+        "task.completed",
+        "compact.pre",
+        "compact.post",
+        "turn.stop"
+      ]
+    },
+    "at": { "type": "string", "format": "date-time" },
+    "adapter": { "type": "string", "minLength": 1 },
+    "session": { "$ref": "#/$defs/session" },
+    "actor": { "$ref": "#/$defs/actor" },
+    "team": { "$ref": "#/$defs/team" },
+    "tool": { "$ref": "#/$defs/tool" },
+    "task": { "$ref": "#/$defs/task" },
+    "payload": { "type": "object" },
+    "raw": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": { "kind": { "enum": ["tool.pre", "tool.post", "tool.fail"] } }
+      },
+      "then": {
+        "required": ["tool"],
+        "not": { "required": ["task"] }
+      }
+    },
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": { "kind": { "const": "task.completed" } }
+      },
+      "then": {
+        "required": ["task"],
+        "not": { "required": ["tool"] }
+      }
+    },
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "enum": [
+              "session.start",
+              "session.end",
+              "prompt.submit",
+              "agent.spawn.pre",
+              "agent.start",
+              "agent.stop",
+              "agent.idle",
+              "compact.pre",
+              "compact.post",
+              "turn.stop"
+            ]
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [{ "required": ["tool"] }, { "required": ["task"] }]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cwd"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "cwd": { "type": "string", "minLength": 1 },
+        "project_dir": { "type": "string", "minLength": 1 },
+        "transcript_path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": { "enum": ["lead", "teammate", "unknown"], "default": "unknown" },
+        "name": { "type": "string", "minLength": 1 },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "type": { "type": "string", "minLength": 1 }
+      }
+    },
+    "team": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "name": { "type": "string", "minLength": 1 } }
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical", "native"],
+      "properties": {
+        "canonical": { "type": "string", "minLength": 1 },
+        "native": { "type": "string", "minLength": 1 },
+        "input": { "type": "object" },
+        "result": { "type": "object" },
+        "error": { "type": "object" },
+        "call_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "parent_call_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "is_sub_dispatch": { "type": "boolean", "default": false }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "subject": { "type": "string", "minLength": 1 },
+        "team_name": { "type": "string", "minLength": 1 },
+        "teammate_name": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 },
+        "owner": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

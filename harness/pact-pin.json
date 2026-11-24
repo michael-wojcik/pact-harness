@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "pactVersion": "4.8.36",
+  "commit": "4607c7a079203b97aa1a0c0f1baa006ebb0982a4",
+  "tag": "v4.8.36",
+  "submodulePath": "vendor/pact-plugin",
+  "repository": "https://github.com/Synaptic-Labs-AI/PACT-Plugin.git"
+}
