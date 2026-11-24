@@ -1,0 +1,41 @@
+# Upstream tests that fail on macOS for platform reasons, not pin reasons.
+#
+# Each line is a pytest node id. tools/run-upstream-tests.sh reads this file when
+# PACT_UPSTREAM_MACOS=1 and deselects these tests, so a local run on macOS can be
+# green without pretending the failures do not exist.
+#
+# Three groups, each an assumption that holds on upstream's Linux CI and not here:
+#
+# 1. Invalid UTF-8 filenames (Errno 92, "Illegal byte sequence"). APFS refuses to
+#    create a path whose bytes are not valid UTF-8; ext4 on Linux accepts them.
+#    These tests exist to prove the plugin survives such paths, so they cannot be
+#    rewritten to pass here.
+# 2. /bin/true. Upstream's home-census tests launch it directly; on macOS the
+#    binary is /usr/bin/true.
+# 3. CI-only seams: the GITHUB_ACTIONS binding, a hash-pinned pip install line,
+#    an unwritable temp directory, and one inode-identity check. These assert on
+#    behavior of the CI environment, not of PACT.
+#
+# Verified: with these deselected the affected files pass on macOS; without the
+# pinned dependencies (pytest 9.2.0, pytest-randomly 5.1.0) two further pytest
+# internals tests also fail and were fixed by installing the pinned set.
+
+tests/test_fast_workflow_contract.py::TestHashCheckedInstall::test_the_pasted_remedy_installs_only_past_the_floor[at-floor-absent]
+tests/test_fast_workflow_contract.py::TestHashCheckedInstall::test_the_pasted_remedy_installs_only_past_the_floor[at-floor-existing]
+tests/test_git_commit_check.py::TestGitHelpers::test_the_staged_name_survives_gits_quoting
+tests/test_git_commit_check.py::TestGitHelpers::test_the_staged_name_survives_a_locale_decode
+tests/test_git_commit_check.py::TestGitHelpers::test_an_undecodable_env_name_is_still_flagged
+tests/test_home_census.py::test_an_env_with_a_home_key_is_accepted[str-key]
+tests/test_home_census.py::test_an_env_with_a_home_key_is_accepted[bytes-key]
+tests/test_home_census.py::test_an_env_with_a_home_key_is_accepted[empty-value]
+tests/test_home_census.py::test_each_judged_launch_is_counted_and_an_exempt_one_is_not
+tests/test_memory_init.py::TestCIEnvironmentBinding::test_a_path_added_during_collection_is_caught_at_session_end
+tests/test_pin_caps_gate_paths.py::test_same_file_cannot_tell_on_an_error_and_same_path_reads_it_as_different
+tests/test_project_memory_root.py::test_f1_a_own_invalid_utf8_path_returns_main
+tests/test_project_memory_root.py::test_f1_b_an_ascii_worktree_beside_an_invalid_one_returns_main
+tests/test_project_memory_root.py::test_f1_c_admin_gitdir_fallback_decodes
+tests/test_project_memory_root.py::test_f1_e_git_output_preserves_an_undecodable_path
+tests/test_tracked_files_helper.py::test_non_utf8_tracked_filename_is_enumerated
+tests/test_user_global_root.py::test_a_document_path_that_cannot_be_compared_counts_as_user_global
+tests/test_verify_gate_tree.py::TestTempFileAllocationFailureIsARefusal::test_unwritable_tempdir_refuses_with_exit_2_and_no_capture
+tests/test_worktree_git_failure_skip.py::test_an_invalid_utf8_worktree_path_still_starts_the_session

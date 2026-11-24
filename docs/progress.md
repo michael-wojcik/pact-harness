@@ -9,8 +9,13 @@ reads this and [plan.md](plan.md) before touching code.
 - **M1 — complete for the harness; upstream suite triage open.** `tools/run-upstream-tests.sh`
   runs upstream's own suite unmodified against a local clone of the submodule (a
   plain copy fails tests that shell out to git) and the contract lane runs it on
-  every pull request. A full local run is in progress; its failures are being
-  separated into environment gaps and real findings. Registry, decoder, child environment, launcher, transport
+  every pull request. Measured here: 21 of ~28,000 fail on macOS, 19 after
+  installing upstream's pinned pytest, and all 19 are platform assumptions --
+  invalid-UTF-8 filenames APFS refuses, §/bin/true§, and CI-only seams -- recorded
+  with reasons in `tools/upstream-known-macos-gaps.txt`; with those deselected
+  the affected files pass 627/627. The contract lane runs the suite on Ubuntu
+  and Python 3.12, upstream's certified platform, with no deselects. See
+  [docs/upstream-suite.md](upstream-suite.md). Registry, decoder, child environment, launcher, transport
   seam, concurrency, Claude Code adapter, and a real refusal proven end to end.
   The conformance suite exercises **all 34 registrations** across 24 corpus
   frames and asserts two things per registration: the adapter re-delivers the

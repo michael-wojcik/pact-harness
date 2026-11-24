@@ -30,5 +30,21 @@ trap 'rm -rf "$WORK"' EXIT
 git clone --quiet --no-hardlinks "$SOURCE" "$WORK/repo"
 cd "$WORK/repo/pact-plugin"
 
+GAPS_FILE="$ROOT/tools/upstream-known-macos-gaps.txt"
+if [ "${PACT_UPSTREAM_MACOS:-0}" = "1" ] && [ -f "$GAPS_FILE" ]; then
+  echo "run-upstream-tests: deselecting known macOS platform gaps from $GAPS_FILE"
+  while IFS= read -r node_id; do
+    case "$node_id" in
+      ""|"#"*) continue ;;
+    esac
+    # pytest resolves --deselect against collected node ids, and the collected
+    # form depends on where rootdir landed (the repository root's pyproject, so
+    # ids are usually prefixed with the plugin directory). Passing both forms
+    # costs nothing: an unmatched deselect is ignored.
+    set -- "$@" --deselect "$node_id"
+    set -- "$@" --deselect "pact-plugin/$node_id"
+  done < "$GAPS_FILE"
+fi
+
 echo "run-upstream-tests: upstream suite in $WORK/repo"
 "$PYTHON" -m pytest tests -q -p no:cacheprovider "$@"
