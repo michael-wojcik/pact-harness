@@ -543,6 +543,24 @@ def _cmd_playbook_build(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _cmd_mcp_serve(args: argparse.Namespace) -> int:
+    """Serve PACT's advisory tools over MCP stdio."""
+    from .mcp.server import McpServer
+    from .mcp.tools import ToolOptions
+
+    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    options = ToolOptions(
+        adapter_id=args.adapter,
+        plugin_root=plugin_root,
+        state_root=Path(args.state_root) if args.state_root else None,
+        python=args.python,
+    )
+    return McpServer(options=options).serve()
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
@@ -661,6 +679,15 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    mcp = subparsers.add_parser("mcp", help="advisory tools over the Model Context Protocol")
+    mcp_actions = mcp.add_subparsers(dest="action", required=True)
+    mcp_serve = mcp_actions.add_parser("serve", help="serve MCP over stdio")
+    mcp_serve.add_argument("--adapter", default="mcp", metavar="ID")
+    mcp_serve.add_argument("--plugin-root", metavar="DIR")
+    mcp_serve.add_argument("--state-root", metavar="DIR")
+    mcp_serve.add_argument("--python", metavar="PATH")
+    mcp_serve.set_defaults(func=_cmd_mcp_serve)
 
     serve = subparsers.add_parser("serve", help="run the warm hook worker")
     serve.add_argument("--socket", required=True, metavar="PATH", help="unix socket to bind")

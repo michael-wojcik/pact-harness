@@ -18,6 +18,11 @@ reads this and [plan.md](plan.md) before touching code.
   directive folding, the Python DSH adapter, the cordis bridge,
   install/uninstall, and a real DSH profile that composes and boots are done.
   The only unproven assertion is a model-backed turn, which needs a key.
+- **M4 — in progress.** The generic MCP adapter serves newline-delimited
+  JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
+  `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools
+  say "advisory only" in their text, and `pact_status` reports tier T0 and the
+  live registry. Remaining: memory and journal tools over the vendor CLIs.
 - **M3 — in progress.** The playbook compiler extracts 13 personas, 13 commands
   (Telegram excluded), 21 skills, 22 protocols and 3 references, resolves every
   plugin-relative reference to an absolute path, and replaces Claude's
