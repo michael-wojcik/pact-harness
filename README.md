@@ -72,11 +72,19 @@ See [docs/platforms/generic.md](docs/platforms/generic.md).
 
 ### Claude Code
 
-Keep using the PACT plugin as it is. The harness does not replace it and does not
-intercept it; it ships the same pinned core and a `pact` command that, invoked
-bare, still launches `claude --agent PACT:pact-orchestrator` exactly as
-upstream's launcher does. See
-[docs/platforms/claude-code.md](docs/platforms/claude-code.md).
+The default is unchanged: keep using the PACT plugin as it is. The harness does
+not replace it and does not intercept it; it ships the same pinned core and a
+`pact` command that, invoked bare, still launches
+`claude --agent PACT:pact-orchestrator` exactly as upstream's launcher does.
+
+There is also an opt-in bridged mode that routes every hook through the harness,
+gated on a byte-parity check across the 48-cell corpus:
+
+```sh
+pact install claude-code --mode bridged --target ~/.pact/claude-bridged
+```
+
+See [docs/platforms/claude-code.md](docs/platforms/claude-code.md).
 
 ## Commands
 
@@ -85,7 +93,7 @@ upstream's launcher does. See
 | `pact doctor` | Report what is actually wired: adapter, tier, registry, pin, transport. Exits non-zero when a claim cannot be backed. |
 | `pact install dsh` / `pact uninstall dsh` | Install or remove the bridge in a DeepSeek Harness profile. |
 | `pact install generic` / `pact uninstall generic` | Write the managed `AGENTS.md` section and link the skills for an advisory platform. |
-| `pact install claude-code` | Report native mode; bridged mode is refused with the reason it is not shipped. |
+| `pact install claude-code` | Native mode (nothing to install) or `--mode bridged --target DIR`, gated on byte parity across the 48-cell corpus. |
 | `pact hook HOOK` | Run one hook against one frame and print what it did (add `--raw` for the process result). |
 | `pact migrate-state --to DIR` | Move a state root, refusing a partial move. |
 | `pact capabilities` | The adapter's declared capability set and derived tier. |

@@ -6,7 +6,10 @@ reads this and [plan.md](plan.md) before touching code.
 ## Where we are
 
 - **M0 — complete.** Contract v1, capability model, vendor pin, CLI, doctor, CI.
-- **M1 — complete for the harness.** The planned CLI surface is closed: `pact hook`
+- **M1 — complete.** Bridged Claude Code mode is implemented and gated: the
+  installer re-runs byte parity (48 cells, stdout and exit code) and refuses to
+  install unless it holds, then copies the tree and rewrites all 34 commands to
+  call the shim; uninstall refuses a directory it did not make. The planned CLI surface is closed: `pact hook`
   runs one registration against one frame with `--raw`, `pact migrate-state`
   moves a state root and refuses a partial move, and `pact install claude-code`
   reports native mode while refusing bridged mode with its reason. `doctor` now

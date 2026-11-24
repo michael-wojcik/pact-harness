@@ -90,10 +90,10 @@ def test_install_claude_code_reports_native_mode(monkeypatch, capsys) -> None:
     assert "34 registrations" in out
 
 
-def test_bridged_mode_is_refused_with_a_reason(monkeypatch, capsys) -> None:
+def test_bridged_mode_requires_its_own_directory(monkeypatch, capsys) -> None:
     code, out, err = run_cli(monkeypatch, capsys, ["install", "claude-code", "--mode", "bridged"])
     assert code != 0
-    assert "byte parity" in err
+    assert "pass --target" in err
 
 
 def test_doctor_reports_modules_and_the_last_activation(

@@ -576,8 +576,20 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
     except PactHarnessError as exc:
         print(f"pact: {exc}", file=sys.stderr)
         return EXIT_PROBLEM
+    parity = None
+    if getattr(args, "parity", False):
+        from .conformance.parity import run_parity
+
+        try:
+            parity = run_parity(plugin_root, adapter_id=args.adapter, python=args.python)
+        except PactHarnessError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
     if args.json:
-        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        payload = report.to_dict()
+        if parity is not None:
+            payload["parity"] = parity.to_dict()
+        print(json.dumps(payload, indent=2, sort_keys=True))
     else:
         print(f"conformance  : {len(report.checks)} checks across {len(report.frames)} frames")
         print(
@@ -589,7 +601,18 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
             print(f"  failed: {failure}")
         for key in report.uncovered:
             print(f"  uncovered: {key}")
-    return EXIT_OK if report.ok else EXIT_PROBLEM
+        if parity is not None:
+            print(
+                f"byte parity  : {len(parity.cells)} cells across {parity.frames} frames, "
+                f"{len(parity.failures)} mismatch(es)"
+            )
+            for failure in parity.failures:
+                print(f"  diverged: {failure}")
+    if not report.ok:
+        return EXIT_PROBLEM
+    if parity is not None and not parity.ok:
+        return EXIT_PROBLEM
+    return EXIT_OK
 
 
 def _cmd_playbook_build(args: argparse.Namespace) -> int:
@@ -889,6 +912,14 @@ def _cmd_hook(args: argparse.Namespace) -> int:
         cwd=event.session.cwd,
         inject_target=inject_target_for(event.kind),
     )
+    if args.passthrough:
+        # The bridged mode is a shim, so it must not be a translator: the hook's
+        # bytes and exit code pass through untouched.
+        sys.stdout.buffer.write(run.result.stdout)
+        sys.stdout.buffer.flush()
+        sys.stderr.buffer.write(run.result.stderr)
+        sys.stderr.buffer.flush()
+        return int(run.result.exit) if run.result.exit is not None else EXIT_PROBLEM
     if args.raw:
         payload: dict[str, Any] = {
             "hook": registration.hook,
@@ -959,14 +990,28 @@ def _cmd_install_claude_code(args: argparse.Namespace) -> int:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
     if mode == "bridged":
-        print(
-            "pact: bridged mode is not shipped. It requires every registration to be "
-            "byte-identical through the harness before hooks.json is rewritten, and the "
-            "conformance suite proves semantic parity, not byte parity. Use native mode; "
-            "Claude Code keeps its own hooks.",
-            file=sys.stderr,
-        )
-        return EXIT_PROBLEM
+        from .install.claude_code import ClaudeCodeInstallError, install_bridged
+
+        if not getattr(args, "target", None) or args.target == ".":
+            print(
+                "pact: bridged mode owns a directory; pass --target DIR",
+                file=sys.stderr,
+            )
+            return EXIT_PROBLEM
+        try:
+            result = install_bridged(Path(args.target), plugin_root)
+        except ClaudeCodeInstallError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(f"bridged      : {result.target}")
+            print(f"commands     : {result.commands} rewritten to call the shim")
+            print(f"parity       : {result.parity_cells} cells byte-identical")
+            for note in result.notes:
+                print(f"note         : {note}")
+        return EXIT_OK
     registry = HookRegistry.from_plugin_root(plugin_root)
     print("claude-code native: nothing to install")
     print(f"plugin root  : {plugin_root}")
@@ -976,7 +1021,22 @@ def _cmd_install_claude_code(args: argparse.Namespace) -> int:
 
 
 def _cmd_uninstall_claude_code(args: argparse.Namespace) -> int:
-    """A native install leaves nothing behind to remove."""
+    """Remove a bridged install, or report that a native one left nothing."""
+    from .install.claude_code import ClaudeCodeInstallError, uninstall_bridged
+
+    target = getattr(args, "target", None)
+    if target and target != ".":
+        try:
+            manifest = uninstall_bridged(Path(target))
+        except ClaudeCodeInstallError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+        if getattr(args, "json", False):
+            print(json.dumps({"removed": manifest}, indent=2, sort_keys=True))
+        else:
+            print(f"removed      : {target}")
+            print(f"had commands : {manifest.get('commands')}")
+        return EXIT_OK
     print("claude-code native: nothing was installed, so there is nothing to remove")
     return EXIT_OK
 
@@ -1276,6 +1336,11 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--state-root", metavar="DIR")
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
+    conformance.add_argument(
+        "--parity",
+        action="store_true",
+        help="also prove the bridged shim is byte-identical to a direct hook run",
+    )
     conformance.set_defaults(func=_cmd_conformance)
 
     hook = subparsers.add_parser("hook", help="run one hook against one frame")
@@ -1285,6 +1350,11 @@ def build_parser() -> argparse.ArgumentParser:
     hook.add_argument("--state-root", metavar="DIR")
     hook.add_argument("--python", metavar="PATH")
     hook.add_argument("--raw", action="store_true", help="print the raw process result")
+    hook.add_argument(
+        "--passthrough",
+        action="store_true",
+        help="write the hook's own stdout/stderr and exit with its code (bridged mode)",
+    )
     hook.set_defaults(func=_cmd_hook)
 
     migrate = subparsers.add_parser("migrate-state", help="move a state root")

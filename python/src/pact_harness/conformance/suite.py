@@ -21,7 +21,7 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from ..adapters.base import AdapterContext
 from ..adapters.registry import get_adapter
@@ -129,10 +129,18 @@ def _judge(frame: str, run: HookRun) -> CheckResult:
 
 @dataclass(frozen=True, slots=True)
 class CorpusRun:
-    """One registration executed against one corpus frame."""
+    """One registration executed against one corpus frame.
+
+    The stdin, environment and working directory are carried alongside the
+    result because a parity check has to replay exactly what the hook saw, not
+    reconstruct it from the corpus.
+    """
 
     frame: "CorpusFrame"
     run: HookRun
+    stdin: bytes = b""
+    env: Mapping[str, str] = field(default_factory=dict)
+    cwd: str = ""
 
 
 def collect_corpus_runs(
@@ -200,7 +208,15 @@ def collect_corpus_runs(
             inject_target=inject_target_for(event.kind),
         )
         for run in runs:
-            collected.append(CorpusRun(corpus_frame, run))
+            collected.append(
+                CorpusRun(
+                    corpus_frame,
+                    run,
+                    stdin=legacy.data,
+                    env=env.values,
+                    cwd=str(project),
+                )
+            )
     return tuple(collected), tuple(failures)
 
 
