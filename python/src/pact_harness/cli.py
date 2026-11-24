@@ -477,6 +477,72 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
     return EXIT_OK if report.ok else EXIT_PROBLEM
 
 
+def _cmd_playbook_build(args: argparse.Namespace) -> int:
+    """Compile PACT's artifacts for one platform."""
+    from .playbook.compile import PlaybookError, compile_playbook
+    from .vendor import VendorError, load_pin
+
+    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    pact_version = ""
+    commit = ""
+    harness = find_harness_root()
+    if harness is not None:
+        try:
+            pin = load_pin(harness)
+            pact_version = pin.pact_version
+            commit = pin.commit
+        except VendorError:
+            pass
+    try:
+        playbook = compile_playbook(
+            plugin_root,
+            platform=args.platform,
+            pact_version=pact_version,
+            commit=commit,
+        )
+    except PlaybookError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+
+    destination = Path(args.out)
+    if destination.is_dir() or destination.suffix != ".json":
+        destination.mkdir(parents=True, exist_ok=True)
+        destination = destination / "playbook.json"
+    else:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(
+        json.dumps(playbook.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "out": str(destination),
+                    "platform": playbook.platform,
+                    "counts": playbook.to_dict()["counts"],
+                    "warnings": list(playbook.warnings),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+    else:
+        counts = playbook.to_dict()["counts"]
+        print(f"playbook     : {destination}")
+        print(f"platform     : {playbook.platform}")
+        print(
+            "contents     : "
+            f"{counts['personas']} personas, {counts['commands']} commands, "
+            f"{counts['skills']} skills, {counts['protocols']} protocols"
+        )
+        for warning in playbook.warnings:
+            print(f"warning      : {warning}")
+    return EXIT_OK
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
@@ -574,6 +640,17 @@ def build_parser() -> argparse.ArgumentParser:
     event.add_argument("--state-root", metavar="DIR", help="state root for this evaluation")
     event.add_argument("--python", metavar="PATH", help="interpreter for the hook children")
     event.set_defaults(func=_cmd_event)
+
+    playbook = subparsers.add_parser("playbook", help="compile PACT's artifacts")
+    playbook_actions = playbook.add_subparsers(dest="action", required=True)
+    playbook_build = playbook_actions.add_parser("build", help="build the playbook for a platform")
+    playbook_build.add_argument("--platform", default="dsh", metavar="ID")
+    playbook_build.add_argument("--plugin-root", metavar="DIR")
+    playbook_build.add_argument(
+        "--out", required=True, metavar="PATH", help="file to write, or a directory"
+    )
+    playbook_build.add_argument("--json", action="store_true", help="print JSON")
+    playbook_build.set_defaults(func=_cmd_playbook_build)
 
     conformance = subparsers.add_parser(
         "conformance", help="run every hook against the corpus and report"

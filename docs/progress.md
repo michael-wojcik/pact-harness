@@ -14,10 +14,17 @@ reads this and [plan.md](plan.md) before touching code.
   fatal decode error, and a refusal whenever the hook exits 2. Judgement is
   covered by negative controls (refusal without a directive, decode problem,
   fatal error, bad exit, launch failure, timeout).
-- **M2 — in progress, near complete.** Warm transport, event engine, directive
-  folding, the Python DSH adapter, the cordis bridge, install/uninstall, and a
-  real DSH profile that composes and boots are done. Remaining: a model-backed
-  end-to-end turn (needs a key) and the conformance corpus.
+- **M2 — complete except one assertion.** Warm transport, event engine,
+  directive folding, the Python DSH adapter, the cordis bridge,
+  install/uninstall, and a real DSH profile that composes and boots are done.
+  The only unproven assertion is a model-backed turn, which needs a key.
+- **M3 — in progress.** The playbook compiler extracts 13 personas, 13 commands
+  (Telegram excluded), 21 skills, 22 protocols and 3 references, resolves every
+  plugin-relative reference to an absolute path, and replaces Claude's
+  `$ARGUMENTS` with the platform placeholder. The installer compiles it next to
+  the profile and the bridge registers the orchestrator persona as a system
+  prompt section at order 0. Remaining: registering the `/pact-*` commands, the
+  skill provider, and specialist personas.
 
 ### DSH end-to-end evidence
 
@@ -38,7 +45,7 @@ reads this and [plan.md](plan.md) before touching code.
 
 1. ~~Warm transport~~ — done (`runtime/warm.py`, `pact serve`).
 2. ~~DSH cordis bridge~~ — done (`adapters/dsh/`): events, tool map, decisions,
-   warm-worker client, shadow/enforce policy, 22 Node tests.
+   warm-worker client, shadow/enforce policy, persona section, 33 Node tests.
 3. **M3 playbook compiler**: extract personas, commands, skills and protocols
    from the vendored tree, rewrite what does not survive a platform change, and
    emit per-platform artifacts. The bridge then registers the orchestrator

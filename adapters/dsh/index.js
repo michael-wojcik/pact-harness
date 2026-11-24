@@ -12,7 +12,7 @@
  * enforcement is the one failure the harness exists to prevent.
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -56,6 +56,7 @@ export function normalizeConfig(config = {}, env = process.env) {
     // under ~/.pact, separate from Claude Code's ~/.claude. A record written to
     // the temporary directory instead would be invisible to pact doctor.
     stateRoot: config.stateRoot ?? env.PACT_HOME ?? path.join(os.homedir(), '.pact'),
+    playbook: config.playbook ?? env.PACT_DSH_PLAYBOOK ?? undefined,
     socketPath: config.socketPath,
   };
 }
@@ -79,6 +80,67 @@ export async function loadMessageFactory(logger) {
     content: [{ type: 'text', text }],
     source: { kind: 'pact-dsh' },
   });
+}
+
+/** Read the compiled playbook the installer wrote, or null when absent. */
+export function loadPlaybook(playbookPath) {
+  if (!playbookPath) return null;
+  const document = JSON.parse(readFileSync(playbookPath, 'utf8'));
+  if (!document || typeof document !== 'object' || Array.isArray(document)) {
+    throw new Error('playbook is not an object');
+  }
+  return document;
+}
+
+/** Read an optional service without tripping cordis's inject requirement. */
+export function safeService(ctx, name) {
+  try {
+    if (typeof ctx?.get === 'function') return ctx.get(name);
+    return ctx?.[name];
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Register the orchestrator persona as a system prompt section.
+ *
+ * This is the closest DSH analogue of Claude Code's --agent: the persona joins
+ * the assembly at order 0, the deployment-persona convention. It is not
+ * editable by the user and not loaded from the workspace, because PACT's own
+ * threat model depends on the persona being authoritative rather than guidance.
+ */
+export function registerPersona(ctx, settings, logger) {
+  if (!settings.playbook) {
+    logger?.info?.('pact-dsh: no playbook configured; the orchestrator persona is not registered');
+    return null;
+  }
+  let playbook;
+  try {
+    playbook = loadPlaybook(settings.playbook);
+  } catch (error) {
+    logger?.warn?.(`pact-dsh: cannot read the playbook: ${error?.message ?? error}`);
+    return null;
+  }
+  const systemPrompt = safeService(ctx, 'systemPrompt');
+  if (!systemPrompt || typeof systemPrompt.section !== 'function') {
+    logger?.warn?.('pact-dsh: system prompt service unavailable; the orchestrator persona is not registered');
+    return null;
+  }
+  const personas = Array.isArray(playbook.personas) ? playbook.personas : [];
+  const orchestrator = personas.find((persona) => persona?.name === 'pact-orchestrator');
+  if (!orchestrator || typeof orchestrator.body !== 'string') {
+    logger?.warn?.('pact-dsh: the playbook has no orchestrator persona');
+    return null;
+  }
+  const notes = typeof playbook.platform_notes === 'string' ? playbook.platform_notes : '';
+  const text = `${orchestrator.body}\n\n${notes}`.trim();
+  const dispose = systemPrompt.section({ name: 'pact:orchestrator', order: 0, text });
+  if (typeof dispose === 'function' && typeof ctx.effect === 'function') {
+    ctx.effect(() => dispose);
+  }
+  logger?.info?.(`pact-dsh: registered the orchestrator persona (${text.length} bytes)`);
+  return text;
 }
 
 /** Write a startup record so a boot can be proven without a model. */
@@ -275,10 +337,15 @@ export function apply(ctx, config = {}) {
     })
     .catch(() => undefined);
   try {
-    recordActivation(settings, { pluginRoot: settings.pluginRoot ?? null, python: settings.python });
+    recordActivation(settings, {
+      pluginRoot: settings.pluginRoot ?? null,
+      python: settings.python,
+      playbook: settings.playbook ?? null,
+    });
     ctx.logger?.info?.(`pact-dsh: ${settings.mode} mode, enforcing ${settings.enforceGates.join(', ') || 'nothing'}`);
   } catch (error) {
     ctx.logger?.warn?.(`pact-dsh: could not write the activation record: ${error?.message ?? error}`);
   }
   wire(ctx, settings, deps);
+  registerPersona(ctx, settings, ctx.logger);
 }

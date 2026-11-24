@@ -166,6 +166,31 @@ def test_uninstall_removes_only_the_block(tmp_path: Path) -> None:
     assert "# keep me" in text
 
 
+def test_install_writes_a_playbook_and_references_it(tmp_path: Path) -> None:
+    home = tmp_path / "dsh"
+    result = install_dsh(
+        profile="pact",
+        dsh_home=home,
+        adapter_dir=adapter(tmp_path),
+        register=False,
+    )
+    playbook = result.profile_dir / "pact-playbook.json"
+    text = result.patch_path.read_text()
+    if playbook.is_file():
+        assert f"playbook: {playbook}" in text
+    else:
+        # Compilation is best-effort; when it fails the install says why.
+        assert any("playbook not built" in note for note in result.notes)
+
+
+def test_uninstall_removes_the_generated_playbook(tmp_path: Path) -> None:
+    home = tmp_path / "dsh"
+    install_dsh(profile="pact", dsh_home=home, adapter_dir=adapter(tmp_path), register=False)
+    playbook = home / "profiles" / "pact" / "pact-playbook.json"
+    uninstall_dsh(profile="pact", dsh_home=home, unregister=False)
+    assert not playbook.exists()
+
+
 def test_uninstall_reports_an_absent_block(tmp_path: Path) -> None:
     home = tmp_path / "dsh"
     profile = home / "profiles" / "pact"

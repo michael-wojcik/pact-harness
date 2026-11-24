@@ -1,20 +1,29 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 
-import { normalizeConfig, wire } from '../index.js';
+import { loadPlaybook, normalizeConfig, registerPersona, wire } from '../index.js';
 import * as events from '../lib/events.js';
 
-function fakeCtx() {
+export function fakeCtx(services = {}) {
   const listeners = new Map();
   const warnings = [];
   return {
     warnings,
+    infos: [],
     logger: {
-      info() {},
+      info(message) {
+        this.infos = this.infos ?? [];
+      },
       warn(message) {
         warnings.push(message);
       },
       error() {},
+    },
+    get(name) {
+      return services[name];
     },
     on(event, listener) {
       if (!listeners.has(event)) listeners.set(event, []);
@@ -260,4 +269,80 @@ test('event ids are contract-safe', () => {
   const id = events.eventId('session/with spaces:and:colons');
   assert.match(id, /^[A-Za-z0-9][A-Za-z0-9_-]*$/);
   assert.ok(id.length <= 64);
+});
+
+function writePlaybook(document) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-playbook-test-'));
+  const target = path.join(directory, 'playbook.json');
+  fs.writeFileSync(target, JSON.stringify(document));
+  return target;
+}
+
+function personaDocument(overrides = {}) {
+  return {
+    v: 1,
+    platform: 'dsh',
+    personas: [
+      { name: 'pact-orchestrator', body: 'You are the PACT orchestrator.', description: 'x' },
+    ],
+    platform_notes: 'ToolSearch does not exist here.',
+    ...overrides,
+  };
+}
+
+test('the orchestrator persona becomes a system prompt section', () => {
+  const sections = [];
+  const ctx = fakeCtx({ systemPrompt: { section: (section) => sections.push(section) } });
+  const playbook = writePlaybook(personaDocument());
+  const text = registerPersona(ctx, { playbook }, ctx.logger);
+  assert.equal(sections.length, 1);
+  assert.equal(sections[0].name, 'pact:orchestrator');
+  assert.equal(sections[0].order, 0);
+  assert.match(sections[0].text, /PACT orchestrator/);
+  assert.match(sections[0].text, /ToolSearch does not exist/);
+  assert.equal(text, sections[0].text);
+});
+
+test('no playbook means no section and no failure', () => {
+  const sections = [];
+  const ctx = fakeCtx({ systemPrompt: { section: (section) => sections.push(section) } });
+  assert.equal(registerPersona(ctx, {}, ctx.logger), null);
+  assert.equal(sections.length, 0);
+});
+
+test('a missing system prompt service is reported, not thrown', () => {
+  const ctx = fakeCtx({});
+  const playbook = writePlaybook(personaDocument());
+  assert.equal(registerPersona(ctx, { playbook }, ctx.logger), null);
+  assert.match(ctx.warnings.join('\n'), /system prompt service unavailable/);
+});
+
+test('a malformed playbook is reported, not thrown', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-playbook-bad-'));
+  const target = path.join(directory, 'playbook.json');
+  fs.writeFileSync(target, '{not json');
+  const ctx = fakeCtx({ systemPrompt: { section: () => {} } });
+  assert.equal(registerPersona(ctx, { playbook: target }, ctx.logger), null);
+  assert.match(ctx.warnings.join('\n'), /cannot read the playbook/);
+});
+
+test('a playbook without an orchestrator is reported', () => {
+  const ctx = fakeCtx({ systemPrompt: { section: () => {} } });
+  const playbook = writePlaybook(personaDocument({ personas: [] }));
+  assert.equal(registerPersona(ctx, { playbook }, ctx.logger), null);
+  assert.match(ctx.warnings.join('\n'), /no orchestrator persona/);
+});
+
+test('loadPlaybook reads a document and rejects a non-object', () => {
+  const good = writePlaybook(personaDocument());
+  assert.equal(loadPlaybook(good).platform, 'dsh');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pact-playbook-arr-'));
+  const target = path.join(directory, 'playbook.json');
+  fs.writeFileSync(target, '[]');
+  assert.throws(() => loadPlaybook(target), /not an object/);
+});
+
+test('the playbook path is part of the resolved config', () => {
+  const config = normalizeConfig({ playbook: '/tmp/p.json' }, {});
+  assert.equal(config.playbook, '/tmp/p.json');
 });
