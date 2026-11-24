@@ -51,6 +51,15 @@ The exact node ids are in `tools/upstream-known-macos-gaps.txt` with the reason
 for each group. Deleting a line from that file re-exposes the failure, which is
 the point: the list is an inventory, not a suppression.
 
+## Checking an upstream pull request
+
+`tools/harness-compat.yml` is a template to drop into PACT-Plugin's own
+workflows. It installs the harness and runs `pact upstream verify --plugin
+`$GITHUB_WORKSPACE` on every pull request there, so an upstream change that
+would break the harness is visible before it lands rather than after a release.
+It changes nothing about the plugin's Claude Code behavior, and it is not a
+requirement on upstream.
+
 ## Where this runs for real
 
 `.github/workflows/contract.yml` runs the suite on the platform upstream

@@ -94,7 +94,10 @@ reads this and [plan.md](plan.md) before touching code.
   commits, so a human reviews what moved. A guard test compiles the script's
   embedded Python, because a mangled heredoc escape is a real defect this
   session hit.
-- **M6 — complete except publication.** Release docs landed: a rewritten README with an install
+- **M6 — complete except publication.** `pact install --venv` creates the memory
+  CLI's environment under the state home (PEP 668 is why it exists), and
+  `tools/harness-compat.yml` is a template upstream can drop into its own CI to
+  run `pact upstream verify` on pull requests. Release docs landed: a rewritten README with an install
   path per platform, [docs/architecture.md](architecture.md), per-platform
   quickstarts, a changelog, a version-identity test that holds pyproject,
   package and schemas to one number, and a tag-triggered release lane that

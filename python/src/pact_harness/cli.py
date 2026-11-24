@@ -466,6 +466,19 @@ def _cmd_install(args: argparse.Namespace) -> int:
     """Install the bridge into a host platform."""
     from .install.dsh import InstallError, install_dsh
 
+    if getattr(args, "venv", False):
+        from .install.venv import VenvError, ensure_venv, venv_root
+
+        state = resolve_state_root(adapter=args.platform)
+        try:
+            venv = ensure_venv(venv_root(state_root=state.path))
+        except VenvError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+        state_word = "created" if venv.created else "reused"
+        line = f"venv {state_word}: {venv.path} ({venv.python_version or 'unknown'})"
+        print(line, file=sys.stderr if args.json else sys.stdout)
+
     if args.platform == "generic":
         return _cmd_install_generic(args)
     if args.platform == "claude-code":
@@ -1290,6 +1303,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-base-profile",
         action="store_true",
         help="do not materialise a template; the caller owns the profile",
+    )
+    install.add_argument(
+        "--venv",
+        action="store_true",
+        help="also create the memory CLI's virtual environment",
     )
     install.add_argument("--json", action="store_true", help="print JSON")
     install.set_defaults(func=_cmd_install)

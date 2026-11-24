@@ -92,6 +92,7 @@ See [docs/platforms/claude-code.md](docs/platforms/claude-code.md).
 |---|---|
 | `pact doctor` | Report what is actually wired: adapter, tier, registry, pin, transport. Exits non-zero when a claim cannot be backed. |
 | `pact install dsh` / `pact uninstall dsh` | Install or remove the bridge in a DeepSeek Harness profile. |
+| `pact install … --venv` | Also create the memory CLI's virtual environment under the state home. |
 | `pact install generic` / `pact uninstall generic` | Write the managed `AGENTS.md` section and link the skills for an advisory platform. |
 | `pact install claude-code` | Native mode (nothing to install) or `--mode bridged --target DIR`, gated on byte parity across the 48-cell corpus. |
 | `pact hook HOOK` | Run one hook against one frame and print what it did (add `--raw` for the process result). |
