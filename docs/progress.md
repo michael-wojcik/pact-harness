@@ -25,8 +25,12 @@ reads this and [plan.md](plan.md) before touching code.
   committed at `harness/upstream-surface.v1.json` and a test fails if the pin
   moves without regenerating it. `pact upstream verify` classifies each read and
   each tool name against the harness's contract and names the gaps. A nightly
-  lane runs verify against upstream `main`. Remaining: the L0-L4 diff
-  classification and the sync PR.
+  lane runs verify against upstream `main`. `pact upstream diff OLD NEW`
+  classifies a change L0-L4 and is keyed by (event, hook, matcher) rather than
+  manifest position, so a reordering is not a wave of removals; matcher strings
+  and matcher tokens are both compared, because grouping changes stop hooks
+  running on a tool while every token survives. Remaining: the sync script and
+  PR automation.
 - **M4 — in progress.** The generic MCP adapter serves newline-delimited
   JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
   `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools

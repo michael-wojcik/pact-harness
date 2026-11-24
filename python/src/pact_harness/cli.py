@@ -556,6 +556,56 @@ def _plugin_root_from(value: str | None) -> Path | None:
     return resolve_plugin_root()
 
 
+def _load_surface_document(reference: str) -> dict[str, Any]:
+    """Load a manifest from a JSON file or extract one from a tree."""
+    from .upstream.inspect import inspect_surface
+    from .vendor import VendorError, load_pin
+
+    path = Path(reference)
+    if path.is_file():
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError(f"{reference}: manifest is not an object")
+        return raw
+    plugin_root = plugin_dir(path)
+    version = commit = tag = ""
+    harness = find_harness_root()
+    if harness is not None:
+        try:
+            pin = load_pin(harness)
+            version, commit, tag = pin.pact_version, pin.commit, pin.tag or ""
+        except VendorError:
+            pass
+    return inspect_surface(plugin_root, pact_version=version, commit=commit, tag=tag).to_dict()
+
+
+def _cmd_upstream_diff(args: argparse.Namespace) -> int:
+    """Classify the difference between two surface documents."""
+    from .upstream.diff import Level, diff_surfaces
+
+    try:
+        old = _load_surface_document(args.old)
+        new = _load_surface_document(args.new)
+    except (OSError, ValueError, PactHarnessError) as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    report = diff_surfaces(old, new)
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"level        : {report.level.value} ({'automatic' if report.automatic else 'needs work'})")
+        print(f"differences  : {len(report.differences)}")
+        for difference in report.differences:
+            detail = f" — {difference.detail}" if difference.detail else ""
+            print(f"  {difference.level.value} {difference.kind}: {difference.identity}{detail}")
+        facts = report.facts
+        print(
+            "registrations: "
+            f"{facts['registrations']['old']} -> {facts['registrations']['new']}"
+        )
+    return EXIT_PROBLEM if report.level is Level.L4 else EXIT_OK
+
+
 def _cmd_upstream(args: argparse.Namespace) -> int:
     """Inspect or verify the upstream surface."""
     from .upstream.inspect import InspectError, inspect_surface
@@ -799,6 +849,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="report an unclassified environment read as a warning",
     )
     upstream_verify.set_defaults(func=_cmd_upstream)
+    upstream_diff = upstream_actions.add_parser(
+        "diff", help="classify the difference between two manifests"
+    )
+    upstream_diff.add_argument("old", metavar="OLD", help="manifest file or tree")
+    upstream_diff.add_argument("new", metavar="NEW", help="manifest file or tree")
+    upstream_diff.add_argument("--json", action="store_true", help="print JSON")
+    upstream_diff.set_defaults(func=_cmd_upstream_diff)
 
     memory = subparsers.add_parser("memory", help="inspect the memory backend")
     memory_actions = memory.add_subparsers(dest="action", required=True)

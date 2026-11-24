@@ -175,6 +175,169 @@ def test_the_committed_manifest_matches_the_vendored_tree(surface: Surface) -> N
         assert committed[key] == fresh[key], key
 
 
+def test_identical_surfaces_are_l0(surface: Surface) -> None:
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    report = diff_surfaces(surface.to_dict(), surface.to_dict())
+    assert report.level is Level.L0
+    assert report.differences == ()
+    assert report.automatic is True
+
+
+def test_reordering_the_registry_is_not_a_change(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["registry"]["items"].reverse()
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L0
+
+
+def test_an_artifact_change_is_l1(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["artifacts"][0]["sha256"] = "f" * 64
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L1
+    assert report.automatic is True
+    assert report.differences[0].kind == "artifact-changed"
+
+
+def test_an_added_registration_is_l2(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["registry"]["items"].append(
+        {
+            "event": "PreToolUse",
+            "group": 9,
+            "command": 0,
+            "matcher": "Read",
+            "hook": "new_gate",
+            "script": "hooks/new_gate.py",
+            "timeout_s": None,
+            "async": False,
+        }
+    )
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L2
+    assert report.automatic is False
+
+
+def test_a_removed_registration_is_l3(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["registry"]["items"].pop(0)
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L3
+
+
+def test_a_changed_timeout_is_l3(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    for item in document["registry"]["items"]:
+        if item["hook"] == "pin_caps_gate":
+            item["timeout_s"] = 60.0
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L3
+    assert any(difference.kind == "registration-changed" for difference in report.differences)
+
+
+def test_tool_and_matcher_additions_are_l2_and_removals_l3(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    added = copy.deepcopy(surface.to_dict())
+    added["tool_sets"]["_BLOCKED_TOOLS"].append("Frobnicate")
+    added["matchers"].append("Frobnicate")
+    assert diff_surfaces(surface.to_dict(), added).level is Level.L2
+
+    removed = copy.deepcopy(surface.to_dict())
+    removed["tool_sets"]["_BLOCKED_TOOLS"].remove("Edit")
+    removed["matchers"].remove("Bash")
+    report = diff_surfaces(surface.to_dict(), removed)
+    assert report.level is Level.L3
+    # "Bash" still appears inside "Edit|Write|Bash", so the token survives; the
+    # grouping change is what this removal really is.
+    assert {difference.kind for difference in report.differences} >= {
+        "tool-removed",
+        "matcher-group-removed",
+    }
+
+    token_gone = copy.deepcopy(surface.to_dict())
+    token_gone["matchers"].remove("Agent")
+    report = diff_surfaces(surface.to_dict(), token_gone)
+    assert report.level is Level.L3
+    assert any(difference.kind == "matcher-removed" for difference in report.differences)
+
+
+def test_env_additions_are_l2_and_removals_l3(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    added = copy.deepcopy(surface.to_dict())
+    added["env_reads"].append({"name": "CLAUDE_NEW_THING", "file": "hooks/h.py", "line": 1})
+    assert diff_surfaces(surface.to_dict(), added).level is Level.L2
+
+    removed = copy.deepcopy(surface.to_dict())
+    removed["env_reads"] = [
+        read for read in removed["env_reads"] if read["name"] != "CLAUDE_CONFIG_DIR"
+    ]
+    report = diff_surfaces(surface.to_dict(), removed)
+    assert report.level is Level.L3
+    assert any(difference.kind == "env-removed" for difference in report.differences)
+
+
+def test_an_emptied_registry_is_l4(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["registry"]["items"] = []
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L4
+
+
+def test_an_emptied_artifact_kind_is_l4(surface: Surface) -> None:
+    import copy
+
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = copy.deepcopy(surface.to_dict())
+    document["artifacts"] = [a for a in document["artifacts"] if a["kind"] != "agents"]
+    report = diff_surfaces(surface.to_dict(), document)
+    assert report.level is Level.L4
+
+
+def test_the_cli_diffs_two_manifests(tmp_path: Path) -> None:
+    from pact_harness import cli
+
+    first = tmp_path / "old.json"
+    second = tmp_path / "new.json"
+    assert cli.main(["upstream", "inspect", "--out", str(first)]) == 0
+    document = json.loads(first.read_text())
+    document["artifacts"][0]["sha256"] = "e" * 64
+    second.write_text(json.dumps(document))
+    assert cli.main(["upstream", "diff", str(first), str(second)]) == 0
+    assert cli.main(["upstream", "diff", str(first), str(second), "--json"]) == 0
+
+
 def test_the_cli_inspects_and_verifies(tmp_path: Path) -> None:
     from pact_harness import cli
 

@@ -9,14 +9,19 @@ answer two questions: what changed, and does this tree still fit.
 
 from __future__ import annotations
 
+from .diff import DiffReport, Difference, Level, diff_surfaces
 from .inspect import Artifact, EnvRead, Surface, inspect_surface
 from .verify import VerifyReport, verify_surface
 
 __all__ = [
     "Artifact",
+    "DiffReport",
+    "Difference",
     "EnvRead",
+    "Level",
     "Surface",
     "VerifyReport",
+    "diff_surfaces",
     "inspect_surface",
     "verify_surface",
 ]
