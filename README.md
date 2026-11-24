@@ -26,10 +26,10 @@ reports tier T0 for it and says so.
 
 Measured decisions worth knowing before extending this:
 
-- **Latency.** A single file edit runs five hooks. Cold, that is 4.1-4.8 s; with
-  a warm process and one fork per hook it is 261 ms plus a 0.9 s one-time warm
-  import. The warm transport is therefore a requirement for any platform whose
-  extension point sits in the edit path, not an optimization. See
+- **Latency.** A single file edit runs five hooks. First run without bytecode
+  caches: 4.1-4.8 s. Steady state: 201-380 ms. With the warm transport: 28-31 ms.
+  The warm transport is the better default — 7-10x in steady state, and it
+  removes the first-run cost that a read-only vendored tree pays every time. See
   [docs/latency.md](docs/latency.md).
 - **Counts.** Upstream's manifest registers 34 hooks on **13** event names
   (PACT's own model folds `PostToolUseFailure` into `PostToolUse`), across 28

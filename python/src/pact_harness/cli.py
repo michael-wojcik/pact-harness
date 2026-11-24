@@ -356,6 +356,18 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return EXIT_PROBLEM if errors else EXIT_OK
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    """Run the warm hook worker until the process is terminated."""
+    from .runtime.warm import WarmTransportError, serve
+
+    try:
+        serve(Path(args.socket), Path(args.plugin_root))
+    except WarmTransportError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the harness argument parser."""
     parser = argparse.ArgumentParser(
@@ -393,6 +405,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="fail unless the adapter reaches this tier (T0, T1, T2, T3)",
     )
     doctor.set_defaults(func=_cmd_doctor)
+
+    serve = subparsers.add_parser("serve", help="run the warm hook worker")
+    serve.add_argument("--socket", required=True, metavar="PATH", help="unix socket to bind")
+    serve.add_argument(
+        "--plugin-root", required=True, metavar="DIR", help="vendored PACT tree to serve"
+    )
+    serve.set_defaults(func=_cmd_serve)
 
     return parser
 

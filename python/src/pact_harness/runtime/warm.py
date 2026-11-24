@@ -1,0 +1,476 @@
+"""The warm transport: import once, fork per hook.
+
+A cold process pays an interpreter start plus an import of the shared tree on
+every call. For the five hooks on a PreToolUse Edit that is 4.1 to 4.8 seconds,
+which is not a latency a person will tolerate before their file edit runs.
+
+The warm worker pays the import once (0.8 to 0.9 seconds for 55 shared
+modules), then forks a child per hook. A fork inherits the imported modules, so
+the child is isolated exactly as a fresh process is -- same stdin, same exit
+code, same stderr -- and the work it does is the hook body plus its own
+imports, which are already resident. Measured: 261 ms for the same five hooks.
+
+Two fork hazards were measured rather than assumed, and both are handled here:
+
+- The child must flush stdout and stderr before os._exit. os._exit skips
+  interpreter shutdown, so a buffered decision is otherwise discarded and the
+  hook looks silent.
+- The parent must flush before forking. Anything buffered in the parent's
+  streams at fork time is inherited by the child and flushed into the child's
+  captured output, corrupting the decision.
+
+The worker is serial. At 35 to 90 ms per fork, serial is fast enough that
+concurrency would add failure modes for no felt benefit, and a caller that
+wants parallel groups still gets them: its threads queue on the socket.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+import os
+import select
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+import runpy
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Mapping
+
+from ..errors import PactHarnessError
+from .launch import HookResult
+from .transport import warm_supported
+
+#: Frame cap, mirroring the decoder's document bound.
+MAX_FRAME_BYTES = 8 * 1024 * 1024
+
+#: How long a client waits for a worker to accept before giving up.
+WORKER_START_TIMEOUT_S = 15.0
+
+#: How long a client waits for one hook response beyond the hook's own timeout.
+RESPONSE_GRACE_S = 5.0
+
+
+class WarmTransportError(PactHarnessError):
+    """The worker could not be reached, started, or trusted."""
+
+
+def _b64encode(data: bytes) -> str:
+    return base64.b64encode(data).decode("ascii")
+
+
+def _b64decode(text: str) -> bytes:
+    return base64.b64decode(text.encode("ascii"))
+
+
+def warm_import(hooks_dir: Path) -> int:
+    """Import the shared tree once, returning how many modules loaded."""
+    import importlib
+    import pkgutil
+
+    hooks_text = str(hooks_dir)
+    if hooks_text not in sys.path:
+        sys.path.insert(0, hooks_text)
+    import shared  # noqa: PLC0415 -- deliberately after sys.path is prepared
+
+    loaded = 0
+    for module in pkgutil.iter_modules(shared.__path__):
+        try:
+            importlib.import_module("shared." + module.name)
+            loaded += 1
+        except BaseException:  # noqa: BLE001 -- one broken module must not stop the rest
+            continue
+    return loaded
+
+
+def run_forked(
+    script: Path,
+    stdin: bytes,
+    *,
+    env: Mapping[str, str],
+    cwd: str | None = None,
+    timeout_s: float | None = None,
+) -> dict[str, Any]:
+    """Run one script in a forked child of the current process.
+
+    Exposed so the fork mechanics can be tested without a socket, and so the
+    timeout path can be exercised against a script of the test's choosing.
+    """
+    if not warm_supported():
+        raise WarmTransportError("the warm transport requires os.fork")
+
+    in_r, in_w = os.pipe()
+    out_r, out_w = os.pipe()
+    err_r, err_w = os.pipe()
+    started = time.monotonic()
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+    pid = os.fork()
+    if pid == 0:  # pragma: no cover -- child process
+        code = 1
+        try:
+            os.close(in_w)
+            os.close(out_r)
+            os.close(err_r)
+            os.dup2(in_r, 0)
+            os.dup2(out_w, 1)
+            os.dup2(err_w, 2)
+            os.close(in_r)
+            os.close(out_w)
+            os.close(err_w)
+            os.environ.clear()
+            os.environ.update(env)
+            if cwd:
+                os.chdir(cwd)
+            # Rebind the Python-level streams to the descriptors this child just
+            # received. Inheriting the parent's stream objects is wrong whenever
+            # the parent replaced them -- a test harness, an embedder, a host
+            # that wraps stdout for logging -- because then a hook's print goes
+            # into that object instead of the pipe, and the decision is lost
+            # while the exit code still says the hook ran.
+            sys.stdin = os.fdopen(0, "r", closefd=False)
+            sys.stdout = os.fdopen(1, "w", closefd=False)
+            sys.stderr = os.fdopen(2, "w", closefd=False)
+            try:
+                runpy.run_path(str(script), run_name="__main__")
+                code = 0
+            except SystemExit as exc:
+                value = exc.code
+                code = 0 if value is None else (int(value) if isinstance(value, int) else 1)
+            except BaseException:
+                traceback.print_exc()
+                code = 1
+            try:
+                sys.stdout.flush()
+                sys.stderr.flush()
+            except BaseException:
+                pass
+        finally:
+            os._exit(code)
+
+    os.close(in_r)
+    os.close(out_w)
+    os.close(err_w)
+
+    try:
+        os.write(in_w, stdin)
+    except (BrokenPipeError, OSError):
+        pass
+    finally:
+        try:
+            os.close(in_w)
+        except OSError:
+            pass
+
+    out_chunks: list[bytes] = []
+    err_chunks: list[bytes] = []
+    open_fds = {out_r, err_r}
+    deadline = None if timeout_s is None else started + timeout_s
+    timed_out = False
+    while open_fds:
+        remaining = None if deadline is None else deadline - time.monotonic()
+        if remaining is not None and remaining <= 0:
+            timed_out = True
+            break
+        ready, _, _ = select.select(list(open_fds), [], [], remaining)
+        if not ready:
+            timed_out = True
+            break
+        for fd in ready:
+            chunk = os.read(fd, 65536)
+            if chunk:
+                (out_chunks if fd == out_r else err_chunks).append(chunk)
+            else:
+                open_fds.discard(fd)
+
+    if timed_out:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+
+    for fd in (out_r, err_r):
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+
+    _, status = os.waitpid(pid, 0)
+    elapsed_ms = int((time.monotonic() - started) * 1000)
+    exit_code = None if timed_out else os.waitstatus_to_exitcode(status)
+    return {
+        "exit": exit_code,
+        "stdout": b"".join(out_chunks),
+        "stderr": b"".join(err_chunks),
+        "duration_ms": elapsed_ms,
+        "timed_out": timed_out,
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class WarmTransport:
+    """A client of one warm worker."""
+
+    socket_path: Path
+    name: str = "warm"
+
+    def run(
+        self,
+        registration_script: Path,
+        stdin: bytes,
+        *,
+        env: Mapping[str, str],
+        python: str,
+        timeout_s: float | None = None,
+        cwd: str | None = None,
+    ) -> HookResult:
+        request = {
+            "script": str(registration_script),
+            "stdin": _b64encode(stdin),
+            "env": dict(env),
+            "cwd": cwd,
+            "timeout_s": timeout_s,
+        }
+        payload = (json.dumps(request) + "\n").encode("utf-8")
+        if len(payload) > MAX_FRAME_BYTES:
+            return HookResult(
+                hook=registration_script.stem,
+                script=registration_script,
+                exit=None,
+                stdout=b"",
+                stderr=b"",
+                duration_ms=0,
+                launch_error="request exceeds the warm transport frame cap",
+            )
+        deadline = time.monotonic() + (timeout_s or 0) + RESPONSE_GRACE_S
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                client.settimeout(max(deadline - time.monotonic(), 1.0))
+                client.connect(str(self.socket_path))
+                client.sendall(payload)
+                chunks: list[bytes] = []
+                while True:
+                    chunk = client.recv(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    if b"\n" in chunk:
+                        break
+        except (OSError, socket.timeout) as exc:
+            return HookResult(
+                hook=registration_script.stem,
+                script=registration_script,
+                exit=None,
+                stdout=b"",
+                stderr=b"",
+                duration_ms=0,
+                launch_error=f"warm worker unreachable: {exc}",
+            )
+        try:
+            response = json.loads(b"".join(chunks).split(b"\n", 1)[0])
+        except (json.JSONDecodeError, IndexError) as exc:
+            return HookResult(
+                hook=registration_script.stem,
+                script=registration_script,
+                exit=None,
+                stdout=b"",
+                stderr=b"",
+                duration_ms=0,
+                launch_error=f"warm worker sent an unreadable response: {exc}",
+            )
+        return HookResult(
+            hook=registration_script.stem,
+            script=registration_script,
+            exit=response.get("exit"),
+            stdout=_b64decode(response.get("stdout", "")),
+            stderr=_b64decode(response.get("stderr", "")),
+            duration_ms=int(response.get("duration_ms", 0)),
+            timed_out=bool(response.get("timed_out", False)),
+            launch_error=response.get("launch_error"),
+        )
+
+
+def _inside(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def serve(socket_path: Path, plugin_root: Path) -> None:
+    """Run the warm worker until interrupted."""
+    if not warm_supported():
+        raise WarmTransportError("the warm transport requires os.fork")
+
+    hooks_dir = plugin_root / "hooks"
+    if not hooks_dir.is_dir():
+        raise WarmTransportError(f"plugin root has no hooks directory: {plugin_root}")
+    warm_import(hooks_dir)
+
+    socket_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        socket_path.unlink()
+    except FileNotFoundError:
+        pass
+
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(str(socket_path))
+    os.chmod(socket_path, 0o600)
+    server.listen(16)
+    try:
+        while True:
+            try:
+                connection, _ = server.accept()
+            except InterruptedError:
+                continue
+            with connection:
+                try:
+                    data = b""
+                    while b"\n" not in data:
+                        chunk = connection.recv(65536)
+                        if not chunk:
+                            break
+                        data += chunk
+                        if len(data) > MAX_FRAME_BYTES:
+                            break
+                    request = json.loads(data.split(b"\n", 1)[0])
+                    response = _handle(request, plugin_root)
+                except BaseException as exc:  # noqa: BLE001 -- a bad request must not kill the worker
+                    response = {
+                        "exit": None,
+                        "stdout": "",
+                        "stderr": "",
+                        "duration_ms": 0,
+                        "timed_out": False,
+                        "launch_error": f"warm worker rejected the request: {type(exc).__name__}: {exc}",
+                    }
+                try:
+                    connection.sendall((json.dumps(response) + "\n").encode("utf-8"))
+                except OSError:
+                    pass
+    finally:
+        server.close()
+        try:
+            socket_path.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _handle(request: Mapping[str, Any], plugin_root: Path) -> dict[str, Any]:
+    script = Path(str(request.get("script", "")))
+    if not _inside(script, plugin_root):
+        return {
+            "exit": None,
+            "stdout": "",
+            "stderr": "",
+            "duration_ms": 0,
+            "timed_out": False,
+            "launch_error": f"script is outside the plugin root: {script}",
+        }
+    result = run_forked(
+        script,
+        _b64decode(str(request.get("stdin", ""))),
+        env={str(key): str(value) for key, value in (request.get("env") or {}).items()},
+        cwd=request.get("cwd"),
+        timeout_s=request.get("timeout_s"),
+    )
+    return {
+        "exit": result["exit"],
+        "stdout": _b64encode(result["stdout"]),
+        "stderr": _b64encode(result["stderr"]),
+        "duration_ms": result["duration_ms"],
+        "timed_out": result["timed_out"],
+        "launch_error": None,
+    }
+
+
+@dataclass
+class WarmWorkerProcess:
+    """A worker subprocess plus the transport that talks to it."""
+
+    process: subprocess.Popen[bytes]
+    socket_path: Path
+    transport: WarmTransport
+
+    def stop(self) -> None:
+        """Ask the worker to exit and reap it."""
+        if self.process.poll() is None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=5)
+
+
+def spawn_worker(
+    *,
+    python: str,
+    plugin_root: Path,
+    socket_path: Path,
+    base_env: Mapping[str, str] | None = None,
+    start_timeout_s: float = WORKER_START_TIMEOUT_S,
+) -> WarmWorkerProcess:
+    """Start a warm worker and wait until it accepts a connection."""
+    socket_path.parent.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ if base_env is None else base_env)
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    # A worker started from a checkout must find the package it is asked to
+    # serve, so the package's own parent directory is prepended. An installed
+    # distribution ignores this because its modules are already importable.
+    package_src = str(Path(__file__).resolve().parents[2])
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = package_src + (os.pathsep + existing if existing else "")
+    process = subprocess.Popen(
+        [
+            python,
+            "-m",
+            "pact_harness",
+            "serve",
+            "--socket",
+            str(socket_path),
+            "--plugin-root",
+            str(plugin_root),
+        ],
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    deadline = time.monotonic() + start_timeout_s
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            stderr = b""
+            if process.stderr is not None:
+                stderr = process.stderr.read() or b""
+            raise WarmTransportError(
+                "warm worker exited during startup: "
+                + stderr.decode("utf-8", errors="replace").strip()
+            )
+        if socket_path.exists():
+            try:
+                with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+                    probe.settimeout(0.2)
+                    probe.connect(str(socket_path))
+                return WarmWorkerProcess(
+                    process=process,
+                    socket_path=socket_path,
+                    transport=WarmTransport(socket_path=socket_path),
+                )
+            except OSError:
+                pass
+        time.sleep(0.05)
+    process.kill()
+    process.wait(timeout=5)
+    raise WarmTransportError("warm worker did not accept a connection in time")
+
+
+def default_socket_path(state_root: Path) -> Path:
+    """A per-user socket path under the state root."""
+    return state_root / "pact-harness" / "worker.sock"
