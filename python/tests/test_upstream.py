@@ -338,6 +338,111 @@ def test_the_cli_diffs_two_manifests(tmp_path: Path) -> None:
     assert cli.main(["upstream", "diff", str(first), str(second), "--json"]) == 0
 
 
+SAMPLE_TAGS = """\
+1111111111111111111111111111111111111111\trefs/tags/v4.8.35
+2222222222222222222222222222222222222222\trefs/tags/v4.8.36
+3333333333333333333333333333333333333333\trefs/tags/v4.9.0
+4444444444444444444444444444444444444444\trefs/tags/v4.9.0^{}
+5555555555555555555555555555555555555555\trefs/tags/v4.10.0
+6666666666666666666666666666666666666666\trefs/tags/v5.0.0-rc.1
+7777777777777777777777777777777777777777\trefs/heads/main
+"""
+
+
+def pin(**overrides):
+    from pact_harness.vendor import PactPin
+
+    base = dict(
+        pact_version="4.8.36",
+        commit="4607c7a079203b97aa1a0c0f1baa006ebb0982a4",
+        tag="v4.8.36",
+        submodule_path="vendor/pact-plugin",
+        repository="https://github.com/Synaptic-Labs-AI/PACT-Plugin.git",
+    )
+    base.update(overrides)
+    return PactPin(**base)
+
+
+def test_release_tags_are_parsed_and_sorted() -> None:
+    from pact_harness.upstream.check import parse_release_tags
+
+    tags = parse_release_tags(SAMPLE_TAGS)
+    versions = [entry[0] for entry in tags]
+    assert versions == [(4, 8, 35), (4, 8, 36), (4, 9, 0), (4, 10, 0)]
+    # A prerelease, a branch ref and the dereference are all excluded.
+    refs = [entry[1] for entry in tags]
+    assert "refs/tags/v5.0.0-rc.1" not in refs
+    assert all(not ref.endswith("^{}") for ref in refs)
+
+
+def test_the_pin_is_measured_against_the_latest_release() -> None:
+    from pact_harness.upstream.check import check_release
+
+    report = check_release(pin(), tags_output=SAMPLE_TAGS)
+    assert report.checked is True
+    assert report.latest_version == "4.10.0"
+    assert report.latest_tag == "v4.10.0"
+    assert report.behind == 2
+    assert report.newer_tags == ("v4.9.0", "v4.10.0")
+
+
+def test_a_pin_at_the_latest_release_is_zero_behind() -> None:
+    from pact_harness.upstream.check import check_release
+
+    report = check_release(pin(pact_version="4.10.0"), tags_output=SAMPLE_TAGS)
+    assert report.behind == 0
+    assert report.newer_tags == ()
+
+
+def test_a_tag_fetch_failure_is_reported_not_raised() -> None:
+    from pact_harness.upstream.check import check_release
+
+    def failing_runner(argv, **kwargs):
+        raise OSError("no network")
+
+    report = check_release(pin(), runner=failing_runner)
+    assert report.checked is False
+    assert "cannot reach" in (report.error or "")
+
+
+def test_no_release_tags_is_reported() -> None:
+    from pact_harness.upstream.check import check_release
+
+    report = check_release(pin(), tags_output="abc\trefs/heads/main\n")
+    assert report.checked is False
+    assert "no release tags" in (report.error or "")
+
+
+def test_the_check_command_prints_json(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    from pact_harness import cli
+    from pact_harness.upstream import check as check_module
+
+    monkeypatch.setattr(check_module, "fetch_tags", lambda repository, **kwargs: SAMPLE_TAGS)
+    code = cli.main(["upstream", "check", "--json"])
+    assert code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["behind"] == 2
+    assert payload["latest_tag"] == "v4.10.0"
+
+
+def test_the_sync_script_is_valid_shell_and_valid_python() -> None:
+    import subprocess
+
+    root = paths.find_harness_root()
+    assert root is not None
+    script = root / "tools" / "sync-upstream.sh"
+    completed = subprocess.run(
+        ["bash", "-n", str(script)], capture_output=True, text=True, check=False
+    )
+    assert completed.returncode == 0, completed.stderr
+    text = script.read_text(encoding="utf-8")
+    start = text.index("<<'PY'") + len("<<'PY'")
+    end = text.index("\nPY", start)
+    # compile() rather than exec(): a heredoc with a mangled escape is a
+    # syntax error, which is exactly the defect this guard is for.
+    compile(text[start:end], "sync-upstream-heredoc", "exec")
+
+
 def test_the_cli_inspects_and_verifies(tmp_path: Path) -> None:
     from pact_harness import cli
 

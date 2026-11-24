@@ -29,8 +29,14 @@ reads this and [plan.md](plan.md) before touching code.
   classifies a change L0-L4 and is keyed by (event, hook, matcher) rather than
   manifest position, so a reordering is not a wave of removals; matcher strings
   and matcher tokens are both compared, because grouping changes stop hooks
-  running on a tool while every token survives. Remaining: the sync script and
-  PR automation.
+  running on a tool while every token survives. `pact upstream check` reads the
+  repository's tags and reports how far the pin is from the latest release
+  (verified against the network: pinned 4.8.36, latest 4.8.36, 0 behind).
+  `tools/sync-upstream.sh` performs the whole absorb: fetch, checkout,
+  regenerate, classify, verify, conformance, rewrite the pin — and never
+  commits, so a human reviews what moved. A guard test compiles the script's
+  embedded Python, because a mangled heredoc escape is a real defect this
+  session hit.
 - **M4 — in progress.** The generic MCP adapter serves newline-delimited
   JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
   `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools

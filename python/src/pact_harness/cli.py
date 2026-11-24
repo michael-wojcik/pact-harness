@@ -579,6 +579,34 @@ def _load_surface_document(reference: str) -> dict[str, Any]:
     return inspect_surface(plugin_root, pact_version=version, commit=commit, tag=tag).to_dict()
 
 
+def _cmd_upstream_check(args: argparse.Namespace) -> int:
+    """Report how far the pin is from the latest upstream release."""
+    from .upstream.check import check_release
+    from .vendor import VendorError, load_pin
+
+    harness = find_harness_root()
+    if harness is None:
+        print("pact: harness root not found", file=sys.stderr)
+        return EXIT_PROBLEM
+    try:
+        pin = load_pin(harness)
+    except VendorError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    report = check_release(pin, repository=args.repository)
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    elif not report.checked:
+        print(f"upstream check failed: {report.error}", file=sys.stderr)
+    else:
+        print(f"pinned       : {report.pinned_version} ({report.pinned_commit[:12]})")
+        print(f"latest       : {report.latest_version} ({report.latest_tag})")
+        print(f"behind       : {report.behind}")
+        for tag in report.newer_tags[:10]:
+            print(f"  newer: {tag}")
+    return EXIT_OK if report.checked or args.json else EXIT_PROBLEM
+
+
 def _cmd_upstream_diff(args: argparse.Namespace) -> int:
     """Classify the difference between two surface documents."""
     from .upstream.diff import Level, diff_surfaces
@@ -856,6 +884,12 @@ def build_parser() -> argparse.ArgumentParser:
     upstream_diff.add_argument("new", metavar="NEW", help="manifest file or tree")
     upstream_diff.add_argument("--json", action="store_true", help="print JSON")
     upstream_diff.set_defaults(func=_cmd_upstream_diff)
+    upstream_check = upstream_actions.add_parser(
+        "check", help="report how far the pin is from the latest release"
+    )
+    upstream_check.add_argument("--repository", metavar="URL", help="override the upstream URL")
+    upstream_check.add_argument("--json", action="store_true", help="print JSON")
+    upstream_check.set_defaults(func=_cmd_upstream_check)
 
     memory = subparsers.add_parser("memory", help="inspect the memory backend")
     memory_actions = memory.add_subparsers(dest="action", required=True)
