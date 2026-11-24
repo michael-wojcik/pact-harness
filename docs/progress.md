@@ -13,8 +13,10 @@ reads this and [plan.md](plan.md) before touching code.
   runs one registration against one frame with `--raw`, `pact migrate-state`
   moves a state root and refuses a partial move, and `pact install claude-code`
   reports native mode while refusing bridged mode with its reason. `doctor` now
-  prints the hook-module inventory (28 modules, the 3 async ones) and the last
-  activation record. `tools/run-upstream-tests.sh`
+  prints the hook-module inventory (28 modules, the 3 async ones), an
+  applicability table derived from each adapter's capability set (claude-code and
+  dsh: 28 run; mcp: 28 disable, each naming the event capability it lacks), and
+  the last activation record. `tools/run-upstream-tests.sh`
   runs upstream's own suite unmodified against a local clone of the submodule (a
   plain copy fails tests that shell out to git) and the contract lane runs it on
   every pull request. Measured here: 21 of ~28,000 fail on macOS, 19 after

@@ -295,6 +295,17 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         except RegistryError:
             modules_payload = None
 
+    applicability_payload: list[dict[str, object]] | None = None
+    if plugin is not None and implemented:
+        try:
+            from .capabilities import applicability_for
+
+            applicability_payload = [
+                row.to_dict() for row in applicability_for(plugin, declared)
+            ]
+        except PactHarnessError:
+            applicability_payload = None
+
     activation_payload: dict[str, object] | None = None
     activation_error: str | None = None
     activation_path = state.path / "pact-harness" / "dsh-activation.json"
@@ -345,6 +356,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         "vendor": vendor_payload,
         "registry": registry_payload,
         "modules": modules_payload,
+        "applicability": applicability_payload,
         "activation": activation_payload,
         "activation_error": activation_error,
         "transport": {"cold": True, "warm": warm_supported()},
@@ -378,6 +390,13 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
                 f"{registry_payload['events']} events, "
                 f"{registry_payload['modules']} modules"
             )
+        if applicability_payload:
+            counts: dict[str, int] = {}
+            for row in applicability_payload:
+                action = str(row.get("applies"))
+                counts[action] = counts.get(action, 0) + 1
+            summary = ", ".join(f"{value} {name}" for name, value in sorted(counts.items()))
+            print(f"applicability: {summary}")
         if modules_payload:
             print(f"hook modules : {len(modules_payload)}")
             if activation_payload:

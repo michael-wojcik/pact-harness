@@ -196,3 +196,71 @@ class ApplicabilityRow:
             "required": sorted(item.value for item in self.required),
             "reason": self.reason,
         }
+
+#: Manifest event -> the capability that makes it observable on a platform.
+EVENT_CAPABILITIES: dict[str, Capability] = {
+    "SessionStart": Capability.EVENT_SESSION_START,
+    "SessionEnd": Capability.EVENT_SESSION_END,
+    "UserPromptSubmit": Capability.EVENT_PROMPT_SUBMIT,
+    "PreToolUse": Capability.EVENT_TOOL_PRE,
+    "PostToolUse": Capability.EVENT_TOOL_POST,
+    "PostToolUseFailure": Capability.EVENT_TOOL_FAIL,
+    "SubagentStart": Capability.EVENT_AGENT_START,
+    "SubagentStop": Capability.EVENT_AGENT_STOP,
+    "TeammateIdle": Capability.EVENT_AGENT_IDLE,
+    "TaskCompleted": Capability.EVENT_TASK_COMPLETED,
+    "PreCompact": Capability.EVENT_COMPACT_PRE,
+    "PostCompact": Capability.EVENT_COMPACT_POST,
+    "Stop": Capability.EVENT_TURN_STOP,
+}
+
+
+def applicability_for(
+    plugin_root: "Path", capabilities: CapabilitySet
+) -> tuple[ApplicabilityRow, ...]:
+    """Derive the applicability table for one adapter from the registry.
+
+    Only what the registry and the capability set can answer is claimed here.
+    A module whose events the platform surfaces is RUN; a module whose events do
+    not exist on the platform is DISABLE, with the missing capability named.
+    ADAPT and REPLACE need knowledge of the module's internals, and inventing
+    them would be exactly the kind of unbacked claim this file exists to
+    prevent.
+    """
+    from pathlib import Path
+
+    from .runtime.registry import HookRegistry
+
+    registry = HookRegistry.from_plugin_root(Path(plugin_root))
+    grouped: dict[str, dict[str, Any]] = {}
+    for registration in registry.registrations:
+        entry = grouped.setdefault(
+            registration.hook, {"module": registration.script.name, "events": []}
+        )
+        if registration.event not in entry["events"]:
+            entry["events"].append(registration.event)
+    rows: list[ApplicabilityRow] = []
+    for hook in sorted(grouped):
+        entry = grouped[hook]
+        events = tuple(entry["events"])
+        required = frozenset(
+            EVENT_CAPABILITIES[event] for event in events if event in EVENT_CAPABILITIES
+        )
+        missing = sorted(item.value for item in required - capabilities.capabilities)
+        if missing:
+            applies = Applies.DISABLE
+            reason = "event not surfaced by this platform: " + ", ".join(missing)
+        else:
+            applies = Applies.RUN
+            reason = "every event this module runs on is surfaced"
+        rows.append(
+            ApplicabilityRow(
+                hook=hook,
+                module=str(entry["module"]),
+                events=events,
+                applies=applies,
+                required=required,
+                reason=reason,
+            )
+        )
+    return tuple(rows)
