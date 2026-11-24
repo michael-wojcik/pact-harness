@@ -29,7 +29,7 @@ from ..errors import PactHarnessError
 from ..runtime.abi import HookRun, run_event
 from ..runtime.registry import HookRegistry
 from ..runtime.vocabulary import inject_target_for
-from .corpus import corpus_frames
+from .corpus import CorpusFrame, corpus_frames
 
 #: Adapters whose frames this corpus speaks.
 _NATIVE_ADAPTERS = frozenset({"claude-code"})
@@ -127,14 +127,27 @@ def _judge(frame: str, run: HookRun) -> CheckResult:
     return result(True)
 
 
-def run_conformance(
+@dataclass(frozen=True, slots=True)
+class CorpusRun:
+    """One registration executed against one corpus frame."""
+
+    frame: "CorpusFrame"
+    run: HookRun
+
+
+def collect_corpus_runs(
     plugin_root: Path,
     *,
     adapter_id: str = "claude-code",
     python: str | None = None,
     state_root: Path | None = None,
-) -> ConformanceReport:
-    """Run the corpus through every registration."""
+) -> tuple[tuple[CorpusRun, ...], tuple[str, ...]]:
+    """Run every frame through every matching registration and return raw runs.
+
+    Frame fidelity is checked here rather than by each caller: a frame the
+    adapter cannot re-serialise without loss means no hook saw the document the
+    corpus wrote, so nothing recorded from that frame is evidence.
+    """
     if adapter_id not in _NATIVE_ADAPTERS:
         raise PactHarnessError(
             f"conformance corpus speaks the native frame vocabulary; {adapter_id!r} is not covered"
@@ -162,13 +175,9 @@ def run_conformance(
         base_env=base_env,
     )
 
-    checks: list[CheckResult] = []
+    collected: list[CorpusRun] = []
     failures: list[str] = []
-    covered: set[str] = set()
-    frame_names: list[str] = []
-
     for corpus_frame in corpus_frames(project):
-        frame_names.append(corpus_frame.name)
         event = adapter.normalize(corpus_frame.frame)
         legacy = adapter.legacy_stdin(event)
         try:
@@ -179,7 +188,6 @@ def run_conformance(
         if redelivered != corpus_frame.frame:
             failures.append(f"{corpus_frame.name}: frame fidelity lost in re-serialisation")
             continue
-
         env = adapter.hook_env(event, context)
         runs = run_event(
             registry,
@@ -192,14 +200,38 @@ def run_conformance(
             inject_target=inject_target_for(event.kind),
         )
         for run in runs:
-            covered.add(run.registration.key)
-            check = _judge(corpus_frame.name, run)
-            checks.append(check)
-            if not check.ok:
-                failures.append(
-                    f"{corpus_frame.name}: {check.hook} failed: {check.detail}"
-                )
+            collected.append(CorpusRun(corpus_frame, run))
+    return tuple(collected), tuple(failures)
 
+
+def run_conformance(
+    plugin_root: Path,
+    *,
+    adapter_id: str = "claude-code",
+    python: str | None = None,
+    state_root: Path | None = None,
+) -> ConformanceReport:
+    """Run the corpus through every registration."""
+    collected, frame_failures = collect_corpus_runs(
+        plugin_root,
+        adapter_id=adapter_id,
+        python=python,
+        state_root=state_root,
+    )
+    checks: list[CheckResult] = []
+    failures: list[str] = list(frame_failures)
+    covered: set[str] = set()
+    frame_names: list[str] = []
+    for item in collected:
+        covered.add(item.run.registration.key)
+        if item.frame.name not in frame_names:
+            frame_names.append(item.frame.name)
+        check = _judge(item.frame.name, item.run)
+        checks.append(check)
+        if not check.ok:
+            failures.append(f"{item.frame.name}: {check.hook} failed: {check.detail}")
+
+    registry = HookRegistry.from_plugin_root(plugin_root)
     uncovered = tuple(
         registration.key
         for registration in registry.registrations

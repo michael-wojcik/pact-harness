@@ -55,7 +55,14 @@ reads this and [plan.md](plan.md) before touching code.
   vendor CLI. The journal tools give a foreign agent a namespace of its own under the harness
   state root; writing into a PACT session directory would make harness events
   indistinguishable from a real session's history.
-- **M5 — complete.** `pact upstream inspect` extracts the surface: 34
+- **M5 — complete.** `pact corpus harvest` records every registration's verdict
+  (exit code, directive kinds, decode health) for all 24 frames; `replay`
+  compares a tree against a baseline and names each changed, added or removed
+  cell. The baseline for the pin is committed at
+  `harness/corpus/pact-4.8.36.json` (48 cells, 28 hooks) and a test fails if the
+  tree stops reproducing it. `sync-upstream.sh` replays it after a bump, because
+  conformance asks whether every registration is understood while replay asks
+  whether any of them now answers differently. `pact upstream inspect` extracts the surface: 34
   registrations, the matcher vocabulary, the three gate tool-sets, 14
   environment reads with their sites (including reads that go through a module
   constant), 73 hashed artifacts and the decision-token counts. A baseline is

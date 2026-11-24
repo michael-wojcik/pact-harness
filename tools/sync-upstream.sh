@@ -46,8 +46,10 @@ echo "sync-upstream: target $REF"
 
 OLD_MANIFEST="$(mktemp)"
 DIFF_JSON="$(mktemp)"
-trap 'rm -f "$OLD_MANIFEST" "$DIFF_JSON"' EXIT
+CORPUS_JSON="$(mktemp)"
+trap 'rm -f "$OLD_MANIFEST" "$DIFF_JSON" "$CORPUS_JSON"' EXIT
 cp "$MANIFEST" "$OLD_MANIFEST"
+OLD_VERSION="$("$PYTHON" -c 'import json,sys;print(json.load(open(sys.argv[1]))["pactVersion"])' "$PIN")"
 
 git -C "$SUBMODULE" fetch --tags --force --quiet origin
 git -C "$SUBMODULE" checkout --quiet "$REF"
@@ -79,6 +81,21 @@ fi
 if ! PYTHONPATH=python/src "$PYTHON" -m pact_harness conformance; then
   echo "sync-upstream: conformance failed; the decoder does not understand the new tree" >&2
   STATUS=3
+fi
+
+# The verdict matrix is the finer-grained signal: conformance asks whether every
+# registration is understood, while replay asks whether any of them now answers
+# differently on the same frames.
+BASELINE="harness/corpus/pact-${OLD_VERSION}.json"
+if [ -f "$BASELINE" ]; then
+  if PYTHONPATH=python/src "$PYTHON" -m pact_harness corpus replay "$BASELINE" --json \
+       >"$CORPUS_JSON" 2>&1; then
+    echo "sync-upstream: corpus verdicts unchanged since $OLD_VERSION"
+  else
+    echo "sync-upstream: corpus verdicts changed since $OLD_VERSION; review" >&2
+    tail -c 2000 "$CORPUS_JSON" >&2 || true
+    STATUS=3
+  fi
 fi
 
 "$PYTHON" - "$VERSION" "$COMMIT" "$REF" <<'PY'

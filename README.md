@@ -89,6 +89,7 @@ upstream's launcher does. See
 | `pact paths` | Every resolved path, including the upstream-pinned memory location. |
 | `pact memory status` | The memory backend's location and whether a store exists (never opens it). |
 | `pact conformance` | Run every hook registration against the corpus; all 34 must be covered and understood. |
+| `pact corpus harvest / replay` | Record the corpus verdict matrix for a tree, then replay it against another to name what moved. |
 | `pact upstream inspect / diff / verify / check` | Extract the upstream surface, grade a change L0–L4, check a tree still fits, and report how far the pin is from the latest release. |
 | `pact dev link --plugin DIR` / `pact dev unlink` | Run against a working checkout instead of the pin; `doctor` reports the override and whether that tree is dirty. |
 | `pact playbook build --platform dsh --out DIR` | Compile personas, commands, skills and protocols for a platform. |

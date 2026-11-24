@@ -767,6 +767,64 @@ def _cmd_upstream(args: argparse.Namespace) -> int:
     return EXIT_OK if report.ok else EXIT_PROBLEM
 
 
+def _cmd_corpus(args: argparse.Namespace) -> int:
+    """Record or replay the corpus verdict matrix."""
+    from .conformance.harvest import (
+        HarvestError,
+        harvest_corpus,
+        load_harvest,
+        replay_harvest,
+        save_harvest,
+    )
+    from .vendor import VendorError, load_pin
+
+    plugin_root = _plugin_root_from(getattr(args, "plugin_root", None))
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    version = commit = ""
+    harness = find_harness_root()
+    if harness is not None:
+        try:
+            pin = load_pin(harness)
+            version, commit = pin.pact_version, pin.commit
+        except VendorError:
+            pass
+    try:
+        if args.action == "harvest":
+            record = harvest_corpus(
+                plugin_root, pact_version=version, pact_commit=commit
+            )
+            destination = save_harvest(Path(args.out), record)
+            if args.json:
+                print(json.dumps(record.to_dict(), indent=2, sort_keys=True))
+            else:
+                print(f"baseline     : {destination}")
+                print(f"pact         : {version or 'unknown'}")
+                print(f"cells        : {len(record.cells)}")
+                print(f"hooks        : {len({cell.hook for cell in record.cells})}")
+                print(f"frames       : {len({cell.frame for cell in record.cells})}")
+            return EXIT_OK
+        recorded = load_harvest(Path(args.file))
+        report = replay_harvest(plugin_root, recorded, current_version=version)
+    except HarvestError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"recorded     : {report.recorded_version or 'unknown'} ({report.cells} cells)")
+        print(f"current      : {report.current_version or 'unknown'}")
+        print(f"changes      : {len(report.changes)}")
+        for change in report.changes[:20]:
+            print(f"  changed: {change.key} {change.field}: {change.before!r} -> {change.after!r}")
+        for key in report.added:
+            print(f"  added  : {key}")
+        for key in report.removed:
+            print(f"  removed: {key}")
+    return EXIT_OK if report.ok else EXIT_PROBLEM
+
+
 def _cmd_dev(args: argparse.Namespace) -> int:
     """Link, unlink or report a development checkout."""
     from .dev import DevLinkError, link, status, unlink
@@ -1001,6 +1059,19 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    corpus = subparsers.add_parser("corpus", help="record or replay the corpus verdict matrix")
+    corpus_actions = corpus.add_subparsers(dest="action", required=True)
+    corpus_harvest = corpus_actions.add_parser("harvest", help="record the matrix for this tree")
+    corpus_harvest.add_argument("--out", metavar="PATH", required=True)
+    corpus_harvest.add_argument("--plugin-root", metavar="DIR")
+    corpus_harvest.add_argument("--json", action="store_true")
+    corpus_harvest.set_defaults(func=_cmd_corpus)
+    corpus_replay = corpus_actions.add_parser("replay", help="compare this tree with a matrix")
+    corpus_replay.add_argument("file", metavar="FILE")
+    corpus_replay.add_argument("--plugin-root", metavar="DIR")
+    corpus_replay.add_argument("--json", action="store_true")
+    corpus_replay.set_defaults(func=_cmd_corpus)
 
     dev = subparsers.add_parser("dev", help="run against a working checkout")
     dev_actions = dev.add_subparsers(dest="action", required=True)

@@ -1,0 +1,488 @@
+{
+  "cells": [
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostCompact",
+      "exit_code": 0,
+      "frame": "post-compact",
+      "hook": "postcompact_archive",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-agent",
+      "hook": "bootstrap_marker_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-agent",
+      "hook": "roster_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-ask",
+      "hook": "merge_guard_post",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-bash",
+      "hook": "merge_guard_post",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-bash",
+      "hook": "track_files",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-edit",
+      "hook": "file_tracker",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-edit",
+      "hook": "track_files",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUseFailure",
+      "exit_code": 0,
+      "frame": "post-tool-failure-bash",
+      "hook": "merge_guard_post",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUseFailure",
+      "exit_code": 0,
+      "frame": "post-tool-failure-bash",
+      "hook": "track_files",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-skill",
+      "hook": "pin_marker_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-task-create",
+      "hook": "task_lifecycle_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-task-update",
+      "hook": "task_lifecycle_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-write",
+      "hook": "file_tracker",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PostToolUse",
+      "exit_code": 0,
+      "frame": "post-tool-write",
+      "hook": "track_files",
+      "ok": true
+    },
+    {
+      "directives": [
+        "compact_instructions"
+      ],
+      "event": "PreCompact",
+      "exit_code": 0,
+      "frame": "pre-compact",
+      "hook": "precompact_state_reminder",
+      "ok": true
+    },
+    {
+      "directives": [
+        "deny"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 2,
+      "frame": "pre-tool-agent",
+      "hook": "bootstrap_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "deny"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 2,
+      "frame": "pre-tool-agent",
+      "hook": "dispatch_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-bash",
+      "hook": "bootstrap_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-bash",
+      "hook": "git_commit_check",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-bash",
+      "hook": "merge_guard_pre",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-bash",
+      "hook": "task_claim_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-bash",
+      "hook": "wait_filler_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "deny"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 2,
+      "frame": "pre-tool-edit",
+      "hook": "bootstrap_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-edit",
+      "hook": "pin_caps_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-edit",
+      "hook": "pin_staleness_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-edit",
+      "hook": "task_claim_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-edit",
+      "hook": "worktree_guard",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-task-update",
+      "hook": "bootstrap_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-task-update",
+      "hook": "handoff_ordering_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "deny"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 2,
+      "frame": "pre-tool-write",
+      "hook": "bootstrap_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-write",
+      "hook": "pin_caps_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-write",
+      "hook": "pin_staleness_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-write",
+      "hook": "task_claim_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "PreToolUse",
+      "exit_code": 0,
+      "frame": "pre-tool-write",
+      "hook": "worktree_guard",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "UserPromptSubmit",
+      "exit_code": 0,
+      "frame": "prompt-submit",
+      "hook": "bootstrap_marker_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "inject"
+      ],
+      "event": "UserPromptSubmit",
+      "exit_code": 0,
+      "frame": "prompt-submit",
+      "hook": "bootstrap_prompt_gate",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "UserPromptSubmit",
+      "exit_code": 0,
+      "frame": "prompt-submit",
+      "hook": "missed_wake_scan",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "UserPromptSubmit",
+      "exit_code": 0,
+      "frame": "prompt-submit",
+      "hook": "pin_marker_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "SessionEnd",
+      "exit_code": 0,
+      "frame": "session-end",
+      "hook": "session_end",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "SessionStart",
+      "exit_code": 0,
+      "frame": "session-start",
+      "hook": "missed_wake_scan",
+      "ok": true
+    },
+    {
+      "directives": [
+        "inject",
+        "notify"
+      ],
+      "event": "SessionStart",
+      "exit_code": 0,
+      "frame": "session-start",
+      "hook": "session_init",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "SubagentStart",
+      "exit_code": 0,
+      "frame": "subagent-start",
+      "hook": "peer_inject",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "SubagentStart",
+      "exit_code": 0,
+      "frame": "subagent-start",
+      "hook": "roster_writer",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "SubagentStop",
+      "exit_code": 0,
+      "frame": "subagent-stop",
+      "hook": "validate_handoff",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "TaskCompleted",
+      "exit_code": 0,
+      "frame": "task-completed",
+      "hook": "agent_handoff_emitter",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "TeammateIdle",
+      "exit_code": 0,
+      "frame": "teammate-idle",
+      "hook": "teammate_idle",
+      "ok": true
+    },
+    {
+      "directives": [
+        "silent"
+      ],
+      "event": "Stop",
+      "exit_code": 0,
+      "frame": "turn-stop",
+      "hook": "stop_background_gate",
+      "ok": true
+    }
+  ],
+  "pactCommit": "4607c7a079203b97aa1a0c0f1baa006ebb0982a4",
+  "pactVersion": "4.8.36",
+  "schemaVersion": 1
+}
