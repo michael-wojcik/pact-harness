@@ -17,3 +17,9 @@ node_modules/
 .pact/
 *.log
 .DS_Store
+
+# The harness's own documentation is part of the repository. A global
+# excludes file that ignores docs/ must not swallow the plan, the progress
+# handover, or the measurements these decisions rest on.
+!docs/
+!docs/**
