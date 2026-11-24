@@ -443,6 +443,40 @@ def _cmd_event(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _cmd_conformance(args: argparse.Namespace) -> int:
+    """Run every registration against the corpus and report."""
+    from .conformance.suite import run_conformance
+
+    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    try:
+        report = run_conformance(
+            plugin_root,
+            adapter_id=args.adapter,
+            python=args.python,
+            state_root=Path(args.state_root) if args.state_root else None,
+        )
+    except PactHarnessError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"conformance  : {len(report.checks)} checks across {len(report.frames)} frames")
+        print(
+            "registrations: "
+            f"{report.exercised}/{report.total_registrations} exercised"
+        )
+        print(f"failures     : {len(report.failures)}")
+        for failure in report.failures:
+            print(f"  failed: {failure}")
+        for key in report.uncovered:
+            print(f"  uncovered: {key}")
+    return EXIT_OK if report.ok else EXIT_PROBLEM
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Run the warm hook worker until the process is terminated."""
     from .runtime.warm import WarmTransportError, serve
@@ -540,6 +574,16 @@ def build_parser() -> argparse.ArgumentParser:
     event.add_argument("--state-root", metavar="DIR", help="state root for this evaluation")
     event.add_argument("--python", metavar="PATH", help="interpreter for the hook children")
     event.set_defaults(func=_cmd_event)
+
+    conformance = subparsers.add_parser(
+        "conformance", help="run every hook against the corpus and report"
+    )
+    conformance.add_argument("--adapter", default="claude-code", metavar="ID")
+    conformance.add_argument("--plugin-root", metavar="DIR")
+    conformance.add_argument("--state-root", metavar="DIR")
+    conformance.add_argument("--python", metavar="PATH")
+    conformance.add_argument("--json", action="store_true", help="print JSON")
+    conformance.set_defaults(func=_cmd_conformance)
 
     serve = subparsers.add_parser("serve", help="run the warm hook worker")
     serve.add_argument("--socket", required=True, metavar="PATH", help="unix socket to bind")

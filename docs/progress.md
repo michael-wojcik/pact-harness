@@ -6,10 +6,14 @@ reads this and [plan.md](plan.md) before touching code.
 ## Where we are
 
 - **M0 — complete.** Contract v1, capability model, vendor pin, CLI, doctor, CI.
-- **M1 — partially complete.** Registry, decoder, child environment, launcher,
-  transport seam, per-group concurrency, Claude Code adapter, and a real
-  refusal proven end to end. Remaining: the conformance corpus and the 34/34
-  registration parity sweep.
+- **M1 — complete.** Registry, decoder, child environment, launcher, transport
+  seam, concurrency, Claude Code adapter, and a real refusal proven end to end.
+  The conformance suite exercises **all 34 registrations** across 24 corpus
+  frames and asserts two things per registration: the adapter re-delivers the
+  original frame unchanged, and the hook's output decodes with no problem, no
+  fatal decode error, and a refusal whenever the hook exits 2. Judgement is
+  covered by negative controls (refusal without a directive, decode problem,
+  fatal error, bad exit, launch failure, timeout).
 - **M2 — in progress, near complete.** Warm transport, event engine, directive
   folding, the Python DSH adapter, the cordis bridge, install/uninstall, and a
   real DSH profile that composes and boots are done. Remaining: a model-backed
@@ -35,8 +39,10 @@ reads this and [plan.md](plan.md) before touching code.
 1. ~~Warm transport~~ — done (`runtime/warm.py`, `pact serve`).
 2. ~~DSH cordis bridge~~ — done (`adapters/dsh/`): events, tool map, decisions,
    warm-worker client, shadow/enforce policy, 22 Node tests.
-3. **`pact install dsh`**: create the profile, add the bundle through
-   `dsh plugin add`, write the patch overrides, and make it reversible.
+3. **M3 playbook compiler**: extract personas, commands, skills and protocols
+   from the vendored tree, rewrite what does not survive a platform change, and
+   emit per-platform artifacts. The bridge then registers the orchestrator
+   persona section and the `/pact-*` commands.
 4. **Conformance corpus** (`conformance/corpus/`): fixtures from
    `vendor/pact-plugin/pact-plugin/tests/fixtures/role_frames.py` plus a
    synthetic frame per event and per role.
