@@ -57,6 +57,7 @@ export function normalizeConfig(config = {}, env = process.env) {
     // the temporary directory instead would be invisible to pact doctor.
     stateRoot: config.stateRoot ?? env.PACT_HOME ?? path.join(os.homedir(), '.pact'),
     playbook: config.playbook ?? env.PACT_DSH_PLAYBOOK ?? undefined,
+    subagentProvider: config.subagentProvider ?? 'spawn',
     socketPath: config.socketPath,
   };
 }
@@ -193,6 +194,104 @@ export function registerCommands(ctx, settings, deps, logger) {
   }
   logger?.info?.(`pact-dsh: registered ${registered} commands`);
   return registered;
+}
+
+/**
+ * Register pact_agent: delegation that takes a PACT persona name.
+ *
+ * DSH's own subagent tool has no type parameter, so PACT's instruction
+ * Agent(subagent_type="pact-architect", name="architect") cannot be followed
+ * literally. This tool accepts that shape, resolves the persona name into a
+ * child label, and starts an activation through the subagent service. The child
+ * then receives its persona from the agent/created injection, matched by name.
+ *
+ * It is registered only when both services exist, and the tool DSL is loaded
+ * dynamically so a profile without dsh-tools degrades to a log line rather than
+ * a failed activation.
+ */
+export async function registerPactAgent(ctx, settings, logger, deps = {}) {
+  const tools = safeService(ctx, 'tools');
+  const subagents = safeService(ctx, 'subagents');
+  if (
+    !tools ||
+    typeof tools.register !== 'function' ||
+    !subagents ||
+    typeof subagents.startActivation !== 'function'
+  ) {
+    logger?.info?.('pact-dsh: tools or subagents service unavailable; pact_agent is not registered');
+    return 0;
+  }
+  let defineTool = deps.defineTool;
+  if (!defineTool) {
+    try {
+      ({ defineTool } = await import('@deepseek-ai/dsh-tools'));
+    } catch (error) {
+      logger?.warn?.(`pact-dsh: tool DSL unavailable; pact_agent is not registered: ${error?.message ?? error}`);
+      return 0;
+    }
+  }
+  const provider = settings.subagentProvider ?? 'spawn';
+  const definition = defineTool({
+    name: 'pact_agent',
+    description:
+      'Delegate to a PACT specialist. Use this when PACT instructions say ' +
+      'Agent(subagent_type=<persona>, name=<short>, prompt=<task>). The child ' +
+      'receives that persona automatically.',
+    parameters: {
+      subagent_type: {
+        type: 'string',
+        required: true,
+        description: 'PACT persona name, for example pact-architect.',
+      },
+      prompt: {
+        type: 'string',
+        required: true,
+        description: 'The complete task for the specialist.',
+      },
+      name: {
+        type: 'string',
+        description: 'Short child name; defaults to the persona without its pact- prefix.',
+      },
+      description: {
+        type: 'string',
+        description: 'Short description for display.',
+      },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          child_id: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+      render: (args, value) => [{ type: 'text', text: `started ${value.name}` }],
+    },
+    isConcurrencySafe: () => false,
+    async execute(args, exec) {
+      const persona = String(args.subagent_type ?? '').trim();
+      if (!persona) throw new Error('pact_agent: subagent_type is required');
+      if (!exec?.agent) throw new Error('pact_agent: no calling agent to parent the child');
+      const label = String(args.name || persona.replace(/^pact-/, '') || 'specialist').slice(0, 32);
+      const activation = await subagents.startActivation({
+        provider,
+        label,
+        name: label,
+        prompt: [{ type: 'text', text: String(args.prompt ?? '') }],
+        parent: exec.agent,
+        signal: exec.signal,
+        delivery: 'parent',
+      });
+      return { name: String(activation?.name ?? label), child_id: String(activation?.childId ?? '') };
+    },
+  });
+  const dispose = tools.register(definition);
+  if (typeof dispose === 'function' && typeof ctx.effect === 'function') {
+    ctx.effect(() => dispose);
+  }
+  logger?.info?.(`pact-dsh: registered pact_agent (provider ${provider})`);
+  return 1;
 }
 
 /** Remove a leading YAML frontmatter block from a skill body. */
@@ -519,4 +618,7 @@ export function apply(ctx, config = {}) {
   registerPersona(ctx, settings, ctx.logger);
   registerCommands(ctx, settings, deps, ctx.logger);
   registerSkills(ctx, settings, ctx.logger);
+  registerPactAgent(ctx, settings, ctx.logger).catch((error) => {
+    ctx.logger?.warn?.(`pact-dsh: pact_agent registration failed: ${error?.message ?? error}`);
+  });
 }

@@ -75,6 +75,8 @@ def test_tools_are_listed_with_schemas(server: McpServer) -> None:
     assert {tool["name"] for tool in tools} == {
         "pact_event",
         "pact_gate",
+        "pact_journal_append",
+        "pact_journal_read",
         "pact_memory_save",
         "pact_memory_search",
         "pact_memory_status",
@@ -83,7 +85,7 @@ def test_tools_are_listed_with_schemas(server: McpServer) -> None:
     for tool in tools:
         assert tool["inputSchema"]["type"] == "object"
     assert TOOL_DEFINITIONS == tools
-    assert len(tools) == 6
+    assert len(tools) == 8
 
 
 def test_status_reports_t0_and_the_registry(server: McpServer) -> None:
@@ -179,7 +181,7 @@ def test_the_serve_loop_answers_requests_and_survives_bad_input(server: McpServe
     assert len(lines) == 3
     assert lines[0]["result"]["serverInfo"]["name"] == "pact-harness"
     assert lines[1]["error"]["code"] == -32700
-    assert len(lines[2]["result"]["tools"]) == 6
+    assert len(lines[2]["result"]["tools"]) == 8
 
 
 def test_the_server_runs_as_a_process(tmp_path: Path) -> None:
@@ -213,4 +215,4 @@ def test_the_server_runs_as_a_process(tmp_path: Path) -> None:
     assert completed.returncode == 0, completed.stderr
     responses = [json.loads(line) for line in completed.stdout.splitlines()]
     assert responses[0]["result"]["protocolVersion"] == "2024-11-05"
-    assert len(responses[1]["result"]["tools"]) == 6
+    assert len(responses[1]["result"]["tools"]) == 8

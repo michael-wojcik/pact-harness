@@ -6,6 +6,7 @@ import { test } from 'node:test';
 
 import {
   findPersona,
+  registerPactAgent,
   loadPlaybook,
   normalizeConfig,
   registerCommands,
@@ -354,6 +355,83 @@ test('loadPlaybook reads a document and rejects a non-object', () => {
 test('the playbook path is part of the resolved config', () => {
   const config = normalizeConfig({ playbook: '/tmp/p.json' }, {});
   assert.equal(config.playbook, '/tmp/p.json');
+});
+
+function agentServices() {
+  const registered = [];
+  const activations = [];
+  const tools = { register: (definition) => registered.push(definition) };
+  const subagents = {
+    startActivation: async (spec) => {
+      activations.push(spec);
+      return { name: spec.name, childId: 'child-1' };
+    },
+  };
+  const defineTool = (options) => options;
+  return { registered, activations, tools, subagents, defineTool };
+}
+
+test('pact_agent turns a persona name into a child label', async () => {
+  const services = agentServices();
+  const ctx = fakeCtx({ tools: services.tools, subagents: services.subagents });
+  const count = await registerPactAgent(ctx, {}, ctx.logger, { defineTool: services.defineTool });
+  assert.equal(count, 1);
+  assert.equal(services.registered[0].name, 'pact_agent');
+  const value = await services.registered[0].execute(
+    { subagent_type: 'pact-architect', prompt: 'design the data model' },
+    { agent: { id: 'lead' }, signal: 'sig' },
+  );
+  assert.equal(services.activations.length, 1);
+  const spec = services.activations[0];
+  assert.equal(spec.provider, 'spawn');
+  assert.equal(spec.label, 'architect');
+  assert.equal(spec.name, 'architect');
+  assert.equal(spec.delivery, 'parent');
+  assert.equal(spec.prompt[0].text, 'design the data model');
+  assert.equal(value.name, 'architect');
+  assert.equal(value.child_id, 'child-1');
+});
+
+test('pact_agent honours an explicit short name and a configured provider', async () => {
+  const services = agentServices();
+  const ctx = fakeCtx({ tools: services.tools, subagents: services.subagents });
+  await registerPactAgent(ctx, { subagentProvider: 'fork' }, ctx.logger, {
+    defineTool: services.defineTool,
+  });
+  await services.registered[0].execute(
+    { subagent_type: 'pact-qa-engineer', name: 'qa', prompt: 'test it' },
+    { agent: {}, signal: 's' },
+  );
+  assert.equal(services.activations[0].provider, 'fork');
+  assert.equal(services.activations[0].name, 'qa');
+});
+
+test('pact_agent refuses without a calling agent', async () => {
+  const services = agentServices();
+  const ctx = fakeCtx({ tools: services.tools, subagents: services.subagents });
+  await registerPactAgent(ctx, {}, ctx.logger, { defineTool: services.defineTool });
+  await assert.rejects(
+    services.registered[0].execute({ subagent_type: 'pact-architect', prompt: 'x' }, {}),
+    /no calling agent/,
+  );
+});
+
+test('pact_agent is skipped when a service is absent', async () => {
+  const ctx = fakeCtx({ tools: undefined, subagents: undefined });
+  assert.equal(await registerPactAgent(ctx, {}, ctx.logger, {}), 0);
+});
+
+test('pact_agent degrades when the tool DSL cannot load', async () => {
+  const services = agentServices();
+  const ctx = fakeCtx({ tools: services.tools, subagents: services.subagents });
+  // No injected defineTool and no @deepseek-ai/dsh-tools in this test process.
+  assert.equal(await registerPactAgent(ctx, {}, ctx.logger, {}), 0);
+  assert.match(ctx.warnings.join('\n'), /tool DSL unavailable/);
+});
+
+test('the configured subagent provider defaults to spawn', () => {
+  assert.equal(normalizeConfig({}, {}).subagentProvider, 'spawn');
+  assert.equal(normalizeConfig({ subagentProvider: 'fork' }, {}).subagentProvider, 'fork');
 });
 
 function commandDocument() {

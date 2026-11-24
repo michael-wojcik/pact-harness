@@ -18,11 +18,30 @@ reads this and [plan.md](plan.md) before touching code.
   directive folding, the Python DSH adapter, the cordis bridge,
   install/uninstall, and a real DSH profile that composes and boots are done.
   The only unproven assertion is a model-backed turn, which needs a key.
-- **M6 — in progress.** Release docs landed: a rewritten README with an install
-  path per platform, [docs/architecture.md](architecture.md), per-platform
-  quickstarts, a changelog, a version-identity test that holds pyproject,
-  package and schemas to one number, and a tag-triggered release lane that
-  refuses a tag which disagrees with any manifest.
+- **M3 — complete.** The playbook compiler extracts 13 personas, 13 commands
+  (Telegram excluded), 21 skills, 22 protocols and 3 references, resolves every
+  plugin-relative reference to an absolute path, and replaces Claude's
+  `$ARGUMENTS` with the platform placeholder. The installer compiles it next to
+  the profile and the bridge registers the orchestrator persona as a system
+  prompt section at order 0, registers the 13 `/pact-*` commands (handlers
+  inject the compiled body with the user's text substituted), registers the 21
+  skills as a zero-copy provider, and gives a teammate agent its specialist
+  persona on creation. The `pact_agent` tool closes the last gap: DSH's delegation tool has no type
+  parameter, so the tool accepts PACT's `subagent_type` shape and starts an
+  activation whose label is the persona without its prefix. Its definition was
+  compiled by the real `defineTool` (required: subagent_type and prompt) and its
+  execute path exercised against the real service shape.
+
+- **M4 — complete.** The generic MCP adapter serves newline-delimited
+  JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
+  `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools
+  say "advisory only" in their text, and `pact_status` reports tier T0 and the
+  live registry. The memory backend seam is in: location resolved through the
+  skill's own config module in an isolated interpreter, presence reported by
+  stat rather than by opening the store, and save/search routed through the
+  vendor CLI. The journal tools give a foreign agent a namespace of its own under the harness
+  state root; writing into a PACT session directory would make harness events
+  indistinguishable from a real session's history.
 - **M5 — complete.** `pact upstream inspect` extracts the surface: 34
   registrations, the matcher vocabulary, the three gate tool-sets, 14
   environment reads with their sites (including reads that go through a module
@@ -42,26 +61,13 @@ reads this and [plan.md](plan.md) before touching code.
   commits, so a human reviews what moved. A guard test compiles the script's
   embedded Python, because a mangled heredoc escape is a real defect this
   session hit.
-- **M4 — in progress.** The generic MCP adapter serves newline-delimited
-  JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
-  `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools
-  say "advisory only" in their text, and `pact_status` reports tier T0 and the
-  live registry. The memory backend seam is in: location resolved through the
-  skill's own config module in an isolated interpreter, presence reported by
-  stat rather than by opening the store, and save/search routed through the
-  vendor CLI. Remaining: journal tools, which need a session directory the
-  harness does not yet resolve for a foreign agent.
-- **M3 — in progress.** The playbook compiler extracts 13 personas, 13 commands
-  (Telegram excluded), 21 skills, 22 protocols and 3 references, resolves every
-  plugin-relative reference to an absolute path, and replaces Claude's
-  `$ARGUMENTS` with the platform placeholder. The installer compiles it next to
-  the profile and the bridge registers the orchestrator persona as a system
-  prompt section at order 0, registers the 13 `/pact-*` commands (handlers
-  inject the compiled body with the user's text substituted), registers the 21
-  skills as a zero-copy provider, and gives a teammate agent its specialist
-  persona on creation. Remaining: a `pact_agent` compatibility tool so a spawn
-  that passes `subagent_type` instead of `name` still selects the right persona.
-
+- **M6 — complete except publication.** Release docs landed: a rewritten README with an install
+  path per platform, [docs/architecture.md](architecture.md), per-platform
+  quickstarts, a changelog, a version-identity test that holds pyproject,
+  package and schemas to one number, and a tag-triggered release lane that
+  refuses a tag which disagrees with any manifest.
+  Publishing the first release needs a tagged remote, which this environment
+  does not have; the lane that would run on that tag is committed and checked.
 ### DSH end-to-end evidence
 
 - `pact install dsh --profile pact-e2e` ran `dsh plugin add`, which created the
@@ -125,3 +131,18 @@ PYTHONPATH=python/src python3 -m pytest python/tests -q
 tools/check-vendor-pin.sh
 PYTHONPATH=python/src python3 -m pact_harness doctor --adapter claude-code
 ```
+
+## Next
+
+Two assertions cannot be closed in a local environment, and neither is a code
+gap:
+
+- A model-backed end-to-end turn needs `DEEPSEEK_API_KEY`. Everything up to the
+  model call is proven; the turn itself is not.
+- Publishing the first release needs a tagged remote. The release lane is
+  committed; what remains is pushing a tag and watching it run.
+
+Everything else in [plan.md](plan.md) is implemented. If work continues, the
+next useful steps are the ones the plan defers: a bridged Claude Code install
+(the conformance suite is already the gate it must pass), and running the model
+lane nightly once a key exists.

@@ -56,6 +56,13 @@ only assertion this recipe does not cover.
 | `systemPrompt.section` | The orchestrator persona at order 0 |
 | `commands.register` | The 13 `/pact-*` commands |
 | `skills.registerProvider` | The 21 skills, read from the vendored tree with no copying |
+| `tools.register` | `pact_agent`, whose `subagent_type` argument resolves to the child's name, which is what selects its persona |
+
+`pact_agent` exists because DSH's own delegation tool has no type parameter, so
+PACT's `Agent(subagent_type="pact-architect", name="architect", ...)` cannot be
+followed literally. The tool takes that shape and starts an activation whose
+label is the persona without its `pact-` prefix; the child then receives its
+persona from the `agent/created` injection.
 
 ## Enforcement mode
 

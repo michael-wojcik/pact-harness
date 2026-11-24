@@ -24,6 +24,7 @@ from ..adapters.registry import get_adapter
 from ..contract import EventV1
 from ..engine import EngineConfig, config_for, evaluate, registry_for
 from ..paths import find_harness_root, resolve_plugin_root, resolve_state_root
+from ..journal import CliJournalBackend, JournalBackend
 from ..memory import CliMemoryBackend, MemoryBackend
 from ..vendor import VendorError, load_pin
 
@@ -94,6 +95,42 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
         "inputSchema": {"type": "object", "additionalProperties": False, "properties": {}},
     },
     {
+        "name": "pact_journal_append",
+        "description": (
+            "Append one event to the harness-owned journal. The event type and its "
+            "required fields belong to PACT; the backend reports what it refuses."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type"],
+            "properties": {
+                "type": {"type": "string", "description": "PACT journal event type."},
+                "data": {"type": "object", "description": "The event's fields."},
+                "session_id": {
+                    "type": "string",
+                    "description": "Journal namespace; defaults to mcp.",
+                },
+            },
+        },
+    },
+    {
+        "name": "pact_journal_read",
+        "description": "Read events from the harness-owned journal.",
+        "inputSchema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "type": {"type": "string", "description": "Only this event type."},
+                "since": {"type": "string", "description": "Only events at or after this time."},
+                "session_id": {
+                    "type": "string",
+                    "description": "Journal namespace; defaults to mcp.",
+                },
+            },
+        },
+    },
+    {
         "name": "pact_memory_status",
         "description": (
             "Report the memory backend's location and whether a store exists. "
@@ -141,6 +178,7 @@ class ToolOptions:
     state_root: Path | None = None
     python: str | None = None
     memory: MemoryBackend | None = None
+    journal: JournalBackend | None = None
 
 
 def _now() -> str:
@@ -163,6 +201,19 @@ def _memory(options: ToolOptions) -> MemoryBackend:
     if plugin_root is None:
         raise RuntimeError("plugin root unresolved; cannot reach the memory backend")
     return CliMemoryBackend(plugin_root=plugin_root, python=options.python or "")
+
+
+def _journal(options: ToolOptions) -> JournalBackend:
+    """Resolve the journal backend, defaulting to the vendor CLI."""
+    if options.journal is not None:
+        return options.journal
+    plugin_root = options.plugin_root or resolve_plugin_root()
+    if plugin_root is None:
+        raise RuntimeError("plugin root unresolved; cannot reach the journal backend")
+    state_root = options.state_root or resolve_state_root(adapter=options.adapter_id).path
+    return CliJournalBackend(
+        plugin_root=plugin_root, state_root=state_root, python=options.python or ""
+    )
 
 
 def _config(options: ToolOptions) -> EngineConfig:
@@ -262,6 +313,31 @@ def call_tool(name: str, arguments: Mapping[str, Any] | None, options: ToolOptio
     try:
         if name == "pact_status":
             return _text(json.dumps(_status(resolved), indent=2, sort_keys=True))
+        if name == "pact_journal_append":
+            event_type = args.get("type")
+            if not isinstance(event_type, str) or not event_type.strip():
+                return _text("type must be a non-empty string", is_error=True)
+            data = args.get("data")
+            if data is not None and not isinstance(data, Mapping):
+                return _text("data must be an object", is_error=True)
+            session_id = str(args.get("session_id") or "mcp")
+            return _text(
+                json.dumps(
+                    _journal(resolved).append(event_type, data, session_id),
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        if name == "pact_journal_read":
+            event_type = args.get("type")
+            if event_type is not None and not isinstance(event_type, str):
+                return _text("type must be a string", is_error=True)
+            since = args.get("since")
+            if since is not None and not isinstance(since, str):
+                return _text("since must be a string", is_error=True)
+            session_id = str(args.get("session_id") or "mcp")
+            events = _journal(resolved).read(session_id, event_type=event_type, since=since)
+            return _text(json.dumps(events, indent=2, sort_keys=True))
         if name == "pact_memory_status":
             return _text(json.dumps(_memory(resolved).status().to_dict(), indent=2, sort_keys=True))
         if name == "pact_memory_save":

@@ -111,11 +111,11 @@ waits until the mapping is proven.
 
 ## Status
 
-Milestones M0–M5 are complete: contract, adapters, warm transport, DSH bridge,
-playbook compiler, MCP adapter, and the upstream compatibility pipeline. M6
-(release) is in progress. Two assertions remain unproven: a model-backed
-end-to-end turn needs a `DEEPSEEK_API_KEY`, and the `pact_agent` compatibility
-tool is not built.
+Milestones M0–M6 are implemented: contract, adapters, warm transport, DSH
+bridge, playbook compiler, MCP adapter, the upstream compatibility pipeline, and
+the release surface. Two assertions need a credential or a remote and therefore
+cannot be proven in a local run: a model-backed end-to-end turn needs
+`DEEPSEEK_API_KEY`, and publishing the first release needs a tagged remote.
 
 ## Development
 

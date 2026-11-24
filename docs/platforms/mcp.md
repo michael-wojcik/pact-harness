@@ -33,6 +33,8 @@ From a checkout without installing, use
 | `pact_memory_status` | — | The memory backend's location and whether a store exists |
 | `pact_memory_save` | `{ memory }` | The backend's own save result |
 | `pact_memory_search` | `{ query, limit? }` | The backend's own search result |
+| `pact_journal_append` | `{ type, data?, session_id? }` | The journal CLI's own result |
+| `pact_journal_read` | `{ type?, since?, session_id? }` | The events as a JSON array |
 
 ## What `pact_gate` actually promises
 
@@ -41,6 +43,15 @@ the platform will not enforce the answer. A model that honours a `DENY` is
 following advice; a platform that ignores it is not violating a contract,
 because none was offered here. `pact_status` reports tier `T0` for the same
 reason.
+
+## Journal
+
+The journal tools give a foreign agent a namespace of its own under the harness
+state root rather than writing into a PACT session directory. Writing there
+would make harness events indistinguishable from a real session's history, and
+every consumer of that journal would start reading rows nothing asked for.
+Event types and their required fields belong to PACT, so the tools proxy the CLI
+and report its refusal instead of inventing a vocabulary.
 
 ## Memory
 
