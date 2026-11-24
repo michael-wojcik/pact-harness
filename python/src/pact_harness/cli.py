@@ -543,6 +543,32 @@ def _cmd_playbook_build(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _cmd_memory_status(args: argparse.Namespace) -> int:
+    """Report the memory backend's location and presence."""
+    from .memory import CliMemoryBackend, MemoryBackendError
+
+    plugin_root = Path(args.plugin_root) if args.plugin_root else resolve_plugin_root()
+    if plugin_root is None:
+        print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
+        return EXIT_PROBLEM
+    backend = CliMemoryBackend(plugin_root=plugin_root, python=args.python or "")
+    try:
+        status = backend.status()
+    except MemoryBackendError as exc:
+        print(f"pact: {exc}", file=sys.stderr)
+        return EXIT_PROBLEM
+    if args.json:
+        print(json.dumps(status.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(f"backend      : {status.backend}")
+        print(f"location     : {status.location}")
+        print(f"present      : {'yes' if status.exists else 'no'}")
+        if status.size_bytes is not None:
+            print(f"size         : {status.size_bytes} bytes")
+        print(f"detail       : {status.detail}")
+    return EXIT_OK
+
+
 def _cmd_mcp_serve(args: argparse.Namespace) -> int:
     """Serve PACT's advisory tools over MCP stdio."""
     from .mcp.server import McpServer
@@ -679,6 +705,14 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    memory = subparsers.add_parser("memory", help="inspect the memory backend")
+    memory_actions = memory.add_subparsers(dest="action", required=True)
+    memory_status = memory_actions.add_parser("status", help="report the backend's store")
+    memory_status.add_argument("--plugin-root", metavar="DIR")
+    memory_status.add_argument("--python", metavar="PATH")
+    memory_status.add_argument("--json", action="store_true", help="print JSON")
+    memory_status.set_defaults(func=_cmd_memory_status)
 
     mcp = subparsers.add_parser("mcp", help="advisory tools over the Model Context Protocol")
     mcp_actions = mcp.add_subparsers(dest="action", required=True)

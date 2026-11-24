@@ -22,7 +22,11 @@ reads this and [plan.md](plan.md) before touching code.
   JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
   `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools
   say "advisory only" in their text, and `pact_status` reports tier T0 and the
-  live registry. Remaining: memory and journal tools over the vendor CLIs.
+  live registry. The memory backend seam is in: location resolved through the
+  skill's own config module in an isolated interpreter, presence reported by
+  stat rather than by opening the store, and save/search routed through the
+  vendor CLI. Remaining: journal tools, which need a session directory the
+  harness does not yet resolve for a foreign agent.
 - **M3 — in progress.** The playbook compiler extracts 13 personas, 13 commands
   (Telegram excluded), 21 skills, 22 protocols and 3 references, resolves every
   plugin-relative reference to an absolute path, and replaces Claude's

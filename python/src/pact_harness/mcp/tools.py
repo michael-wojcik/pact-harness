@@ -24,6 +24,7 @@ from ..adapters.registry import get_adapter
 from ..contract import EventV1
 from ..engine import EngineConfig, config_for, evaluate, registry_for
 from ..paths import find_harness_root, resolve_plugin_root, resolve_state_root
+from ..memory import CliMemoryBackend, MemoryBackend
 from ..vendor import VendorError, load_pin
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
@@ -92,6 +93,42 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
         ),
         "inputSchema": {"type": "object", "additionalProperties": False, "properties": {}},
     },
+    {
+        "name": "pact_memory_status",
+        "description": (
+            "Report the memory backend's location and whether a store exists. "
+            "Does not open the store."
+        ),
+        "inputSchema": {"type": "object", "additionalProperties": False, "properties": {}},
+    },
+    {
+        "name": "pact_memory_save",
+        "description": "Save one memory object through the PACT memory backend.",
+        "inputSchema": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["memory"],
+            "properties": {
+                "memory": {
+                    "type": "object",
+                    "description": "A PACT memory object: context, goal, task, lesson or decision.",
+                }
+            },
+        },
+    },
+    {
+        "name": "pact_memory_search",
+        "description": "Search PACT's memory through the backend.",
+        "inputSchema": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["query"],
+            "properties": {
+                "query": {"type": "string", "description": "Search text."},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10},
+            },
+        },
+    },
 ]
 
 
@@ -103,6 +140,7 @@ class ToolOptions:
     plugin_root: Path | None = None
     state_root: Path | None = None
     python: str | None = None
+    memory: MemoryBackend | None = None
 
 
 def _now() -> str:
@@ -115,6 +153,16 @@ def _event_id(seed: str) -> str:
 
 def _text(value: str, *, is_error: bool = False) -> dict[str, Any]:
     return {"content": [{"type": "text", "text": value}], "isError": is_error}
+
+
+def _memory(options: ToolOptions) -> MemoryBackend:
+    """Resolve the memory backend, defaulting to the vendor CLI."""
+    if options.memory is not None:
+        return options.memory
+    plugin_root = options.plugin_root or resolve_plugin_root()
+    if plugin_root is None:
+        raise RuntimeError("plugin root unresolved; cannot reach the memory backend")
+    return CliMemoryBackend(plugin_root=plugin_root, python=options.python or "")
 
 
 def _config(options: ToolOptions) -> EngineConfig:
@@ -214,6 +262,23 @@ def call_tool(name: str, arguments: Mapping[str, Any] | None, options: ToolOptio
     try:
         if name == "pact_status":
             return _text(json.dumps(_status(resolved), indent=2, sort_keys=True))
+        if name == "pact_memory_status":
+            return _text(json.dumps(_memory(resolved).status().to_dict(), indent=2, sort_keys=True))
+        if name == "pact_memory_save":
+            memory = args.get("memory")
+            if not isinstance(memory, Mapping):
+                return _text("memory must be an object", is_error=True)
+            return _text(json.dumps(_memory(resolved).save(memory), indent=2, sort_keys=True))
+        if name == "pact_memory_search":
+            query = args.get("query")
+            if not isinstance(query, str) or not query.strip():
+                return _text("query must be a non-empty string", is_error=True)
+            limit = args.get("limit", 10)
+            if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
+                return _text("limit must be an integer from 1 to 100", is_error=True)
+            return _text(
+                json.dumps(_memory(resolved).search(query, limit), indent=2, sort_keys=True)
+            )
         if name == "pact_event":
             event = args.get("event")
             if not isinstance(event, Mapping):
