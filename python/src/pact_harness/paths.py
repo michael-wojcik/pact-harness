@@ -80,6 +80,53 @@ def plugin_dir(base: Path) -> Path:
     return base
 
 
+def dev_link_file(
+    *,
+    env: Mapping[str, str] | None = None,
+) -> Path:
+    """Where the development link lives.
+
+    The link is harness-wide rather than per-adapter, because it redirects which
+    tree every adapter reads. PACT_DEV_LINK exists so tests and CI can point it
+    somewhere disposable.
+    """
+    environ = os.environ if env is None else env
+    override = (environ.get("PACT_DEV_LINK") or "").strip()
+    if override:
+        return _expanded(override, Path.home())
+    home_env = (environ.get("PACT_HOME") or "").strip()
+    home = _expanded(home_env, Path.home()) if home_env else Path.home()
+    return home / ".pact" / "pact-harness" / "dev-link.json"
+
+
+def read_dev_link(*, env: Mapping[str, str] | None = None) -> Path | None:
+    """Read the linked checkout, ignoring a link whose tree has gone."""
+    import json
+
+    path = dev_link_file(env=env)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    recorded = data.get("pluginRoot") if isinstance(data, dict) else None
+    if not isinstance(recorded, str) or not recorded.strip():
+        return None
+    candidate = plugin_dir(Path(recorded))
+    if not candidate.is_dir():
+        return None
+    return candidate
+
+
+def plugin_source(*, env: Mapping[str, str] | None = None) -> str | None:
+    """Which tree wins: the environment, a development link, or the pin."""
+    environ = os.environ if env is None else env
+    if (environ.get("PACT_PLUGIN_ROOT") or "").strip():
+        return "env"
+    if read_dev_link(env=environ) is not None:
+        return "dev-link"
+    return "vendored"
+
+
 def resolve_plugin_root(
     *,
     env: Mapping[str, str] | None = None,
@@ -87,13 +134,18 @@ def resolve_plugin_root(
 ) -> Path | None:
     """Resolve the PACT tree the hooks are read from.
 
-    PACT_PLUGIN_ROOT wins so a working checkout can be exercised before it is
-    tagged. Otherwise the vendored submodule is used.
+    Precedence: PACT_PLUGIN_ROOT, then a tree recorded by pact dev link, then
+    the vendored submodule. A working checkout is what upstream work is tested
+    against, so it beats the pin; the environment beats both so a single command
+    can exercise a different tree without changing the persisted answer.
     """
     environ = os.environ if env is None else env
     override = (environ.get("PACT_PLUGIN_ROOT") or "").strip()
     if override:
         return plugin_dir(_expanded(override, Path.home()))
+    linked = read_dev_link(env=environ)
+    if linked is not None:
+        return linked
     root = harness_root if harness_root is not None else find_harness_root()
     if root is None:
         return None

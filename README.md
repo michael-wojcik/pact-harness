@@ -90,6 +90,7 @@ upstream's launcher does. See
 | `pact memory status` | The memory backend's location and whether a store exists (never opens it). |
 | `pact conformance` | Run every hook registration against the corpus; all 34 must be covered and understood. |
 | `pact upstream inspect / diff / verify / check` | Extract the upstream surface, grade a change L0–L4, check a tree still fits, and report how far the pin is from the latest release. |
+| `pact dev link --plugin DIR` / `pact dev unlink` | Run against a working checkout instead of the pin; `doctor` reports the override and whether that tree is dirty. |
 | `pact playbook build --platform dsh --out DIR` | Compile personas, commands, skills and protocols for a platform. |
 | `pact mcp serve` | Advisory tools over MCP stdio. |
 | `pact serve` | The warm hook worker the bridge uses. |
@@ -135,6 +136,19 @@ PYTHONPATH=python/src python3 -m pytest python/tests -q
 (cd adapters/dsh && node --test test/)
 tools/check-vendor-pin.sh
 ```
+
+To run against a working checkout instead of the pin — for testing an upstream
+change before it is tagged — link it once:
+
+```sh
+pact dev link --plugin ../PACT-Plugin
+pact doctor            # plugin root: ... (dev-link), reports a dirty tree
+pact dev unlink
+```
+
+Precedence is `PACT_PLUGIN_ROOT` (one command), then the link, then the pin. A
+link whose tree has moved or been deleted is ignored rather than breaking every
+command, and `doctor` warns when the tree in use has uncommitted changes.
 
 - [docs/plan.md](docs/plan.md) — the approved plan: contract, adapters, milestones.
 - [docs/progress.md](docs/progress.md) — where the implementation is, and what is next.

@@ -34,7 +34,10 @@ reads this and [plan.md](plan.md) before touching code.
 
 - **M4 — complete.** `pact install generic` writes the managed AGENTS.md
   section and symlinks the 21 skills into the shared skills root, with uninstall
-  removing only the links it can prove it made. The generic MCP adapter serves newline-delimited
+  removing only the links it can prove it made. `pact dev link` records a working
+  checkout for the whole harness: precedence is PACT_PLUGIN_ROOT, then the link,
+  then the pin, a deleted tree degrades to the pin, and `doctor` reports the
+  override and whether the tree is dirty. The generic MCP adapter serves newline-delimited
   JSON-RPC on stdio: initialize, ping, tools/list and tools/call for
   `pact_event`, `pact_gate` and `pact_status`. It is the honest T0 — the tools
   say "advisory only" in their text, and `pact_status` reports tier T0 and the

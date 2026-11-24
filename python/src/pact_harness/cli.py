@@ -32,6 +32,7 @@ from .errors import PactHarnessError, VendorError
 from .paths import (
     find_harness_root,
     plugin_dir,
+    plugin_source,
     resolve_backlog_dir,
     resolve_memory_dir,
     resolve_plugin_root,
@@ -135,6 +136,7 @@ def _cmd_paths(args: argparse.Namespace) -> int:
         "adapter": adapter,
         "harness_root": str(root) if root else None,
         "plugin_root": str(plugin) if plugin else None,
+        "plugin_source": plugin_source(),
         "state_root": str(state.path),
         "state_root_source": state.source,
         "memory_dir": str(resolve_memory_dir()),
@@ -147,7 +149,7 @@ def _cmd_paths(args: argparse.Namespace) -> int:
         text=(
             f"adapter      : {adapter}\n"
             f"harness root : {payload['harness_root']}\n"
-            f"plugin root  : {payload['plugin_root']}\n"
+            f"plugin root  : {payload['plugin_root']} ({payload['plugin_source']})\n"
             f"state root   : {payload['state_root']} ({state.source})\n"
             f"memory       : {payload['memory_dir']} (upstream-pinned)\n"
             f"backlog      : {payload['backlog_dir']} (upstream-pinned)\n"
@@ -222,6 +224,14 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     pin_payload: dict[str, Any] | None = None
     vendor_payload: dict[str, Any] | None = None
     plugin = resolve_plugin_root(harness_root=root)
+    from .dev import git_dirty
+
+    source = plugin_source()
+    plugin_dirty = git_dirty(plugin) if plugin is not None else None
+    if source == "dev-link":
+        notes.append("plugin root is a development link; remove it with: pact dev unlink")
+    if plugin_dirty:
+        warnings.append("the tree in use has uncommitted changes (development link or PACT_PLUGIN_ROOT)")
     registry_payload: dict[str, Any] | None = None
     if root is None:
         errors.append("harness root not found (no harness/pact-pin.json above this package)")
@@ -300,6 +310,8 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         "memory_dir": str(memory),
         "backlog_dir": str(resolve_backlog_dir()),
         "plugin_root": str(plugin) if plugin else None,
+        "plugin_source": source,
+        "plugin_dirty": plugin_dirty,
         "pin": pin_payload,
         "vendor": vendor_payload,
         "registry": registry_payload,
@@ -324,7 +336,9 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
             print("python       : none resolved")
         print(f"state root   : {state.path} ({state.source})")
         print(f"memory       : {memory} (upstream-pinned)")
-        print(f"plugin root  : {plugin}")
+        source_suffix = "" if source == "vendored" else f" ({source})"
+        dirty_suffix = ", dirty" if plugin_dirty else ""
+        print(f"plugin root  : {plugin}{source_suffix}{dirty_suffix}")
         if registry_payload:
             print(
                 "hook registry: "
@@ -753,6 +767,56 @@ def _cmd_upstream(args: argparse.Namespace) -> int:
     return EXIT_OK if report.ok else EXIT_PROBLEM
 
 
+def _cmd_dev(args: argparse.Namespace) -> int:
+    """Link, unlink or report a development checkout."""
+    from .dev import DevLinkError, link, status, unlink
+    from .paths import dev_link_file
+
+    if args.action == "link":
+        if not args.plugin:
+            print("pact: dev link needs --plugin DIR", file=sys.stderr)
+            return EXIT_PROBLEM
+        try:
+            result = link(Path(args.plugin).expanduser())
+        except DevLinkError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+        payload = result.to_dict()
+        payload["link_file"] = str(dev_link_file())
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(f"linked       : {result.plugin_root}")
+            print(f"version      : {result.version or 'unknown'}")
+            print(f"dirty        : {'yes' if result.dirty else 'no' if result.dirty is False else 'not a git checkout'}")
+            print("note         : PACT_PLUGIN_ROOT still wins for a single command")
+        return EXIT_OK
+    if args.action == "unlink":
+        try:
+            removed = unlink()
+        except DevLinkError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+        if args.json:
+            print(json.dumps({"removed": removed.to_dict() if removed else None}, indent=2, sort_keys=True))
+        else:
+            print(f"unlinked     : {removed.plugin_root}" if removed else "nothing was linked")
+        return EXIT_OK
+    payload = status()
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return EXIT_OK
+    print(f"link file    : {payload['link_file']}")
+    print(f"recorded     : {'yes' if payload['recorded'] else 'no'}")
+    print(f"plugin root  : {payload['plugin_root'] or 'none'}")
+    print(f"present      : {'yes' if payload['present'] else 'no'}")
+    if payload["present"]:
+        print(f"version      : {payload['version'] or 'unknown'}")
+        dirty = payload["dirty"]
+        print(f"dirty        : {'yes' if dirty else 'no' if dirty is False else 'unknown'}")
+    return EXIT_OK
+
+
 def _cmd_memory_status(args: argparse.Namespace) -> int:
     """Report the memory backend's location and presence."""
     from .memory import CliMemoryBackend, MemoryBackendError
@@ -937,6 +1001,19 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--python", metavar="PATH")
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.set_defaults(func=_cmd_conformance)
+
+    dev = subparsers.add_parser("dev", help="run against a working checkout")
+    dev_actions = dev.add_subparsers(dest="action", required=True)
+    dev_link = dev_actions.add_parser("link", help="record a checkout as the tree to use")
+    dev_link.add_argument("--plugin", metavar="DIR", required=True)
+    dev_link.add_argument("--json", action="store_true")
+    dev_link.set_defaults(func=_cmd_dev)
+    dev_unlink = dev_actions.add_parser("unlink", help="remove the recorded checkout")
+    dev_unlink.add_argument("--json", action="store_true")
+    dev_unlink.set_defaults(func=_cmd_dev)
+    dev_status = dev_actions.add_parser("status", help="report the recorded checkout")
+    dev_status.add_argument("--json", action="store_true")
+    dev_status.set_defaults(func=_cmd_dev)
 
     upstream = subparsers.add_parser("upstream", help="inspect or verify the upstream surface")
     upstream_actions = upstream.add_subparsers(dest="action", required=True)
