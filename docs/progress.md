@@ -11,7 +11,7 @@ reads this and [plan.md](plan.md) before touching code.
   plain copy fails tests that shell out to git) and the contract lane runs it on
   every pull request. Measured here: 21 of ~28,000 fail on macOS, 19 after
   installing upstream's pinned pytest, and all 19 are platform assumptions --
-  invalid-UTF-8 filenames APFS refuses, §/bin/true§, and CI-only seams -- recorded
+  invalid-UTF-8 filenames APFS refuses, /bin/true, and CI-only seams -- recorded
   with reasons in `tools/upstream-known-macos-gaps.txt`; with those deselected
   the affected files pass 627/627. The contract lane runs the suite on Ubuntu
   and Python 3.12, upstream's certified platform, with no deselects. See
