@@ -65,8 +65,15 @@ jobs:
       - name: Build the distribution
         run: python -m build python --outdir dist
 
-      - name: Attach the artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-          fail_on_unmatched_files: true
+      # gh's own uploader rather than a third-party action: the first run
+      # created the release, uploaded the sdist and then failed on the wheel with
+      # no message. The CLI reports what the API said, and clobbering is explicit
+      # so a rerun converges instead of duplicating assets.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
+                 --notes "pact-harness $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" dist/* --clobber
