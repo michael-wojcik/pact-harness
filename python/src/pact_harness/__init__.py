@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 #: Version of the harness contract this build speaks.
 CONTRACT_VERSION = 1

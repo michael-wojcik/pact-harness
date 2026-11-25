@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.1.1: session-start fix and CI hardening
+
+The first release's CI runs found three defects that local runs could not, all
+fixed here.
+
+- **A real DSH session aborted at session start** with "message "undefined" is
+  already pending". The bridge prefers the host's createUserMessage, which
+  assigns each message an id, but that import fails from the linked plugin
+  directory, so it fell back to an id-less message; DSH's inbox rejects two
+  pending messages sharing an id. The fallback now carries a unique id.
+- **The bridged shim resolved its own interpreter** instead of inheriting its
+  own, so a hook could report a different Python than a direct invocation.
+- **Byte parity shared $HOME between the two runs**, so the first created the
+  user-global links the second reported as present. Each path now has its own
+  home, and HOME joins the normalised paths.
+
+Also: the release lane publishes assets with the GitHub CLI and leaves existing
+assets alone rather than deleting and re-uploading them, and the contract lane
+installs upstream's hash-pinned environment rather than guessing at its test
+dependencies.
+
 ## v0.1.0: first harness release
 
 ### Summary
