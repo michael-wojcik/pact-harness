@@ -137,26 +137,26 @@ def compare_decision(
     return True, ""
 
 
-def _first_difference(left: bytes, right: bytes, width: int = 160) -> str:
-    """The first differing line, with both sides, short enough to log."""
+def _first_difference(left: bytes, right: bytes, window: int = 120) -> str:
+    """The first differing character, with matching context from each side."""
     left_text = left.decode("utf-8", errors="replace")
     right_text = right.decode("utf-8", errors="replace")
-    left_lines = left_text.splitlines()
-    right_lines = right_text.splitlines()
-    for index, (left_line, right_line) in enumerate(zip(left_lines, right_lines)):
-        if left_line != right_line:
+    limit = min(len(left_text), len(right_text))
+    for index in range(limit):
+        if left_text[index] != right_text[index]:
+            start = max(0, index - window)
+            end = index + window
             return (
-                f"line {index}: direct={left_line[:width]!r} "
-                f"bridged={right_line[:width]!r}"
+                f"char {index}: "
+                f"direct=...{left_text[start:end]!r} "
+                f"bridged=...{right_text[start:end]!r}"
             )
-    if len(left_lines) != len(right_lines):
-        extra, which = (
-            (left_lines[len(right_lines) :], "direct")
-            if len(left_lines) > len(right_lines)
-            else (right_lines[len(left_lines) :], "bridged")
+    if len(left_text) != len(right_text):
+        longer, which = (
+            (left_text, "direct") if len(left_text) > limit else (right_text, "bridged")
         )
-        return f"{which} has {len(extra)} extra line(s): {[line[:width] for line in extra[:3]]!r}"
-    return "no line differs; the bytes differ within a line ending"
+        return f"{which} is {len(longer) - limit} char(s) longer: {longer[limit : limit + window]!r}"
+    return "identical text; bytes differ in encoding"
 
 
 def run_parity(
@@ -275,4 +275,17 @@ def run_parity(
             )
             if not ok:
                 failures.append(f"{frame_a.name}: {direct.registration.hook}: {detail}")
+                if direct.result.stdout != bridged.stdout:
+                    # A CI log is the only place this difference is visible, so
+                    # carry both sides in the report instead of a hash.
+                    left = _normalise(direct.result.stdout, (direct_project, direct_state))
+                    right = _normalise(bridged.stdout, (bridged_project, bridged_state))
+                    failures.append(
+                        f"{frame_a.name}: {direct.registration.hook}: "
+                        f"direct={left.decode('utf-8', errors='replace')[:4000]!r}"
+                    )
+                    failures.append(
+                        f"{frame_a.name}: {direct.registration.hook}: "
+                        f"bridged={right.decode('utf-8', errors='replace')[:4000]!r}"
+                    )
     return ParityReport(cells=tuple(cells), failures=tuple(failures), frames=len(direct_frames))
