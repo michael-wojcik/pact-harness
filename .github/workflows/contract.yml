@@ -28,8 +28,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install the test runner
-        run: python -m pip install --upgrade pip pytest
+      - name: Install the test runners
+        run: |
+          python -m pip install --upgrade pip \
+            'pytest==9.2.0' 'pytest-randomly==5.1.0' 'pytest-xdist==3.8.0' \
+            'pytest-asyncio==1.4.1' 'hypothesis==6.170.14'
+        # Pinned to vendor/pact-plugin/constraints-ci.txt. The vendored conftest
+        # refuses an unseeded pytest, and its suite imports these plugins; with
+        # them missing it exits with an internal error rather than a useful
+        # message. tools/run-upstream-tests.sh names the fix when they are absent.
 
       - name: Contract tests
         run: PYTHONPATH=python/src python -m pytest python/tests -q

@@ -73,7 +73,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
-                 --notes "pact-harness $GITHUB_REF_NAME"
-          gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          TAG="$GITHUB_REF_NAME"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "$TAG" --notes "pact-harness $TAG"
+          fi
+          existing="$(gh release view "$TAG" --json assets --jq '.assets[].name')"
+          for file in dist/*; do
+            name="$(basename "$file")"
+            if printf '%s\n' "$existing" | grep -qxF "$name"; then
+              echo "$name is already attached; left in place"
+            else
+              gh release upload "$TAG" "$file"
+            fi
+          done

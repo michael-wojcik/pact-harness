@@ -25,6 +25,15 @@ git -C "$SOURCE" rev-parse --git-dir >/dev/null 2>&1 \
   || { echo "run-upstream-tests: $SOURCE is not a git checkout" >&2; exit 2; }
 command -v "$PYTHON" >/dev/null 2>&1 || { echo "run-upstream-tests: $PYTHON not found" >&2; exit 2; }
 
+# The vendored conftest refuses an unseeded pytest, so a suite run without the
+# plugins it expects dies as an internal error. Name the fix before that happens.
+if ! "$PYTHON" -c "import pytest_randomly" >/dev/null 2>&1; then
+  echo "run-upstream-tests: pytest-randomly is missing." >&2
+  echo "  install upstream's pinned test set:" >&2
+  echo "  $PYTHON -m pip install 'pytest==9.2.0' 'pytest-randomly==5.1.0' 'pytest-xdist==3.8.0'" >&2
+  exit 2
+fi
+
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 git clone --quiet --no-hardlinks "$SOURCE" "$WORK/repo"
