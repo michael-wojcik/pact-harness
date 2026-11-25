@@ -90,7 +90,12 @@ def test_the_real_tree_rewrites_completely() -> None:
 
 def test_parity_holds_on_the_pinned_tree() -> None:
     report = run_parity(pin_plugin_root())
-    assert report.ok, report.failures
+    if not report.ok:
+        # pytest abbreviates long assertion values, and the whole point of the
+        # failure is the bytes. Print them verbatim so the CI log is readable.
+        for failure in report.failures:
+            print("PARITY FAILURE:", failure)
+    assert report.ok
     assert len(report.cells) == 48
     assert report.frames == 24
 

@@ -137,19 +137,26 @@ def compare_decision(
     return True, ""
 
 
-def _first_difference(left: bytes, right: bytes, window: int = 120) -> str:
-    """A short, readable excerpt around the first differing byte."""
-    limit = min(len(left), len(right))
-    for index in range(limit):
-        if left[index] != right[index]:
-            start = max(0, index - window // 2)
-            left_part = left[start : index + window // 2]
-            right_part = right[start : index + window // 2]
+def _first_difference(left: bytes, right: bytes, width: int = 160) -> str:
+    """The first differing line, with both sides, short enough to log."""
+    left_text = left.decode("utf-8", errors="replace")
+    right_text = right.decode("utf-8", errors="replace")
+    left_lines = left_text.splitlines()
+    right_lines = right_text.splitlines()
+    for index, (left_line, right_line) in enumerate(zip(left_lines, right_lines)):
+        if left_line != right_line:
             return (
-                f"byte {index}: direct={left_part!r} bridged={right_part!r}"
+                f"line {index}: direct={left_line[:width]!r} "
+                f"bridged={right_line[:width]!r}"
             )
-    longer, which = (left, "direct") if len(left) > limit else (right, "bridged")
-    return f"{which} has {len(longer) - limit} extra byte(s) after {limit}: {longer[limit : limit + window]!r}"
+    if len(left_lines) != len(right_lines):
+        extra, which = (
+            (left_lines[len(right_lines) :], "direct")
+            if len(left_lines) > len(right_lines)
+            else (right_lines[len(left_lines) :], "bridged")
+        )
+        return f"{which} has {len(extra)} extra line(s): {[line[:width] for line in extra[:3]]!r}"
+    return "no line differs; the bytes differ within a line ending"
 
 
 def run_parity(
