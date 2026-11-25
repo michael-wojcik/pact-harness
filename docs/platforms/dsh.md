@@ -80,6 +80,25 @@ defaults read `tool_input.command`, which DSH supplies under the identical key,
 so no mapping sits between the gate and its input. Set `mode: enforce` to act on
 every verdict, and expect to fix mapping bugs when you do.
 
+## Nightly model lane
+
+Everything above is proven without a model. The one assertion that needs one is
+a live turn with the bridge mounted, and that is what the model lane exists for:
+
+```sh
+DEEPSEEK_API_KEY=... tools/model-lane.sh pact
+```
+
+It runs one `dsh --json` turn, then requires three things: exit 0, no error
+event, and the bridge's activation record. The event stream, the activation
+record and the newest session transcript are copied to `.model-lane/` so a
+failure can be read afterwards.
+
+CI runs the same script nightly (`.github/workflows/model-nightly.yml`) using a
+`DEEPSEEK_API_KEY` repository secret, after installing DSH from npm. Without the
+secret the lane fails honestly at `MISSING_CREDENTIAL`; it is scheduled rather
+than per-commit for that reason.
+
 ## Uninstall
 
 ```sh

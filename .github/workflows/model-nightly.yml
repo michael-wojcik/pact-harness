@@ -1,0 +1,71 @@
+name: model-nightly
+
+# The one assertion the rest of CI cannot make: a live model turn with PACT's
+# bridge mounted. It needs DEEPSEEK_API_KEY as a repository secret; without one
+# the run fails at MISSING_CREDENTIAL, which is honest but noisy, so this lane is
+# scheduled and manual rather than per-commit.
+#
+# It installs DSH from npm (pinned to the app version this harness targets) on an
+# Ubuntu runner, then uses the same installer a person would.
+
+on:
+  schedule:
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-nightly
+  cancel-in-progress: false
+
+jobs:
+  model-turn:
+    name: model-backed-pact-session
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - name: Check out with the vendored tree
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Use Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install DSH
+        run: npm install --global @deepseek-ai/dsh@0.2.2-rc.5
+
+      - name: Install the harness
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e python
+
+      - name: Create a profile and install the bridge
+        run: |
+          dsh --profile pact --from-default-profile headless --dump-config > /dev/null
+          pact install dsh --profile pact
+          dsh --profile pact --dump-config | grep -A6 'id: pact-dsh'
+
+      - name: Run a model-backed PACT turn
+        run: tools/model-lane.sh
+
+      - name: Keep the run record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-lane-${{ github.run_id }}
+          path: .model-lane/
+          if-no-files-found: ignore
+          retention-days: 14

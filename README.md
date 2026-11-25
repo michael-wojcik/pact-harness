@@ -137,9 +137,12 @@ waits until the mapping is proven.
 
 Milestones M0–M6 are implemented: contract, adapters, warm transport, DSH
 bridge, playbook compiler, MCP adapter, the upstream compatibility pipeline, and
-the release surface. Two assertions need a credential or a remote and therefore
-cannot be proven in a local run: a model-backed end-to-end turn needs
-`DEEPSEEK_API_KEY`, and publishing the first release needs a tagged remote.
+the release surface. v0.1.1 is published with both artifacts.
+
+One assertion still needs a credential: a live model-backed turn. It is covered
+by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an
+Ubuntu runner and runs `tools/model-lane.sh` when the repository has a
+`DEEPSEEK_API_KEY` secret.
 
 ## Development
 

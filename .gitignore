@@ -23,3 +23,4 @@ node_modules/
 # handover, or the measurements these decisions rest on.
 !docs/
 !docs/**
+.model-lane/
