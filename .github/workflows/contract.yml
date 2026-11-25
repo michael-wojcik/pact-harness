@@ -28,15 +28,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install the test runners
+      # Upstream's suite enforces its own environment: scripts/verify_ci_environment.py
+      # compares the importable distributions against constraints-ci.txt and exits
+      # rather than running with a subset. Mirror upstream's CI install, hash-pinned
+      # and binary-only, so the suite sees exactly the reviewed closure.
+      - name: Install upstream's pinned environment
         run: |
-          python -m pip install --upgrade pip \
-            'pytest==9.2.0' 'pytest-randomly==5.1.0' 'pytest-xdist==3.8.0' \
-            'pytest-asyncio==1.4.1' 'hypothesis==6.170.14'
-        # Pinned to vendor/pact-plugin/constraints-ci.txt. The vendored conftest
-        # refuses an unseeded pytest, and its suite imports these plugins; with
-        # them missing it exits with an internal error rather than a useful
-        # message. tools/run-upstream-tests.sh names the fix when they are absent.
+          python -m pip install --only-binary=:all: --require-hashes \
+            -r vendor/pact-plugin/constraints-ci.txt
 
       - name: Contract tests
         run: PYTHONPATH=python/src python -m pytest python/tests -q
