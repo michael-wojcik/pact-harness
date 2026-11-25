@@ -139,10 +139,11 @@ Milestones M0–M6 are implemented: contract, adapters, warm transport, DSH
 bridge, playbook compiler, MCP adapter, the upstream compatibility pipeline, and
 the release surface. v0.1.1 is published with both artifacts.
 
-One assertion still needs a credential: a live model-backed turn. It is covered
-by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an
-Ubuntu runner and runs `tools/model-lane.sh` when the repository has a
-`DEEPSEEK_API_KEY` secret.
+The last assertion -- a live model-backed turn with the bridge mounted -- is
+covered by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an
+Ubuntu runner and runs `tools/model-lane.sh` with the repository's
+`DEEPSEEK_API_KEY` secret. First successful run: `dsh` exited 0, 223 events,
+no error events, and the bridge wrote its activation record.
 
 ## Development
 

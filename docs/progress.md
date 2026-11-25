@@ -170,10 +170,11 @@ and the id-less fallback message above. All three are fixed.
 Everything in plan.md is implemented and the first release exists. What remains
 needs credentials or a decision rather than code:
 
-- A model-backed end-to-end turn needs a valid DEEPSEEK_API_KEY; the DSH
-  credential on this machine is an account token the API rejects (401), and a
-  real profile now fails only at MISSING_CREDENTIAL or AUTH.
-- The nightly model lane needs that key plus a CI runner able to install DSH.
+- The model lane is green (run 45666072400, 2026-11-25): on an Ubuntu runner,
+  DSH installed from npm ran a live turn with the bridge mounted -- exit 0, 223
+  events, no error events, activation record written. A local copy of the key
+  would only serve as a debugging fallback.
+- Upstream and model lanes are green; the release lane is green.
 - Publishing the npm adapter package needs an npm account and the @pact-harness
   org; the harness itself installs from source in the meantime.
 - The repository is private; making it public is a decision, not a code change.
