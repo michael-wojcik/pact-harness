@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import {
   findPersona,
   registerPactAgent,
+  loadMessageFactory,
   loadPlaybook,
   normalizeConfig,
   registerCommands,
@@ -350,6 +351,20 @@ test('loadPlaybook reads a document and rejects a non-object', () => {
   const target = path.join(directory, 'playbook.json');
   fs.writeFileSync(target, '[]');
   assert.throws(() => loadPlaybook(target), /not an object/);
+});
+
+test('each injected message has its own identity', async () => {
+  // The host helper is preferred; in this process the bare import cannot
+  // resolve, so this exercises the fallback -- the path that produced id-less
+  // messages and tripped DSH's inbox invariant.
+  const factory = await loadMessageFactory({ warn() {} });
+  const first = factory('one');
+  const second = factory('one');
+  assert.equal(typeof first.id, 'string');
+  assert.ok(first.id.length > 0);
+  assert.notEqual(first.id, second.id);
+  assert.equal(first.role, 'user');
+  assert.equal(first.content[0].text, 'one');
 });
 
 test('the playbook path is part of the resolved config', () => {

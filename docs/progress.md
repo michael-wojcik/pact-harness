@@ -121,21 +121,6 @@ reads this and [plan.md](plan.md) before touching code.
   and reason into the envelope (Node test, ~295 ms).
 - The profile was removed after measurement.
 
-## Next actions, in order
-
-1. ~~Warm transport~~ — done (`runtime/warm.py`, `pact serve`).
-2. ~~DSH cordis bridge~~ — done (`adapters/dsh/`): events, tool map, decisions,
-   warm-worker client, shadow/enforce policy, persona section, 33 Node tests.
-3. **M3 playbook compiler**: extract personas, commands, skills and protocols
-   from the vendored tree, rewrite what does not survive a platform change, and
-   emit per-platform artifacts. The bridge then registers the orchestrator
-   persona section and the `/pact-*` commands.
-4. **Conformance corpus** (`conformance/corpus/`): fixtures from
-   `vendor/pact-plugin/pact-plugin/tests/fixtures/role_frames.py` plus a
-   synthetic frame per event and per role.
-5. **34/34 parity sweep**: for every registration, run the hook directly and
-   through the harness, and assert identical stdout and exit code.
-
 ## Defects found by measuring, not by reading
 
 | Symptom | Cause | Fix |
@@ -143,6 +128,7 @@ reads this and [plan.md](plan.md) before touching code.
 | Decisions silently missing from a forked hook | `os._exit` skips interpreter shutdown, discarding buffered stdout | flush before exit |
 | Decisions written into the embedder's buffer | the child inherited the parent's `sys.stdout` object | rebind the child's stdio to its descriptors |
 | A caller timeout with no error | a pipe's EOF waits on every process holding the write end | temp file plus polled `waitpid` |
+| A boot with the bridge active died as `message "undefined" is already pending` | the fallback context message had no `id`, and DSH's inbox requires unique ids for every pending message; the host's `createUserMessage` import (which assigns one) failed from the linked plugin directory | prefer the host helper, and give the fallback a unique id; verified by a real boot reaching MISSING_CREDENTIAL and then AUTH |
 | An evaluation hung about 1 in 5 | forking from thread-pool workers deadlocks the child on a lock held at fork time | `supports_parallel` is false for forking transports |
 
 ## Measured facts that corrected the plan
@@ -170,16 +156,24 @@ tools/check-vendor-pin.sh
 PYTHONPATH=python/src python3 -m pact_harness doctor --adapter claude-code
 ```
 
+## Repository and release
+
+The project lives at michael-wojcik/pact-harness (private for now). The release
+lane is green end to end: tag v0.1.0 built the sdist and wheel, ran both test
+suites and the vendor-pin invariant, and attached the artifacts to a GitHub
+release. The first real CI runs found three defects the local runs could not:
+the shim resolving its own interpreter, parity sharing HOME between the two runs,
+and the id-less fallback message above. All three are fixed.
+
 ## Next
 
-Two assertions cannot be closed in a local environment, and neither is a code
-gap:
+Everything in plan.md is implemented and the first release exists. What remains
+needs credentials or a decision rather than code:
 
-- A model-backed end-to-end turn needs `DEEPSEEK_API_KEY`. Everything up to the
-  model call is proven; the turn itself is not.
-- Publishing the first release needs a tagged remote. The release lane is
-  committed; what remains is pushing a tag and watching it run.
-
-Everything else in [plan.md](plan.md) is implemented. The next useful step is
-running the model lane nightly once a key and a DSH-capable CI runner exist, and
-publishing the first release from a tagged remote.
+- A model-backed end-to-end turn needs a valid DEEPSEEK_API_KEY; the DSH
+  credential on this machine is an account token the API rejects (401), and a
+  real profile now fails only at MISSING_CREDENTIAL or AUTH.
+- The nightly model lane needs that key plus a CI runner able to install DSH.
+- Publishing the npm adapter package needs an npm account and the @pact-harness
+  org; the harness itself installs from source in the meantime.
+- The repository is private; making it public is a decision, not a code change.

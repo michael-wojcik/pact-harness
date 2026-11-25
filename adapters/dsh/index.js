@@ -13,6 +13,7 @@
  */
 
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -76,7 +77,12 @@ export async function loadMessageFactory(logger) {
   } catch (error) {
     logger?.warn?.(`pact-dsh: using plain context messages: ${error?.message ?? error}`);
   }
+  // The fallback is a real message, not a stub: DSH's inbox requires every
+  // pending message to carry a unique id, and two un-identified messages
+  // (which session start injects) trip "message \"undefined\" is already
+  // pending". The host helper is preferred because it also freezes the object.
   return (text) => ({
+    id: randomUUID(),
     role: 'user',
     content: [{ type: 'text', text }],
     source: { kind: 'pact-dsh' },
@@ -417,7 +423,12 @@ export function dependenciesFor(ctx, worker) {
   return {
     logger,
     evaluate: (event) => worker.evaluate(event),
+    // DSH's inbox rejects two pending messages that share an id, and an
+    // un-identified message is id `undefined` -- injecting two at once (which
+    // session start does) trips that invariant. Every injection gets its own
+    // identity.
     makeMessage: (text) => ({
+      id: randomUUID(),
       role: 'user',
       content: [{ type: 'text', text }],
       source: { kind: 'pact-dsh' },
