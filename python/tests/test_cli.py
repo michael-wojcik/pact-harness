@@ -45,7 +45,9 @@ def test_passthrough_without_claude_reports_clearly(capsys: pytest.CaptureFixtur
 def test_version_json(capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main(["version", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["harness"] == "0.1.0"
+    from pact_harness import __version__
+
+    assert payload["harness"] == __version__
     assert payload["contract"] == 1
     assert "pact" in payload
 
