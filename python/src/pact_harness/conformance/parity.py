@@ -180,7 +180,19 @@ def run_parity(
     scratch = Path(tempfile.mkdtemp(prefix="pact-parity-"))
     direct_project, direct_state = scratch / "direct" / "project", scratch / "direct" / "state"
     bridged_project, bridged_state = scratch / "bridged" / "project", scratch / "bridged" / "state"
-    for directory in (direct_project, direct_state, bridged_project, bridged_state):
+    # HOME is shared state too. A hook that links user-global files reports what
+    # it found: if both runs share one home, the first creates the links and the
+    # second reports them as already present, and the outputs differ for a reason
+    # that has nothing to do with the shim. Each path gets its own home.
+    direct_home, bridged_home = scratch / "direct" / "home", scratch / "bridged" / "home"
+    for directory in (
+        direct_project,
+        direct_state,
+        direct_home,
+        bridged_project,
+        bridged_state,
+        bridged_home,
+    ):
         directory.mkdir(parents=True)
 
     direct_frames = corpus_frames(direct_project)
@@ -191,11 +203,12 @@ def run_parity(
     for frame_a, frame_b in zip(direct_frames, bridged_frames):
         event = adapter.normalize(frame_a.frame)
         legacy = adapter.legacy_stdin(event)
+        direct_base_env = {**base_env, "HOME": str(direct_home)}
         context = AdapterContext(
             plugin_root=plugin_root,
             state_root=direct_state,
             python=interpreter,
-            base_env=base_env,
+            base_env=direct_base_env,
         )
         env = adapter.hook_env(event, context)
         runs = run_event(
@@ -210,6 +223,7 @@ def run_parity(
         )
         bridged_input = json.dumps(frame_b.frame).encode("utf-8")
         bridged_env = dict(base_env)
+        bridged_env["HOME"] = str(bridged_home)
         bridged_env["PYTHONPATH"] = src + (os.pathsep + bridged_env["PYTHONPATH"] if bridged_env.get("PYTHONPATH") else "")
         for direct in runs:
             try:
@@ -257,8 +271,8 @@ def run_parity(
                 direct.result.exit,
                 bridged.stdout,
                 bridged.returncode,
-                direct_roots=(direct_project, direct_state),
-                bridged_roots=(bridged_project, bridged_state),
+                direct_roots=(direct_project, direct_state, direct_home),
+                bridged_roots=(bridged_project, bridged_state, bridged_home),
             )
             cells.append(
                 ParityCell(
@@ -278,8 +292,12 @@ def run_parity(
                 if direct.result.stdout != bridged.stdout:
                     # A CI log is the only place this difference is visible, so
                     # carry both sides in the report instead of a hash.
-                    left = _normalise(direct.result.stdout, (direct_project, direct_state))
-                    right = _normalise(bridged.stdout, (bridged_project, bridged_state))
+                    left = _normalise(
+                        direct.result.stdout, (direct_project, direct_state, direct_home)
+                    )
+                    right = _normalise(
+                        bridged.stdout, (bridged_project, bridged_state, bridged_home)
+                    )
                     failures.append(
                         f"{frame_a.name}: {direct.registration.hook}: "
                         f"direct={left.decode('utf-8', errors='replace')[:4000]!r}"
