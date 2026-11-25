@@ -94,9 +94,19 @@ def test_python_falls_back_to_dsh_bundled(tmp_path: Path, monkeypatch: pytest.Mo
 
 
 def test_python_returns_nothing_when_none_qualify() -> None:
-    resolution = paths.resolve_python(env={}, probe=lambda executable: (3, 9, 0))
+    seen: list[str] = []
+
+    def probe(executable: str) -> tuple[int, int, int]:
+        seen.append(executable)
+        return (3, 9, 0)
+
+    resolution = paths.resolve_python(env={}, probe=probe)
     assert resolution.runtime is None
-    assert len(resolution.considered) >= 2
+    # The candidate list is PATH-dependent by design: the test asserts that the
+    # first candidate was probed and rejected, not how many alternatives a given
+    # machine happens to have.
+    assert seen and seen[0] == "python3"
+    assert resolution.considered
 
 
 def test_runtime_flags_certification() -> None:

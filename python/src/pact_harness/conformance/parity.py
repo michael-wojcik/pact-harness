@@ -130,8 +130,26 @@ def compare_decision(
     left = _normalise(direct_stdout, direct_roots)
     right = _normalise(bridged_stdout, bridged_roots)
     if left != right:
-        return False, f"stdout sha {_sha(left)} != {_sha(right)}"
+        return False, (
+            f"stdout sha {_sha(left)} != {_sha(right)}; "
+            f"first difference: {_first_difference(left, right)}"
+        )
     return True, ""
+
+
+def _first_difference(left: bytes, right: bytes, window: int = 120) -> str:
+    """A short, readable excerpt around the first differing byte."""
+    limit = min(len(left), len(right))
+    for index in range(limit):
+        if left[index] != right[index]:
+            start = max(0, index - window // 2)
+            left_part = left[start : index + window // 2]
+            right_part = right[start : index + window // 2]
+            return (
+                f"byte {index}: direct={left_part!r} bridged={right_part!r}"
+            )
+    longer, which = (left, "direct") if len(left) > limit else (right, "bridged")
+    return f"{which} has {len(longer) - limit} extra byte(s) after {limit}: {longer[limit : limit + window]!r}"
 
 
 def run_parity(

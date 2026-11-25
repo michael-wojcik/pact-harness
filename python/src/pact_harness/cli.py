@@ -926,8 +926,11 @@ def _cmd_hook(args: argparse.Namespace) -> int:
         if args.state_root
         else resolve_state_root(adapter=args.adapter).path
     )
-    resolved_python = resolve_python()
-    interpreter = args.python or (resolved_python.runtime.executable if resolved_python.runtime else sys.executable)
+    # The shim must be transparent: a directive tells Claude Code to run
+    # "python3 <script>", and the shim was started by that python3, so its child
+    # runs on the same interpreter. Resolving independently could pick another
+    # Python, which shows up as a byte difference the moment a hook reports it.
+    interpreter = args.python or sys.executable
     context = AdapterContext(
         plugin_root=plugin_root,
         state_root=state_root,
