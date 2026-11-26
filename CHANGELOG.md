@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.2: license, portable manifest, rewritten history
+
+- The MIT license is now in the repository, and the bridge package declares it
+  for npm consumers.
+- The committed surface manifest no longer records the machine it was built on.
+  `pact upstream inspect --portable` writes a placeholder, and the baseline was regenerated with it.
+- Repository history was rewritten so no commit carries a local machine path.
+  Commit hashes changed, and the v0.1.1 tag does not exist in the new history;
+  this release supersedes it.
+- Nightly model lane: an Ubuntu runner installs DSH from npm, installs the bridge
+  into a headless profile, and runs a live model turn. First run green: dsh exit
+  0, no error events, activation record written.
+
 ## v0.1.1: session-start fix and CI hardening
 
 The first release's CI runs found three defects that local runs could not, all

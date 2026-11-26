@@ -158,12 +158,20 @@ PYTHONPATH=python/src python3 -m pact_harness doctor --adapter claude-code
 
 ## Repository and release
 
-The project lives at michael-wojcik/pact-harness (private for now). The release
-lane is green end to end: tag v0.1.0 built the sdist and wheel, ran both test
-suites and the vendor-pin invariant, and attached the artifacts to a GitHub
-release. The first real CI runs found three defects the local runs could not:
-the shim resolving its own interpreter, parity sharing HOME between the two runs,
-and the id-less fallback message above. All three are fixed.
+The project lives at michael-wojcik/pact-harness (private for now). The MIT
+license is in the repository, released as v0.1.2 with both artifacts.
+
+History was rewritten to remove the one local machine path that had been
+committed inside the surface manifest: branches and tags now carry no such
+string, and the tree is byte-identical to the pre-rewrite tree (same tree hash).
+Commit hashes changed and v0.1.1's tag/release were removed; v0.1.2 supersedes
+it. GitHub can still serve the pre-rewrite commits by exact SHA until its
+housekeeping collects them, so a guaranteed purge would mean recreating the
+repository.
+
+Every lane is green: contract (including upstream's unmodified suite), release,
+and model-nightly. A live model-backed PACT turn has been proven both in CI and
+locally.
 
 ## Next
 

@@ -7,6 +7,11 @@ name: contract
 on:
   push:
     branches: [main]
+    # The upstream suite takes most of an hour; a docs-only change cannot move
+    # the contract or the pin, so it should not spend that budget.
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   pull_request:
 
 permissions:

@@ -137,7 +137,7 @@ waits until the mapping is proven.
 
 Milestones M0–M6 are implemented: contract, adapters, warm transport, DSH
 bridge, playbook compiler, MCP adapter, the upstream compatibility pipeline, and
-the release surface. v0.1.1 is published with both artifacts.
+the release surface. v0.1.2 is published with both artifacts.
 
 The last assertion -- a live model-backed turn with the bridge mounted -- is
 covered by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an
