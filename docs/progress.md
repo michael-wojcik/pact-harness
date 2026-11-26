@@ -158,7 +158,7 @@ PYTHONPATH=python/src python3 -m pact_harness doctor --adapter claude-code
 
 ## Repository and release
 
-The project lives at michael-wojcik/pact-harness (private for now). The MIT
+The project is public at https://github.com/michael-wojcik/pact-harness. The MIT
 license is in the repository, released as v0.1.2 with both artifacts.
 
 History was rewritten to remove the one local machine path that had been
