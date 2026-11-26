@@ -833,6 +833,9 @@ def _cmd_upstream(args: argparse.Namespace) -> int:
 
     if args.action == "inspect":
         document = surface.to_dict()
+        if getattr(args, "portable", False):
+            # A committed manifest should not carry the machine it was built on.
+            document["plugin_root"] = "<plugin>"
         if args.out:
             destination = Path(args.out)
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1436,6 +1439,11 @@ def build_parser() -> argparse.ArgumentParser:
     upstream_inspect.add_argument("--plugin-root", metavar="DIR")
     upstream_inspect.add_argument("--out", metavar="PATH", help="write the manifest here")
     upstream_inspect.add_argument("--json", action="store_true", help="print JSON when no --out")
+    upstream_inspect.add_argument(
+        "--portable",
+        action="store_true",
+        help="write the plugin root as a placeholder instead of an absolute path",
+    )
     upstream_inspect.set_defaults(func=_cmd_upstream)
     upstream_verify = upstream_actions.add_parser("verify", help="check the tree against the harness")
     upstream_verify.add_argument("--plugin-root", metavar="DIR")

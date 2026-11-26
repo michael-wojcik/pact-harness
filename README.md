@@ -182,5 +182,5 @@ command, and `doctor` warns when the tree in use has uncommitted changes.
 
 ## License
 
-MIT. PACT is MIT and remains the property of its authors; see
-`vendor/pact-plugin/LICENSE`.
+MIT; see [LICENSE](LICENSE). PACT is MIT and remains the property of its authors;
+see `vendor/pact-plugin/LICENSE`.
