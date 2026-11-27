@@ -57,7 +57,7 @@ COMMIT="$(git -C "$SUBMODULE" rev-parse HEAD)"
 VERSION="${REF#v}"
 echo "sync-upstream: checked out $COMMIT"
 
-PYTHONPATH=python/src "$PYTHON" -m pact_harness upstream inspect --out "$MANIFEST"
+PYTHONPATH=python/src "$PYTHON" -m pact_harness upstream inspect --portable --out "$MANIFEST"
 
 STATUS=0
 if PYTHONPATH=python/src "$PYTHON" -m pact_harness upstream diff --json \

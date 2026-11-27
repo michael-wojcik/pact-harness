@@ -134,12 +134,10 @@ def test_doctor_rejects_an_unknown_tier(capsys: pytest.CaptureFixture[str]) -> N
     assert any("--require-tier must be one of" in item for item in payload["errors"])
 
 
-def test_doctor_reports_the_vendor_pin(capsys: pytest.CaptureFixture[str]) -> None:
-    if paths.find_harness_root() is None:
-        pytest.skip("not running inside the harness checkout")
+def test_doctor_reports_the_vendor_pin(capsys: pytest.CaptureFixture[str], pin) -> None:
     cli.main(["doctor", "--json"])
     payload = json.loads(capsys.readouterr().out)
-    assert payload["pin"]["pact_version"] == "4.8.36"
+    assert payload["pin"]["pact_version"] == pin.pact_version
     assert payload["vendor"] is not None
     assert payload["vendor"]["at_pin"] is True
 

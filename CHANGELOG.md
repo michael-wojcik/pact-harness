@@ -1,12 +1,23 @@
 # Changelog
 
-## Unreleased
-
 - The release lane splits publishing into two jobs with their own environments:
   PyPI under the pypi environment and npm under the npm environment. Both use
   trusted publishing (OIDC); no registry token is stored. This is the path npm
   points at while it restricts 2FA-bypass tokens (account changes August 2026,
   direct publishing January 2027).
+
+## v0.1.5: upstream PACT v4.8.37
+
+- Absorbs upstream PACT v4.8.37 (aa554aec). The surface diff is L3 by the
+  classifier for one reason: TeammateIdle's hook now declares a 20-second
+  timeout where it had none. The harness honors it. Three protocol/skill prose
+  files also changed (L1).
+- Everything that can be checked locally stayed green: 34/34 registrations
+  exercised, conformance clean, corpus verdicts unchanged, verify reports no
+  unclassified environment reads or tool names.
+- The corpus baseline was regenerated for the new pin, and pin-dependent tests
+  now read the pin of record instead of hardcoding a version, so the next
+  upstream bump needs no test edits.
 
 ## v0.1.4: first npm release
 

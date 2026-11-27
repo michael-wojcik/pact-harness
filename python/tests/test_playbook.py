@@ -27,8 +27,8 @@ def plugin_root() -> Path:
 
 
 @pytest.fixture(scope="module")
-def playbook():
-    return compile_playbook(plugin_root(), pact_version="4.8.36", commit="4607c7a")
+def playbook(pin):
+    return compile_playbook(plugin_root(), pact_version=pin.pact_version, commit=pin.commit)
 
 
 def test_frontmatter_scalars_and_quotes() -> None:
@@ -111,9 +111,9 @@ def test_command_bodies_use_the_platform_placeholder(playbook) -> None:
     assert "$ARGUMENTS" not in orchestrate.body
 
 
-def test_compilation_is_deterministic() -> None:
-    first = compile_playbook(plugin_root(), pact_version="4.8.36", commit="4607c7a")
-    second = compile_playbook(plugin_root(), pact_version="4.8.36", commit="4607c7a")
+def test_compilation_is_deterministic(pin) -> None:
+    first = compile_playbook(plugin_root(), pact_version=pin.pact_version, commit=pin.commit)
+    second = compile_playbook(plugin_root(), pact_version=pin.pact_version, commit=pin.commit)
     assert first.to_dict() == second.to_dict()
 
 
@@ -122,10 +122,10 @@ def test_platform_notes_explain_the_substitutions(playbook) -> None:
     assert "{arguments}" in playbook.platform_notes
 
 
-def test_the_document_serialises(playbook) -> None:
+def test_the_document_serialises(playbook, pin) -> None:
     payload = playbook.to_dict()
     assert payload["v"] == 1
     assert payload["platform"] == "dsh"
-    assert payload["pact"] == {"version": "4.8.36", "commit": "4607c7a"}
+    assert payload["pact"] == {"version": pin.pact_version, "commit": pin.commit}
     assert payload["counts"]["skills"] == 21
     json.dumps(payload)

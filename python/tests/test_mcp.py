@@ -88,7 +88,7 @@ def test_tools_are_listed_with_schemas(server: McpServer) -> None:
     assert len(tools) == 8
 
 
-def test_status_reports_t0_and_the_registry(server: McpServer) -> None:
+def test_status_reports_t0_and_the_registry(server: McpServer, pin) -> None:
     response = server.handle(
         {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "pact_status", "arguments": {}}}
     )
@@ -99,7 +99,7 @@ def test_status_reports_t0_and_the_registry(server: McpServer) -> None:
     assert payload["tier"] == "T0"
     assert payload["advisory"] is True
     assert payload["hook_registry"]["registrations"] == 34
-    assert payload["pact"]["version"] == "4.8.36"
+    assert payload["pact"]["version"] == pin.pact_version
 
 
 def test_event_evaluates_a_real_frame(server: McpServer) -> None:

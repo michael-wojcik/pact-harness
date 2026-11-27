@@ -19,10 +19,11 @@ def repo_root() -> Path:
     return root
 
 
-def test_pin_records_upstream_version() -> None:
-    pin = load_pin(repo_root())
-    assert pin.pact_version == "4.8.36"
-    assert pin.tag == "v4.8.36"
+def test_pin_records_upstream_version(pin) -> None:
+    import re
+
+    assert re.fullmatch(r"\d+\.\d+\.\d+", pin.pact_version)
+    assert pin.tag == f"v{pin.pact_version}"
     assert len(pin.commit) == 40
 
 

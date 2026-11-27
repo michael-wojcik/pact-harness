@@ -193,10 +193,10 @@
       "sha256": "46ff824eb7e229509926c18368ff4e7ed57af2d6d318811adaebdf30e56cd98c"
     },
     {
-      "bytes": 29368,
+      "bytes": 29760,
       "kind": "protocols",
       "path": "protocols/pact-completion-authority.md",
-      "sha256": "3eb739eb9ba50eda3da97d317210004715f516d6e5ab5e8b71e4b149058de1a9"
+      "sha256": "e7cc668389b068ce5c765d37452de4bbc2275e98fda9655c2d6e79de8668e93e"
     },
     {
       "bytes": 10988,
@@ -211,10 +211,10 @@
       "sha256": "a9880867cbbab0264760b7cb39b6d2f11753151309ae0004fd023e7ab4cc227f"
     },
     {
-      "bytes": 186779,
+      "bytes": 187171,
       "kind": "protocols",
       "path": "protocols/pact-protocols.md",
-      "sha256": "098a39d1a637cef657541569aeaaf0220a05cd85ab5dd2978776ac3d81ba3987"
+      "sha256": "3931fa10badb929f35fac15e897e691fa1326f1e055445c419421f655552dfa8"
     },
     {
       "bytes": 3245,
@@ -355,10 +355,10 @@
       "sha256": "e4d16a16db4723b35f81f8e4146b0310b87961ad9fe4f1bdef619a19604670d5"
     },
     {
-      "bytes": 61319,
+      "bytes": 61364,
       "kind": "skills",
       "path": "skills/pact-agent-teams/SKILL.md",
-      "sha256": "96b9fe9659f22c03a115b6f53be167da5cfc45bd9a5f0a02513416e6713a6234"
+      "sha256": "30764bbbc27e01fb3d0c96057c970480d8cbb1cf1f18a00fcb1829992be1488f"
     },
     {
       "bytes": 11915,
@@ -442,7 +442,7 @@
   "decision_tokens": {
     "additionalContext": 111,
     "custom_instructions": 15,
-    "decision": 287,
+    "decision": 289,
     "hookSpecificOutput": 66,
     "permissionDecision": 58,
     "suppressOutput": 69,
@@ -531,9 +531,9 @@
     "TaskUpdate"
   ],
   "pact": {
-    "commit": "4607c7a079203b97aa1a0c0f1baa006ebb0982a4",
-    "tag": "v4.8.36",
-    "version": "4.8.36"
+    "commit": "aa554aec8ab16882385cc8f2140643d4c8b94f8c",
+    "tag": "v4.8.37",
+    "version": "4.8.37"
   },
   "plugin_root": "<plugin>",
   "registry": {
@@ -787,7 +787,7 @@
         "hook": "teammate_idle",
         "matcher": null,
         "script": "teammate_idle.py",
-        "timeout_s": null
+        "timeout_s": 20.0
       },
       {
         "async": false,

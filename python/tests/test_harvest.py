@@ -62,7 +62,12 @@ def test_the_committed_baseline_matches_the_pinned_tree(recorded: Harvest) -> No
     """
     root = paths.find_harness_root()
     assert root is not None
-    committed = load_harvest(root / "harness" / "corpus" / "pact-4.8.36.json")
+    baseline = root / "harness" / "corpus" / f"pact-{recorded.pact_version}.json"
+    assert baseline.is_file(), (
+        f"no corpus baseline for {recorded.pact_version}; regenerate with: "
+        f"pact corpus harvest --out {baseline}"
+    )
+    committed = load_harvest(baseline)
     assert committed.to_dict() == recorded.to_dict()
 
 
