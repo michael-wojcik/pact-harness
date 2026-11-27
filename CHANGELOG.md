@@ -8,6 +8,15 @@
   points at while it restricts 2FA-bypass tokens (account changes August 2026,
   direct publishing January 2027).
 
+## v0.1.4: first npm release
+
+- The bridge package is published to npm as @pact-harness/dsh, from the release
+  lane, through trusted publishing (OIDC). No registry token is stored, and this
+  is the path npm recommends as it restricts 2FA-bypass tokens.
+- The release lane now has three jobs: verify-and-publish, publish-pypi
+  (environment pypi) and publish-npm (environment npm). Both publish jobs are
+  gated on repository variables so an ordinary tag release is unaffected.
+
 ## v0.1.3: first PyPI release
 
 - pact-harness is published on PyPI through GitHub OIDC trusted publishing: no

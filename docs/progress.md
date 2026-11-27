@@ -180,11 +180,7 @@ green. Repository hardening is in place.
 
 The only remaining items are account-bound and optional:
 
-- npm: register a trusted publisher on npmjs.com for @pact-harness/dsh
-  (GitHub Actions; owner michael-wojcik; repository pact-harness; workflow
-  release.yml; environment npm; direct publish allowed), then set the repository
-  variable NPM_PUBLISH=true. The first publish must follow within two days; the
-  release lane publishes tokenlessly, which is also the path npm recommends as it
-  restricts 2FA-bypass tokens.
+- npm: published to the registry from v0.1.4 onward through trusted publishing
+  (GitHub Actions, workflow release.yml, environment npm). No token is stored.
 - Rotate or remove the DEEPSEEK_API_KEY repository secret if the nightly model
   lane is ever retired.
