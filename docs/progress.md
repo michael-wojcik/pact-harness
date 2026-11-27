@@ -182,8 +182,7 @@ The only remaining items are account-bound and optional:
 
 - npm: create the @pact-harness scope org, then run tools/publish-npm.sh. The
   package is ready and the script fails clearly when the org or login is missing.
-- PyPI: register a pending trusted publisher (project pact-harness, owner
-  michael-wojcik, repository pact-harness, workflow release.yml, environment
-  pypi), then set the repository variable PYPI_PUBLISH=true. No token is stored.
+- PyPI: published through trusted publishing from v0.1.3 onward; the pending
+  publisher and the PYPI_PUBLISH repository variable are already configured.
 - Rotate or remove the DEEPSEEK_API_KEY repository secret if the nightly model
   lane is ever retired.

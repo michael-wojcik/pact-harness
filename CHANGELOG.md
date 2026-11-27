@@ -1,14 +1,16 @@
 # Changelog
 
-## Unreleased
+## v0.1.3: first PyPI release
 
-- Repository hardening: main requires the contract lane (strict), requires a
-  pull request with zero approvals, and blocks force pushes and deletions;
-  secret scanning with push protection, Dependabot security updates and private
-  vulnerability reporting are enabled.
-- Publish paths: the bridge package is publish-ready, with
-  `tools/publish-npm.sh` for the npm scope; the release lane can publish to PyPI through trusted
-  publishing and to npm when the opt-in variables and credentials are set.
+- pact-harness is published on PyPI through GitHub OIDC trusted publishing: no
+  long-lived token is stored, and a version tag publishes to both PyPI and
+  GitHub from the release lane.
+- Repository hardening: main requires the contract lane (strict) and a pull
+  request, force pushes and deletions are blocked, and secret scanning with push
+  protection, Dependabot security updates and private vulnerability reporting are
+  enabled.
+- The bridge package is publish-ready; its npm publication waits on an automation
+  token for the @pact-harness scope.
 
 ## v0.1.2: license, portable manifest, rewritten history
 
