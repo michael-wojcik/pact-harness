@@ -33,6 +33,17 @@ pip install -e python
 pact doctor
 ```
 
+From PyPI:
+
+```
+python -m pip install pact-harness
+```
+
+That installs the CLI and the Python library. The hooks themselves are the
+vendored PACT tree, which is part of a harness checkout rather than the wheel, so
+a bare pip install reports the plugin root as unresolved: use a checkout, or
+point `PACT_PLUGIN_ROOT` at a PACT tree. `pip install -e python` installs the CLI and the bridge from source.
+
 ### DeepSeek Harness
 
 ```sh
