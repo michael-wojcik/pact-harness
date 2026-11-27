@@ -175,12 +175,17 @@ locally.
 
 ## Next
 
-Everything in plan.md is implemented, released as v0.1.2, and every lane is
-green. Repository hardening is in place.
+Everything in plan.md is implemented and published. The project is public, and
+all four lanes are green.
 
-The only remaining items are account-bound and optional:
+Releases now publish to three places from one tag: GitHub release, PyPI
+(trusted publishing) and npm (trusted publishing). No registry token is stored;
+both use OIDC. v0.1.4 is the first release on every channel.
 
-- npm: published to the registry from v0.1.4 onward through trusted publishing
-  (GitHub Actions, workflow release.yml, environment npm). No token is stored.
+Two operational notes:
+
+- A brand-new npm package serves its full metadata immediately but its
+  abbreviated install metadata can lag by about a quarter hour, so pnpm-based
+  installs may report 404 for the first few minutes after publish.
 - Rotate or remove the DEEPSEEK_API_KEY repository secret if the nightly model
   lane is ever retired.

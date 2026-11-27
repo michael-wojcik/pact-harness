@@ -58,6 +58,10 @@ install enforces two gates; see [mode](#enforcement-mode). The profile, the
 patch block and the compiled playbook are all removable with
 `pact uninstall dsh --profile pact`.
 
+The bridge bundle is also published on npm as `@pact-harness/dsh`, so a profile can add it
+directly with `dsh plugin --profile <name> add @pact-harness/dsh`. `pact install dsh` additionally compiles the playbook
+(personas, commands, skills) next to the profile and writes the enforcement block.
+
 Full quickstart, including how to prove the installation without a model key:
 [docs/platforms/dsh.md](docs/platforms/dsh.md).
 

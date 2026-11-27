@@ -23,6 +23,18 @@ What that does, in order:
 4. Writes a delimited managed block into the profile's patch layer with the
    enforcement policy and the playbook path.
 
+### From the registry
+
+The bridge package is published as `@pact-harness/dsh`. A profile can install it directly:
+
+```
+dsh plugin --profile pact add @pact-harness/dsh
+```
+
+That installs the bundle and its default patch (shadow mode, the two command
+gates). `pact install dsh` does the rest of the setup: it compiles the playbook and writes the
+enforcement block, so use it when you have a harness checkout.
+
 Verify the composition without mounting anything:
 
 ```sh
