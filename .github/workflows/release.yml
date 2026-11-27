@@ -3,7 +3,11 @@ name: release
 # A tag is a promise: it says the tree at that commit passed the suite, the pin
 # is intact, and the version in every manifest agrees with the tag. This lane
 # checks those three before it builds anything, then attaches the artifacts to a
-# GitHub release.
+# GitHub release and, when enabled, publishes to PyPI and npm.
+#
+# Both registries use trusted publishing (OIDC): no long-lived registry tokens are
+# stored. npm's trusted publisher must name the 'npm' environment and allow direct
+# publishing; PyPI's pending publisher names 'pypi'.
 
 on:
   push:
@@ -12,16 +16,13 @@ on:
 
 permissions:
   contents: write
-  # Trusted Publishing: the PyPI step exchanges this for a short-lived token.
-  # Only requested when the step runs; the rest of the lane never uses it.
+  # Both publish jobs exchange this for short-lived registry credentials.
   id-token: write
 
 jobs:
   release:
     name: verify-and-publish
     runs-on: ubuntu-latest
-    # Must match the environment named in the PyPI pending publisher.
-    environment: pypi
     steps:
       - name: Check out with the vendored tree
         uses: actions/checkout@v4
@@ -44,7 +45,7 @@ jobs:
 
       - name: The tag matches the version in every manifest
         run: |
-          python - <<'PY'
+          python - <<'PYEOF'
           import json
           import os
           import tomllib
@@ -56,7 +57,7 @@ jobs:
           if not (tag == version == adapter):
               raise SystemExit(f"tag {tag}, harness {version}, bridge {adapter}")
           print(f"version {version} agrees with tag {tag}")
-          PY
+          PYEOF
 
       - name: Contract tests
         run: PYTHONPATH=python/src python -m pytest python/tests -q
@@ -70,11 +71,7 @@ jobs:
       - name: Build the distribution
         run: python -m build python --outdir dist
 
-      # gh's own uploader rather than a third-party action: the first run
-      # created the release, uploaded the sdist and then failed on the wheel with
-      # no message. The CLI reports what the API said, and clobbering is explicit
-      # so a rerun converges instead of duplicating assets.
-      - name: Publish the release
+      - name: Publish the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -92,22 +89,50 @@ jobs:
             fi
           done
 
-      # Opt-in: set the repository variable PYPI_PUBLISH=true after registering a
-      # pending publisher on PyPI (owner michael-wojcik, repo pact-harness,
-      # workflow release.yml, environment pypi). With the variable unset this step
-      # does not run and the release lane behaves as before.
-      - name: Publish the Python package to PyPI
-        if: vars.PYPI_PUBLISH == 'true'
+      - name: Keep the distribution for the publish jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    name: publish-pypi
+    needs: release
+    if: vars.PYPI_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    # Must match the environment named in the PyPI pending publisher.
+    environment: pypi
+    steps:
+      - name: Download the distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
 
-      # Opt-in: set NPM_PUBLISH=true and the NPM_TOKEN secret once the
-      # @pact-harness scope org exists. Without both, this step does not run.
-      - name: Publish the bridge to npm
-        if: vars.NPM_PUBLISH == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-npm:
+    name: publish-npm
+    needs: release
+    if: vars.NPM_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    # Must match the environment named in npm's trusted publisher configuration.
+    environment: npm
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Use Node 24 (npm 11 supports trusted publishing)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish the bridge
         run: |
           cd adapters/dsh
           npm publish --access public

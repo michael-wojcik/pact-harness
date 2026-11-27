@@ -197,10 +197,11 @@ A tag whose version matches every manifest triggers the release lane: both test
 suites, the vendor-pin check, the build, a GitHub release, and optionally PyPI
 and npm.
 
-- **npm**: once the `@pact-harness` scope org exists and npm is logged in as a member,
-  `tools/publish-npm.sh` publishes the bridge package at the version in
-  `adapters/dsh/package.json`. For CI, add an `NPM_TOKEN` secret and set the repository variable
-  `NPM_PUBLISH=true`.
+- **npm**: the bridge is published by the release lane with trusted publishing
+  (OIDC), no stored token, under the `@pact-harness` scope. Register a trusted publisher on
+  npmjs.com for `@pact-harness/dsh` (GitHub Actions, owner `michael-wojcik`, repository `pact-harness`, workflow
+  `release.yml`, environment `npm`, direct publish allowed), then set the repository
+  variable `NPM_PUBLISH=true`. The first publish must follow within two days of registering.
 - **PyPI**: register a pending trusted publisher on PyPI (project
   `pact-harness`, owner `michael-wojcik`, repository `pact-harness`, workflow `release.yml`,
   environment `pypi`), then set the repository variable `PYPI_PUBLISH=true`. The lane exchanges

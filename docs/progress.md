@@ -180,12 +180,11 @@ green. Repository hardening is in place.
 
 The only remaining items are account-bound and optional:
 
-- npm: the @pact-harness scope org now exists; publication still needs an npm
-  automation token (the interactive login requires a 2FA approval the CLI cannot
-  complete here). Save one to ~/.secrets/npm-token and run tools/publish-npm.sh.
-  Everything else is published: PyPI (trusted publishing, v0.1.3), GitHub
-  releases, and the three CI lanes are green.
-- PyPI: published through trusted publishing from v0.1.3 onward; the pending
-  publisher and the PYPI_PUBLISH repository variable are already configured.
+- npm: register a trusted publisher on npmjs.com for @pact-harness/dsh
+  (GitHub Actions; owner michael-wojcik; repository pact-harness; workflow
+  release.yml; environment npm; direct publish allowed), then set the repository
+  variable NPM_PUBLISH=true. The first publish must follow within two days; the
+  release lane publishes tokenlessly, which is also the path npm recommends as it
+  restricts 2FA-bypass tokens.
 - Rotate or remove the DEEPSEEK_API_KEY repository secret if the nightly model
   lane is ever retired.

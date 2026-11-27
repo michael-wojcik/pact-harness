@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- The release lane splits publishing into two jobs with their own environments:
+  PyPI under the pypi environment and npm under the npm environment. Both use
+  trusted publishing (OIDC); no registry token is stored. This is the path npm
+  points at while it restricts 2FA-bypass tokens (account changes August 2026,
+  direct publishing January 2027).
+
 ## v0.1.3: first PyPI release
 
 - pact-harness is published on PyPI through GitHub OIDC trusted publishing: no
