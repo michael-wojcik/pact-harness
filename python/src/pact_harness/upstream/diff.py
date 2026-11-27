@@ -127,6 +127,14 @@ def _env_names(snapshot: Mapping[str, Any]) -> set[str]:
     }
 
 
+def _modules(snapshot: Mapping[str, Any]) -> dict[str, str]:
+    return {
+        str(module.get("path")): str(module.get("sha256"))
+        for module in snapshot.get("modules") or []
+        if isinstance(module, Mapping) and module.get("path")
+    }
+
+
 def _artifacts(snapshot: Mapping[str, Any]) -> dict[str, str]:
     return {
         str(artifact.get("path")): str(artifact.get("sha256"))
@@ -226,6 +234,20 @@ def diff_surfaces(old: Mapping[str, Any], new: Mapping[str, Any]) -> DiffReport:
     for name in sorted(old_env - new_env):
         differences.append(Difference(Level.L3, "env-removed", name))
 
+    # Hook code is behavior. A body edit can change what a gate decides while the
+    # registry, matchers and tool sets all stay identical, so it is graded L2:
+    # nothing needs mapping, but the release needs the upstream suite and
+    # conformance to prove the behavior. Removal is L3.
+    old_modules = _modules(old)
+    new_modules = _modules(new)
+    for path in sorted(new_modules.keys() - old_modules.keys()):
+        differences.append(Difference(Level.L2, "module-added", path))
+    for path in sorted(old_modules.keys() - new_modules.keys()):
+        differences.append(Difference(Level.L3, "module-removed", path))
+    for path in sorted(old_modules.keys() & new_modules.keys()):
+        if old_modules[path] != new_modules[path]:
+            differences.append(Difference(Level.L2, "module-changed", path))
+
     old_artifacts = _artifacts(old)
     new_artifacts = _artifacts(new)
     for path in sorted(new_artifacts.keys() - old_artifacts.keys()):
@@ -263,6 +285,7 @@ def diff_surfaces(old: Mapping[str, Any], new: Mapping[str, Any]) -> DiffReport:
             "old": len(old_registry),
             "new": len(new_registry),
         },
+        "modules": {"old": len(old_modules), "new": len(new_modules)},
         "artifacts": {"old": len(old_artifacts), "new": len(new_artifacts)},
         "pact": {
             "old": (old.get("pact") or {}).get("version"),

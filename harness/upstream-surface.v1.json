@@ -43,10 +43,10 @@
       "sha256": "ec7229b08178c7c7e04425a0af9144ed8da9044c6004b084db13b3a2ff0d4f7d"
     },
     {
-      "bytes": 87314,
+      "bytes": 88252,
       "kind": "agents",
       "path": "agents/pact-orchestrator.md",
-      "sha256": "b8cef63370054d566054f1cd1e12d8180f1a543343a9b73f269c4fe50cc2b093"
+      "sha256": "b5492bc704561cc8ad6445a2676d669da2da177aa228df3227662b3e3afba330"
     },
     {
       "bytes": 8775,
@@ -55,16 +55,16 @@
       "sha256": "d43f7aa0b923b649d6398da67d42ac13825a267cb4c71d6430acf7ef9ac8553c"
     },
     {
-      "bytes": 7529,
+      "bytes": 7731,
       "kind": "agents",
       "path": "agents/pact-qa-engineer.md",
-      "sha256": "f4f00be4088bc451b4d7edbc814aebe14c201fdc855be3b9b51249a04750ad05"
+      "sha256": "e7297f7ed05d37cbc025c1626d8d4684c300ba28d7755a1e405050f45d93458e"
     },
     {
-      "bytes": 33649,
+      "bytes": 33738,
       "kind": "agents",
       "path": "agents/pact-secretary.md",
-      "sha256": "4245b7dc94ef513a4dad507639a049f940f6d8b9b5aa275d94be084d2013b6be"
+      "sha256": "ff3184807c16e2bf0ae06802f14a4a5cdeecfd7c3bfcaf1532dd88b7ae60bdaa"
     },
     {
       "bytes": 6682,
@@ -193,10 +193,10 @@
       "sha256": "46ff824eb7e229509926c18368ff4e7ed57af2d6d318811adaebdf30e56cd98c"
     },
     {
-      "bytes": 29760,
+      "bytes": 30190,
       "kind": "protocols",
       "path": "protocols/pact-completion-authority.md",
-      "sha256": "e7cc668389b068ce5c765d37452de4bbc2275e98fda9655c2d6e79de8668e93e"
+      "sha256": "246263921d484c4d11ececa55374e1fc18028f485efc713526b37960ff22e0ff"
     },
     {
       "bytes": 10988,
@@ -211,10 +211,10 @@
       "sha256": "a9880867cbbab0264760b7cb39b6d2f11753151309ae0004fd023e7ab4cc227f"
     },
     {
-      "bytes": 187171,
+      "bytes": 187597,
       "kind": "protocols",
       "path": "protocols/pact-protocols.md",
-      "sha256": "3931fa10badb929f35fac15e897e691fa1326f1e055445c419421f655552dfa8"
+      "sha256": "f33b92df7ee86964b3eb7957217a26c84c859c913d5757660d80fe080f31fb06"
     },
     {
       "bytes": 3245,
@@ -277,10 +277,10 @@
       "sha256": "0ceb1a3e3b78e6e6b30e34e6b9be40422485cf83bf5976fe151c3a8c749b0108"
     },
     {
-      "bytes": 6152,
+      "bytes": 6148,
       "kind": "protocols",
       "path": "protocols/pact-task-hierarchy.md",
-      "sha256": "6d4a9d64c5afe41c2ddbaf03410f7c1c45e80c91f624e8ef74ca0455cdf397fe"
+      "sha256": "8db8f12c13e19c65743714fcf4e11f6ab3e62948cfd00a494231ab58e2be2512"
     },
     {
       "bytes": 34701,
@@ -355,10 +355,10 @@
       "sha256": "e4d16a16db4723b35f81f8e4146b0310b87961ad9fe4f1bdef619a19604670d5"
     },
     {
-      "bytes": 61364,
+      "bytes": 62779,
       "kind": "skills",
       "path": "skills/pact-agent-teams/SKILL.md",
-      "sha256": "30764bbbc27e01fb3d0c96057c970480d8cbb1cf1f18a00fcb1829992be1488f"
+      "sha256": "a83e6687874b735d46400db06432953df6fca13a41a9c99aef5b781eb6d38d6a"
     },
     {
       "bytes": 11915,
@@ -440,10 +440,10 @@
     }
   ],
   "decision_tokens": {
-    "additionalContext": 111,
+    "additionalContext": 108,
     "custom_instructions": 15,
     "decision": 289,
-    "hookSpecificOutput": 66,
+    "hookSpecificOutput": 64,
     "permissionDecision": 58,
     "suppressOutput": 69,
     "systemMessage": 51
@@ -530,10 +530,368 @@
     "TaskCreate|TaskUpdate",
     "TaskUpdate"
   ],
+  "modules": [
+    {
+      "path": "hooks/__init__.py",
+      "sha256": "5384bfdb2df380b6557cc7a71d16891415bccaa87699406e236f752c6415389f"
+    },
+    {
+      "path": "hooks/agent_handoff_emitter.py",
+      "sha256": "1cef439f9900a4f25e6fbe0fa7db1a13fbb1ac14387e71c59b9f44a2c1e1e651"
+    },
+    {
+      "path": "hooks/bootstrap_gate.py",
+      "sha256": "9f0d8b168ec84068a43c8ed24d0546bd8e64bec354964591571ba11f8ef3464b"
+    },
+    {
+      "path": "hooks/bootstrap_marker_writer.py",
+      "sha256": "c0828d0cd6246beaa5f5cf1a7613765cd2ac36e4162c7294a77d71fea84e0ca7"
+    },
+    {
+      "path": "hooks/bootstrap_prompt_gate.py",
+      "sha256": "ba4043636743382516d318576a1a11d467d5b3856ce2d4ab324e05ce88451cb1"
+    },
+    {
+      "path": "hooks/dispatch_gate.py",
+      "sha256": "6b2ac0378856549296b6c1dd360b8d449f05e3c4a99da69e67cc96bace2bc681"
+    },
+    {
+      "path": "hooks/file_tracker.py",
+      "sha256": "cfac9a45c967dab2b9cce501160422f70a4d3108118b2fcf410456a4f0626d95"
+    },
+    {
+      "path": "hooks/git_commit_check.py",
+      "sha256": "8fc62590b1a94b5fb5d7863fb672c785df3baebb3adad100d58520fac9d8a0fc"
+    },
+    {
+      "path": "hooks/handoff_ordering_gate.py",
+      "sha256": "692937a0963e881439d1b349ac12ae1cccb499b0f9965ba8a2cef87f735274bf"
+    },
+    {
+      "path": "hooks/merge_guard_post.py",
+      "sha256": "0725df597faa919319bbd757672be7fd96d512c21aeac51c1a55dfb482789fe7"
+    },
+    {
+      "path": "hooks/merge_guard_pre.py",
+      "sha256": "b064c3f7f391418bfa56bc32e8c9a726ebda98955b563ee8e8bc5757db31b619"
+    },
+    {
+      "path": "hooks/missed_wake_scan.py",
+      "sha256": "d5ce7e75557ad59d14e7c31f96ffae46b88d6cf6c0e3d6c5701da8f8c1d495be"
+    },
+    {
+      "path": "hooks/pact_wait.py",
+      "sha256": "5a45baba1cb6fadaef9ca21606ca6402f1f5e24b83358b872def989fc615b07f"
+    },
+    {
+      "path": "hooks/peer_inject.py",
+      "sha256": "f38717d9c8f3c909570712557f329477f26da31bae7ea6751933e2b3d846fe15"
+    },
+    {
+      "path": "hooks/pin_caps.py",
+      "sha256": "0e841c516430140ae28ca7d79a2f47bf44ba923539ded02b0e1aa4d940cdc8e2"
+    },
+    {
+      "path": "hooks/pin_caps_gate.py",
+      "sha256": "ec90a713a291a37acce4337659d69b545e027b30fb3bd2f8ae327080405dd7fe"
+    },
+    {
+      "path": "hooks/pin_marker_writer.py",
+      "sha256": "eb0c52e0404e95fde7d3f4b46ffe95a41230b7cbb0c6ce57ef0096a36a916173"
+    },
+    {
+      "path": "hooks/pin_staleness_gate.py",
+      "sha256": "4a83cb83fbb630182949fd1b955d156e5b6029e7893482f15bd37a668084e43d"
+    },
+    {
+      "path": "hooks/postcompact_archive.py",
+      "sha256": "4fc08a76c16e7e5726a3f985fb48f59bf779e5af59064065eeb1053240073de6"
+    },
+    {
+      "path": "hooks/precompact_state_reminder.py",
+      "sha256": "f269b98559ba971f34160396bd64e65a6ee67290cd99d3c195ae6986c96e6f28"
+    },
+    {
+      "path": "hooks/roster_writer.py",
+      "sha256": "0e6343741047537a571c89463cc8ba57f43af766d77553edf0cda2517889b373"
+    },
+    {
+      "path": "hooks/session_end.py",
+      "sha256": "a96413657f96166b566dee27d82eb6e109ed289e419d1ae12e88273800fbd562"
+    },
+    {
+      "path": "hooks/session_init.py",
+      "sha256": "d0aef388d0df1cfef255a3c8e93f474f80b2e74e2298e60fabfcc1cb1cfe0ecc"
+    },
+    {
+      "path": "hooks/staleness.py",
+      "sha256": "d49062c8e9a6777e9ff2e7fc42f65da4db7f634a3d656af007a3b912613d02a6"
+    },
+    {
+      "path": "hooks/stop_background_gate.py",
+      "sha256": "2a79f5ecbbb9736058a22752620c456cf89ccfae235ca0d7fda71437b5a46780"
+    },
+    {
+      "path": "hooks/task_claim_gate.py",
+      "sha256": "90ec39e9a4d8162712f213654ed17f2dfa0eb001eb2a6e0ebde7be0a67fc0cb9"
+    },
+    {
+      "path": "hooks/task_lifecycle_gate.py",
+      "sha256": "3c8a7450755855c0f2f90376df7509193a3a6f67e53d8f7763b7780c25bde993"
+    },
+    {
+      "path": "hooks/teammate_idle.py",
+      "sha256": "06bedeca3e088c622efc47d703204848a09ad6ae9087518fbe32026333b939d2"
+    },
+    {
+      "path": "hooks/track_files.py",
+      "sha256": "8d7245deb05e8c77008d413b677e4be99604d6cc09ef7aa99b5c4527c8734be3"
+    },
+    {
+      "path": "hooks/validate_handoff.py",
+      "sha256": "a4c7593f0e82dd316f1982c5a478c32e776e32629ebc22c788168d7b049f79b7"
+    },
+    {
+      "path": "hooks/wait_filler_gate.py",
+      "sha256": "4f397761546bad09572f3a562205173eb7acbae66348965b7e115a5cdc0b220e"
+    },
+    {
+      "path": "hooks/worktree_guard.py",
+      "sha256": "6956a6f530c37626be482d2c47e50fcc6ac63741c7dca3451e6211078a486599"
+    },
+    {
+      "path": "hooks/shared/__init__.py",
+      "sha256": "145d1df2714084d4853b60a680102c41aeb6a0113c46006142078290d202ecaa"
+    },
+    {
+      "path": "hooks/shared/actor_identity.py",
+      "sha256": "c83dcc3e044eab2506aa9ce487b709e67174bb63778592174d382e17482f3109"
+    },
+    {
+      "path": "hooks/shared/agent_handoff_marker.py",
+      "sha256": "f20c1f3c96a3eb5ae43bb5899069cb228bbf94dac07a8563dfcc3a9679f86547"
+    },
+    {
+      "path": "hooks/shared/background_launch.py",
+      "sha256": "5ccdb4340347f54b3ed1decde344ebced0d024a89bb19f17e43ed3ff59a6497f"
+    },
+    {
+      "path": "hooks/shared/background_work.py",
+      "sha256": "479eb559c0bfab131b470e5f678cc802cd71b00cfaaac3ac474e931dc5faed8a"
+    },
+    {
+      "path": "hooks/shared/backlog.py",
+      "sha256": "77ca3574296b7e4b7d6fabff70aa073389fe7195a923d01c64727b335c6536cd"
+    },
+    {
+      "path": "hooks/shared/backlog_store.py",
+      "sha256": "d1fedda7d2f0fd9937e8b0276f1ebf76c6d59d1f48bf6c1eae915e36b669f706"
+    },
+    {
+      "path": "hooks/shared/canonical_json.py",
+      "sha256": "6141d223540c4ead14c344e3ca3e7648c071797dbd4a4c6fe3010a155163ef60"
+    },
+    {
+      "path": "hooks/shared/claude_md_drift.py",
+      "sha256": "f0ae961edc3431b07b3ddceb2afc758c5302bc8708ea12ff73bd818b927eccf8"
+    },
+    {
+      "path": "hooks/shared/claude_md_manager.py",
+      "sha256": "9adf2d3d9a2ea93c8c469bd0aa0a336325dcdc0246e124ed059c1418fa121453"
+    },
+    {
+      "path": "hooks/shared/claude_md_markers.py",
+      "sha256": "7d321705c1d68673476a5a2d511ff67fbbf22103cf343c1cc73ac3c0f064e348"
+    },
+    {
+      "path": "hooks/shared/cloud_roster.py",
+      "sha256": "59b919d5193765a48192b03d0070b4041c495881982a2ba5632f55d6827042a2"
+    },
+    {
+      "path": "hooks/shared/compaction_owner.py",
+      "sha256": "f78e01376bc5f723cc2d97925761de24bebf329df50ea509041967ff5af01685"
+    },
+    {
+      "path": "hooks/shared/constants.py",
+      "sha256": "a5fa5f28fb1faff9a1e0e8a87d50ad8f55d7ec6d906e60559d369934f212eacf"
+    },
+    {
+      "path": "hooks/shared/dispatch_helpers.py",
+      "sha256": "0dd286180a66e724d8b81846fb90ad1a012df30e7c026d45e3c26868f87b8cc0"
+    },
+    {
+      "path": "hooks/shared/edit_simulation.py",
+      "sha256": "ea208cba5b71cb0cf0e219604a8d02ac373802ad8fa44fac970acdd27a4de48a"
+    },
+    {
+      "path": "hooks/shared/error_output.py",
+      "sha256": "1d34c990f7f6eed79eb41db216214a4fe4641aa636b1979c4f534e4e7c9a3189"
+    },
+    {
+      "path": "hooks/shared/failure_cause.py",
+      "sha256": "5edfa56c72857636401068b597dc9a96f3112a3180d18e9479d508de2b42c748"
+    },
+    {
+      "path": "hooks/shared/failure_log.py",
+      "sha256": "683c04d3c31241d69f0017be8fe458ca6c46fb0d93e9e876e0ee0e61e774189e"
+    },
+    {
+      "path": "hooks/shared/gh_helpers.py",
+      "sha256": "5307ab028336f0f7da310367f00d1990dec139b8c26411194bf0475488a58b55"
+    },
+    {
+      "path": "hooks/shared/git_helpers.py",
+      "sha256": "cb6c7e4d75da28158217cee33732854bba1fbc200e1a2a56ed50397c1f8b6e69"
+    },
+    {
+      "path": "hooks/shared/handoff_merge.py",
+      "sha256": "1d12f03625bca3c5d1ae216673c6fb3f1caee6dc2eb76d1c3a81781aa9f84e52"
+    },
+    {
+      "path": "hooks/shared/handoff_schema.py",
+      "sha256": "21b3717286116a8e78d48ab3e05d037b2be5131a90a457c47b2f8935dd732b4a"
+    },
+    {
+      "path": "hooks/shared/hook_infra_classifier.py",
+      "sha256": "3b9ed911f47aadc71146950630ed20d6ea427882d4656192b503a86f25b98e54"
+    },
+    {
+      "path": "hooks/shared/intentional_wait.py",
+      "sha256": "7ce50f483d0920d9cd4fa883f783160dea9536afcf4716fb4939cc5951c0521d"
+    },
+    {
+      "path": "hooks/shared/marker_schema.py",
+      "sha256": "8b998b1affb17d14777c9e8901776f33782ce60f524f9fdf6779523bb039c16f"
+    },
+    {
+      "path": "hooks/shared/merge_guard_common.py",
+      "sha256": "5330b001ee2f4b631e253ba039d760167f4f7010fc958f9ce6244c8468be2571"
+    },
+    {
+      "path": "hooks/shared/pact_config.py",
+      "sha256": "5843287b85640b674be50fccd7a10564d2b6d49b69389fcae1ed930d6b001732"
+    },
+    {
+      "path": "hooks/shared/pact_context.py",
+      "sha256": "baf7694c0db6c3d57230251e61b733527176f974c7647c1aa7e53277c6994d1b"
+    },
+    {
+      "path": "hooks/shared/pact_harvest.py",
+      "sha256": "59092cd0d25c7539f49619cc3e6cdf3b406f77d268284252f4dd8b140cfc9280"
+    },
+    {
+      "path": "hooks/shared/paths.py",
+      "sha256": "dcf0a707560e66d79c1210060fcbcebdedd8af0e62c4234e6347df7bb7aeec1d"
+    },
+    {
+      "path": "hooks/shared/peer_context.py",
+      "sha256": "bca175f22aa2307ef29379e3703a03cbca798688ee72eb3cee901a5f6336fc6c"
+    },
+    {
+      "path": "hooks/shared/pin_credit.py",
+      "sha256": "01fca3978d9590d452a86e0e9e362a59e8fc97a2a46ff0d64b95d652356bfe35"
+    },
+    {
+      "path": "hooks/shared/pin_growth.py",
+      "sha256": "1640eff618fad6349444edfe32d5aeb71a598a405cdc77997f4994ac59cd9aca"
+    },
+    {
+      "path": "hooks/shared/pin_markers.py",
+      "sha256": "62df6e5f6e6e2a01e1ec9eb2b88f853bba11f44d675f7c27d71086bdb8d61221"
+    },
+    {
+      "path": "hooks/shared/plugin_manifest.py",
+      "sha256": "0e8f031feb6799f546cb7f0d44837eb22998bee8cf07e01a9e1f8e1c27275556"
+    },
+    {
+      "path": "hooks/shared/project_scope.py",
+      "sha256": "28a7eae92f3794562435e2bfcd89942f31a35f6a691dcd21ca575464f40a4681"
+    },
+    {
+      "path": "hooks/shared/realign_team.py",
+      "sha256": "7cde0a4862b901c9b6f99cd89ed1017706a82e82745495793f94dae9cd53b763"
+    },
+    {
+      "path": "hooks/shared/session_journal.py",
+      "sha256": "20c053edb3cd7b4ab389c37b5bbb4fee34ba2c30e4ea8f83d7310d0c52d1c7f3"
+    },
+    {
+      "path": "hooks/shared/session_registry.py",
+      "sha256": "3ebe851bf1fc61181bbfc22a9df86cc7de20cf8bd51b114ae28a59b85e9dd912"
+    },
+    {
+      "path": "hooks/shared/session_resume.py",
+      "sha256": "e623f66a6644d5ddbf31ef855ba032348ee58ea40a497230ea9a4fa61904997a"
+    },
+    {
+      "path": "hooks/shared/session_state.py",
+      "sha256": "c627524ef9381be8b47bd87a5b8fdf4375b1b691ff97773a7f1889af25a080ce"
+    },
+    {
+      "path": "hooks/shared/stale_session.py",
+      "sha256": "26187526a5cec63d05de82065c5e2c2ed3b8d07f630afd65301d3f4bf495bbb5"
+    },
+    {
+      "path": "hooks/shared/state_file.py",
+      "sha256": "25c645e38a07a40ef606380a5da31a294f22e630cdb6575965000c080bdcb7a0"
+    },
+    {
+      "path": "hooks/shared/subagent_meta.py",
+      "sha256": "a1ecfd782cc8b2b1a4b4b88352f167362c4b00195cf9435b8eef93331453dae8"
+    },
+    {
+      "path": "hooks/shared/symlinks.py",
+      "sha256": "9d642837e1e2231157e9561d5729e839d25678b3d6d91696533ba0c4d55d6da5"
+    },
+    {
+      "path": "hooks/shared/task_metadata_snapshot.py",
+      "sha256": "6867572b30a2e6ac01446dea21dfd1d1524c1b019a35a841f0803b12821df85c"
+    },
+    {
+      "path": "hooks/shared/task_utils.py",
+      "sha256": "dc654b66c0b3596cf1f239fb64d63f1aa5b1f980fb975f74c4034dcc89ae8adf"
+    },
+    {
+      "path": "hooks/shared/teachback_schema.py",
+      "sha256": "8e4bba7d1ec10e559eae5d5d9983fa18ecb0e3cba3675fb6f024a445d5888a29"
+    },
+    {
+      "path": "hooks/shared/teammate_mode.py",
+      "sha256": "bf521d91a9bc492885d6b5ec8be8a1eb04c82a5be881db4c6c675ceba41c82b0"
+    },
+    {
+      "path": "hooks/shared/tool_response.py",
+      "sha256": "2f162598a012d092b1beac932583348dd91c35885d698cc7404ecd21aa0e039a"
+    },
+    {
+      "path": "hooks/shared/turn_end_gate.py",
+      "sha256": "3d832c008c28cf116b3d064aeb95b7d8263545dab2452180c1941b1fe30410f4"
+    },
+    {
+      "path": "hooks/shared/turn_end_jobs.py",
+      "sha256": "6df321817f913b0c08f8f58312401a0bf6103ab779ca4f472ce52766e2b24ef0"
+    },
+    {
+      "path": "hooks/shared/variety_divergence.py",
+      "sha256": "124d814415d3af99a2358c82a472d1465da0e86125fdeafb7dcb0f6fdfbcaf91"
+    },
+    {
+      "path": "hooks/shared/variety_scorer.py",
+      "sha256": "127212d44380b5a06f98aa2d07917bcdc1e24a921dd33a576c60984b19624109"
+    },
+    {
+      "path": "hooks/shared/wait_target.py",
+      "sha256": "f60f301e2ed340bdbd833fcffffcd52c95dd5eac5998ad37c1e72b2a9ca4a458"
+    },
+    {
+      "path": "hooks/shared/wrap_up_record.py",
+      "sha256": "fc2486edd1e5fdff8640e1e58c0c7efdb57d19303245f3b576a108f8b295e72f"
+    }
+  ],
   "pact": {
-    "commit": "aa554aec8ab16882385cc8f2140643d4c8b94f8c",
-    "tag": "v4.8.37",
-    "version": "4.8.37"
+    "commit": "1befafb314dd8124ad9225b87d0d5b064f0a6af6",
+    "tag": "v4.8.38",
+    "version": "4.8.38"
   },
   "plugin_root": "<plugin>",
   "registry": {

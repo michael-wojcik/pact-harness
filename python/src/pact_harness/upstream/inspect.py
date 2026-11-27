@@ -63,6 +63,23 @@ class EnvRead:
 
 
 @dataclass(frozen=True, slots=True)
+class ModuleHash:
+    """One hook module and its content hash.
+
+    Hooks are code, and code changes behavior even when the registry, matcher
+    and tool-set surface is unchanged. Without this list a logic change would be
+    graded L0, which is the one grade that releases without review.
+    """
+
+    path: str
+    sha256: str
+
+    def to_dict(self) -> dict[str, Any]:
+        """A JSON-shaped view."""
+        return {"path": self.path, "sha256": self.sha256}
+
+
+@dataclass(frozen=True, slots=True)
 class Artifact:
     """One model-facing artifact and its content hash."""
 
@@ -90,6 +107,7 @@ class Surface:
     matchers: tuple[str, ...] = ()
     tool_sets: dict[str, tuple[str, ...]] = field(default_factory=dict)
     env_reads: tuple[EnvRead, ...] = ()
+    modules: tuple[ModuleHash, ...] = ()
     artifacts: tuple[Artifact, ...] = ()
     decision_tokens: dict[str, int] = field(default_factory=dict)
     pact_version: str = ""
@@ -115,6 +133,7 @@ class Surface:
             "matchers": list(self.matchers),
             "tool_sets": {name: list(values) for name, values in sorted(self.tool_sets.items())},
             "env_reads": [read.to_dict() for read in self.env_reads],
+            "modules": [module.to_dict() for module in self.modules],
             "artifacts": [artifact.to_dict() for artifact in self.artifacts],
             "decision_tokens": dict(sorted(self.decision_tokens.items())),
         }
@@ -261,6 +280,23 @@ def _artifact_files(plugin_root: Path) -> list[tuple[str, Path]]:
     return files
 
 
+def _module_hashes(plugin_root: Path) -> tuple[ModuleHash, ...]:
+    """Hash every hook module: the code whose behavior the harness executes."""
+    result: list[ModuleHash] = []
+    for path in _hooks_files(plugin_root):
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            raise InspectError(f"cannot read hook module {path}: {exc}") from exc
+        result.append(
+            ModuleHash(
+                path=_relative(path, plugin_root),
+                sha256=hashlib.sha256(data).hexdigest(),
+            )
+        )
+    return tuple(result)
+
+
 def _decision_token_counts(plugin_root: Path) -> dict[str, int]:
     counts = {token: 0 for token in _DECISION_TOKENS}
     for path in _hooks_files(plugin_root):
@@ -312,6 +348,7 @@ def inspect_surface(
         matchers=tuple(matchers),
         tool_sets=_extract_tool_sets(root),
         env_reads=_extract_env_reads(root),
+        modules=_module_hashes(root),
         artifacts=tuple(artifacts),
         decision_tokens=_decision_token_counts(root),
         pact_version=pact_version,

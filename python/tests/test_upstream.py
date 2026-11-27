@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from pact_harness import paths
-from pact_harness.upstream.inspect import Artifact, EnvRead, Surface, inspect_surface
+from pact_harness.upstream.inspect import Artifact, EnvRead, ModuleHash, Surface, inspect_surface
 from pact_harness.upstream.verify import verify_surface
 
 
@@ -47,6 +47,7 @@ def minimal_surface(**overrides) -> Surface:
         matchers=("Edit",),
         tool_sets={"_BLOCKED_TOOLS": ("Edit", "Write")},
         env_reads=(EnvRead(name="CLAUDE_CONFIG_DIR", file="hooks/h.py", line=1),),
+        modules=(ModuleHash(path="hooks/h.py", sha256="a" * 64),),
         artifacts=(
             Artifact(kind="agents", path="agents/a.md", sha256="0" * 64, bytes=1),
             Artifact(kind="commands", path="commands/c.md", sha256="0" * 64, bytes=1),
@@ -84,6 +85,12 @@ def test_env_reads_include_helper_indirected_names(surface: Surface) -> None:
     assert "CLAUDE_PROJECT_DIR" in names
     # Read through a module constant, which a naive scan misses.
     assert "CLAUDE_CODE_REMOTE" in names
+
+
+def test_hook_modules_are_hashed(surface: Surface) -> None:
+    assert len(surface.modules) >= 28
+    assert all(len(module.sha256) == 64 for module in surface.modules)
+    assert any(module.path.startswith("hooks/") for module in surface.modules)
 
 
 def test_the_artifact_inventory_is_hashed(surface: Surface) -> None:
@@ -171,7 +178,16 @@ def test_the_committed_manifest_matches_the_vendored_tree(surface: Surface) -> N
     assert root is not None
     committed = json.loads((root / "harness" / "upstream-surface.v1.json").read_text())
     fresh = surface.to_dict()
-    for key in ("registry", "matchers", "tool_sets", "env_reads", "artifacts", "decision_tokens", "pact"):
+    for key in (
+        "registry",
+        "matchers",
+        "tool_sets",
+        "env_reads",
+        "modules",
+        "artifacts",
+        "decision_tokens",
+        "pact",
+    ):
         assert committed[key] == fresh[key], key
 
 
@@ -254,6 +270,35 @@ def test_a_changed_timeout_is_l3(surface: Surface) -> None:
     report = diff_surfaces(surface.to_dict(), document)
     assert report.level is Level.L3
     assert any(difference.kind == "registration-changed" for difference in report.differences)
+
+
+def test_a_changed_hook_module_is_l2() -> None:
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = minimal_surface().to_dict()
+    changed = json.loads(json.dumps(document))
+    changed["modules"][0]["sha256"] = "c" * 64
+    report = diff_surfaces(document, changed)
+    assert report.level is Level.L2
+    assert any(d.kind == "module-changed" for d in report.differences)
+
+
+def test_a_removed_hook_module_is_l3() -> None:
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = minimal_surface().to_dict()
+    changed = json.loads(json.dumps(document))
+    changed["modules"] = []
+    assert diff_surfaces(document, changed).level is Level.L3
+
+
+def test_an_added_hook_module_is_l2() -> None:
+    from pact_harness.upstream.diff import Level, diff_surfaces
+
+    document = minimal_surface().to_dict()
+    changed = json.loads(json.dumps(document))
+    changed["modules"].append({"path": "hooks/new_gate.py", "sha256": "d" * 64})
+    assert diff_surfaces(document, changed).level is Level.L2
 
 
 def test_tool_and_matcher_additions_are_l2_and_removals_l3(surface: Surface) -> None:

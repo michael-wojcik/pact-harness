@@ -74,7 +74,7 @@ reads this and [plan.md](plan.md) before touching code.
   (exit code, directive kinds, decode health) for all 24 frames; `replay`
   compares a tree against a baseline and names each changed, added or removed
   cell. The baseline for the pin is committed at
-  `harness/corpus/pact-4.8.37.json` (48 cells, 28 hooks) and a test fails if the
+  `harness/corpus/pact-4.8.38.json` (48 cells, 28 hooks) and a test fails if the
   tree stops reproducing it. `sync-upstream.sh` replays it after a bump, because
   conformance asks whether every registration is understood while replay asks
   whether any of them now answers differently. `pact upstream inspect` extracts the surface: 34
@@ -90,7 +90,7 @@ reads this and [plan.md](plan.md) before touching code.
   and matcher tokens are both compared, because grouping changes stop hooks
   running on a tool while every token survives. `pact upstream check` reads the
   repository's tags and reports how far the pin is from the latest release
-  (verified against the network at the time; the pin now follows 4.8.37).
+  (the pin now follows upstream's latest, 4.8.38).
   `tools/sync-upstream.sh` performs the whole absorb: fetch, checkout,
   regenerate, classify, verify, conformance, rewrite the pin — and never
   commits, so a human reviews what moved. A guard test compiles the script's
@@ -175,12 +175,21 @@ locally.
 
 ## Upstream absorption
 
-v0.1.5 absorbs PACT v4.8.37. The only reason the classifier grades it L3 is that
-TeammateIdle's hook gained a 20-second timeout; everything that can be checked
-locally stayed green (34/34 registrations, conformance, corpus verdicts
-unchanged, verify clean). The corpus baseline moved to
-harness/corpus/pact-4.8.37.json, and pin-dependent tests now read the pin of
-record instead of hardcoding it, so the next bump needs no test edits.
+The harness follows upstream's releases; the pin is now PACT v4.8.38 and nothing
+is behind.
+
+v0.1.5 absorbed v4.8.37, whose only classified change was a 20-second timeout on
+TeammateIdle's hook. v0.1.6 absorbed v4.8.38, a feature release that the old
+surface diff would have graded L0, because that diff hashed artifacts but not
+hook code. The classifier now hashes every hook module (89 files): a changed
+module is L2, a removed module L3, and an added module L2. With that in place
+v4.8.38 is honestly L2: two new modules and six changed gate modules, plus seven
+artifacts. Nothing new is registered (still 34), so no decoder work was needed;
+the structural-wait feature rides the host's Bash background-task contract, which
+DSH has.
+
+Pin-dependent tests and the corpus baseline filename now follow the pin of
+record, so the next upstream bump needs no test edits.
 
 ## Next
 

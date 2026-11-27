@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from .check import ReleaseCheck, check_release
 from .diff import DiffReport, Difference, Level, diff_surfaces
-from .inspect import Artifact, EnvRead, Surface, inspect_surface
+from .inspect import Artifact, EnvRead, ModuleHash, Surface, inspect_surface
 from .verify import VerifyReport, verify_surface
 
 __all__ = [
@@ -20,6 +20,7 @@ __all__ = [
     "Difference",
     "EnvRead",
     "Level",
+    "ModuleHash",
     "ReleaseCheck",
     "Surface",
     "check_release",

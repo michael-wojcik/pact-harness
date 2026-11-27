@@ -6,6 +6,23 @@
   points at while it restricts 2FA-bypass tokens (account changes August 2026,
   direct publishing January 2027).
 
+## v0.1.6: upstream PACT v4.8.38
+
+- Absorbs upstream PACT v4.8.38 (1befafb3), a feature release. The surface diff
+  is L2: two new hook modules (pact_wait.py, shared/wait_target.py), six changed
+  gate modules (task_lifecycle_gate, wait_filler_gate, turn_end_gate,
+  handoff_schema, hook_infra_classifier, task_utils), and seven changed artifacts.
+- The classifier now hashes all 89 hook modules. Before this, a hook body edit was
+  invisible to the diff: this release would have been graded L0, which is the one
+  grade that releases without review. A changed module is L2, a removed module L3.
+- Review: the structural-wait feature is deliberately not registered in hooks.json
+  (still 34 registrations), so nothing new needs to run through the decoder. The
+  lead launches it through its own Bash background task; DSH's Bash tool carries
+  run_in_background and in-session completion notices, so the host contract maps.
+  The gate changes are covered by conformance, parity, corpus replay and the
+  upstream suite in the contract lane.
+- The corpus baseline moved to pact-4.8.38.
+
 ## v0.1.5: upstream PACT v4.8.37
 
 - Absorbs upstream PACT v4.8.37 (aa554aec). The surface diff is L3 by the

@@ -1,6 +1,6 @@
 {
   "name": "@pact-harness/dsh",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "PACT orchestration and enforcement for DeepSeek Harness",
   "main": "index.js",
