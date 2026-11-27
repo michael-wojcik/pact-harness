@@ -12,11 +12,16 @@ on:
 
 permissions:
   contents: write
+  # Trusted Publishing: the PyPI step exchanges this for a short-lived token.
+  # Only requested when the step runs; the rest of the lane never uses it.
+  id-token: write
 
 jobs:
   release:
     name: verify-and-publish
     runs-on: ubuntu-latest
+    # Must match the environment named in the PyPI pending publisher.
+    environment: pypi
     steps:
       - name: Check out with the vendored tree
         uses: actions/checkout@v4
@@ -86,3 +91,23 @@ jobs:
               gh release upload "$TAG" "$file"
             fi
           done
+
+      # Opt-in: set the repository variable PYPI_PUBLISH=true after registering a
+      # pending publisher on PyPI (owner michael-wojcik, repo pact-harness,
+      # workflow release.yml, environment pypi). With the variable unset this step
+      # does not run and the release lane behaves as before.
+      - name: Publish the Python package to PyPI
+        if: vars.PYPI_PUBLISH == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+      # Opt-in: set NPM_PUBLISH=true and the NPM_TOKEN secret once the
+      # @pact-harness scope org exists. Without both, this step does not run.
+      - name: Publish the bridge to npm
+        if: vars.NPM_PUBLISH == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd adapters/dsh
+          npm publish --access public

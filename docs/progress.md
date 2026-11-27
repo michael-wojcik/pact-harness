@@ -175,14 +175,15 @@ locally.
 
 ## Next
 
-Everything in plan.md is implemented and the first release exists. What remains
-needs credentials or a decision rather than code:
+Everything in plan.md is implemented, released as v0.1.2, and every lane is
+green. Repository hardening is in place.
 
-- The model lane is green (run 45666072400, 2026-11-25): on an Ubuntu runner,
-  DSH installed from npm ran a live turn with the bridge mounted -- exit 0, 223
-  events, no error events, activation record written. A local copy of the key
-  would only serve as a debugging fallback.
-- Upstream and model lanes are green; the release lane is green.
-- Publishing the npm adapter package needs an npm account and the @pact-harness
-  org; the harness itself installs from source in the meantime.
-- The repository is private; making it public is a decision, not a code change.
+The only remaining items are account-bound and optional:
+
+- npm: create the @pact-harness scope org, then run tools/publish-npm.sh. The
+  package is ready and the script fails clearly when the org or login is missing.
+- PyPI: register a pending trusted publisher (project pact-harness, owner
+  michael-wojcik, repository pact-harness, workflow release.yml, environment
+  pypi), then set the repository variable PYPI_PUBLISH=true. No token is stored.
+- Rotate or remove the DEEPSEEK_API_KEY repository secret if the nightly model
+  lane is ever retired.

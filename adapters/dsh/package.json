@@ -1,7 +1,6 @@
 {
   "name": "@pact-harness/dsh",
   "version": "0.1.2",
-  "private": true,
   "type": "module",
   "description": "PACT orchestration and enforcement for DeepSeek Harness",
   "main": "index.js",
@@ -21,5 +20,24 @@
   "engines": {
     "dsh": ">=0.2.0 <0.3.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michael-wojcik/pact-harness.git",
+    "directory": "adapters/dsh"
+  },
+  "homepage": "https://github.com/michael-wojcik/pact-harness#readme",
+  "bugs": {
+    "url": "https://github.com/michael-wojcik/pact-harness/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "pact",
+    "deepseek",
+    "harness",
+    "agents",
+    "orchestration"
+  ]
 }

@@ -180,6 +180,21 @@ command, and `doctor` warns when the tree in use has uncommitted changes.
 - `adapters/dsh/` — the cordis bridge.
 - `tools/` — repository tooling, including the upstream sync script.
 
+## Publishing
+
+A tag whose version matches every manifest triggers the release lane: both test
+suites, the vendor-pin check, the build, a GitHub release, and optionally PyPI
+and npm.
+
+- **npm**: once the `@pact-harness` scope org exists and npm is logged in as a member,
+  `tools/publish-npm.sh` publishes the bridge package at the version in
+  `adapters/dsh/package.json`. For CI, add an `NPM_TOKEN` secret and set the repository variable
+  `NPM_PUBLISH=true`.
+- **PyPI**: register a pending trusted publisher on PyPI (project
+  `pact-harness`, owner `michael-wojcik`, repository `pact-harness`, workflow `release.yml`,
+  environment `pypi`), then set the repository variable `PYPI_PUBLISH=true`. The lane exchanges
+  OIDC for a short-lived token, so no PyPI secret is stored.
+
 ## License
 
 MIT; see [LICENSE](LICENSE). PACT is MIT and remains the property of its authors;
