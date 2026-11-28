@@ -25,6 +25,7 @@ from ..errors import PactHarnessError
 from .corpus import CorpusFrame
 
 PLACEHOLDER = "<project>"
+HOME_PLACEHOLDER = "<home>"
 SCHEMA_VERSION = 1
 
 #: pytest arguments for a harvest: the suite's own defaults, no cache writes.
@@ -52,6 +53,16 @@ def _placeholder(value: Any, recorded_cwd: str) -> Any:
         return [_placeholder(item, recorded_cwd) for item in value]
     if isinstance(value, dict):
         return {key: _placeholder(item, recorded_cwd) for key, item in value.items()}
+    return value
+
+
+def _home_placeholder(value: Any, recorded_home: str) -> Any:
+    if isinstance(value, str):
+        return value.replace(recorded_home, HOME_PLACEHOLDER)
+    if isinstance(value, list):
+        return [_home_placeholder(item, recorded_home) for item in value]
+    if isinstance(value, dict):
+        return {key: _home_placeholder(item, recorded_home) for key, item in value.items()}
     return value
 
 
@@ -101,6 +112,9 @@ def load_recorded_frames(path: Path | str, *, limit: int = 2000) -> tuple[Corpus
         recorded_cwd = str(record.get("cwd") or frame.get("cwd") or "")
         if recorded_cwd:
             frame = _placeholder(frame, recorded_cwd)
+        recorded_home = str(record.get("home") or "")
+        if recorded_home and recorded_home != "/":
+            frame = _home_placeholder(frame, recorded_home)
         event = frame.get("hook_event_name") or record.get("event") or ""
         if not isinstance(event, str) or not event:
             continue

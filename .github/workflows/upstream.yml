@@ -7,10 +7,19 @@ name: upstream
 #
 # It is separate from the contract lane on purpose: that lane protects the pin,
 # and this one protects the next bump. A red here does not block a pull request.
+#
+# The daily cron fires late on this repository, so a push to main also re-checks:
+# that way a release is noticed shortly after any work lands, and the schedule is
+# the floor rather than the only trigger. Docs-only pushes are ignored.
 
 on:
   schedule:
     - cron: "17 6 * * *"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   workflow_dispatch:
 
 permissions:

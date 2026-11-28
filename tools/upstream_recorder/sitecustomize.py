@@ -98,7 +98,15 @@ if _OUT:
             _seen.add(key)
             _per_hook[hook] = _per_hook.get(hook, 0) + 1
             _count += 1
-        _write({"hook": hook, "event": frame.get("hook_event_name"), "cwd": frame.get("cwd"), "frame": frame})
+        _write(
+            {
+                "hook": hook,
+                "event": frame.get("hook_event_name"),
+                "cwd": frame.get("cwd"),
+                "home": os.path.expanduser("~"),
+                "frame": frame,
+            }
+        )
 
     class _RecordingPopen(subprocess.Popen):
         def __init__(self, args, *rest, **kwargs):

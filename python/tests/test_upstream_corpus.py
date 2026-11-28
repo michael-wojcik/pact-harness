@@ -12,6 +12,7 @@ import pytest
 
 from pact_harness import cli, paths
 from pact_harness.conformance.upstream_corpus import (
+    HOME_PLACEHOLDER,
     PLACEHOLDER,
     UpstreamCorpusError,
     load_recorded_frames,
@@ -59,6 +60,7 @@ def test_the_recorder_records_a_hook_frame(tmp_path: Path) -> None:
     assert record["hook"] == "hooks/echo_hook.py"
     assert record["event"] == "PreToolUse"
     assert record["frame"]["tool_name"] == "Edit"
+    assert record["home"], "the recorder should name the home it recorded under"
 
 
 def test_recordings_deduplicate_and_placeholder_their_cwd(tmp_path: Path) -> None:
@@ -75,6 +77,16 @@ def test_recordings_deduplicate_and_placeholder_their_cwd(tmp_path: Path) -> Non
     project.mkdir()
     moved = rebase(frames[0], project)
     assert moved.frame["cwd"] == str(project)
+
+
+def test_a_recorded_home_is_placeholdered(tmp_path: Path) -> None:
+    home = str(tmp_path / "recorded-home")
+    frame = {"hook_event_name": "PreToolUse", "cwd": str(tmp_path / "project"), "transcript_path": home + "/t.jsonl"}
+    record = {"hook": "hooks/x.py", "event": "PreToolUse", "cwd": frame["cwd"], "home": home, "frame": frame}
+    path = tmp_path / "recorded.jsonl"
+    path.write_text(json.dumps(record) + "\n")
+    frames = load_recorded_frames(path)
+    assert frames[0].frame["transcript_path"] == HOME_PLACEHOLDER + "/t.jsonl"
 
 
 def test_missing_recordings_raise(tmp_path: Path) -> None:
