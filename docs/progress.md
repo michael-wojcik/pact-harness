@@ -200,7 +200,11 @@ PR body names the tag and the release step. The on-demand qualify workflow runs
 PACT's own suite at a tag that is not pinned yet, and can record the hook frames
 that suite exercises into a parity corpus (pact corpus harvest-upstream /
 pact conformance --upstream-corpus), so the parity lane can grow beyond the 24
-hand-written frames from upstream's own traffic. The radar's failure rule is now
+hand-written frames. The first harvested corpus is committed for PACT v4.8.38
+(131 frames, harness/corpus/upstream/), and replaying it found two real gaps the
+synthetic corpus missed: the shim refused frames whose tool name matched no
+matcher group, and the parity report counted failure lines instead of diverged
+cells. Both are fixed. The radar's failure rule is now
 "red when a release needs a human": mechanical bumps stay green once their PR is
 open, L2/L3 bumps stay red until reviewed.
 

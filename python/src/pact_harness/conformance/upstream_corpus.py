@@ -119,7 +119,10 @@ def load_recorded_frames(path: Path | str, *, limit: int = 2000) -> tuple[Corpus
         if not isinstance(event, str) or not event:
             continue
         tool_name = frame.get("tool_name")
-        name = "upstream:" + hook.replace("/", "_") + ":" + str(len(frames))
+        if hook.startswith("upstream:"):
+            name = hook + ":" + str(len(frames))
+        else:
+            name = "upstream:" + hook.replace("/", "_") + ":" + str(len(frames))
         frames.append(
             CorpusFrame(
                 name=name,

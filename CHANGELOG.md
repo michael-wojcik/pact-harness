@@ -19,6 +19,10 @@
   harvest-upstream stores them, and pact conformance --upstream-corpus replays
   them through the direct and bridged paths. The qualify workflow records and
   uploads a corpus when asked.
+- The first recorded corpus (131 frames at PACT v4.8.38) is committed under
+  harness/corpus/upstream/. Replaying it exposed two harness gaps: the hook shim
+  refused frames whose tool name matched no matcher group, and the parity report
+  counted failure lines rather than diverged cells. Both are fixed.
 
 ## v0.1.6: upstream PACT v4.8.38
 

@@ -84,6 +84,22 @@ def test_the_report_serialises(report: ConformanceReport) -> None:
     assert payload["counts"]["uncovered"] == 0
 
 
+def test_parity_counts_mismatched_cells_not_failure_lines() -> None:
+    from pact_harness.conformance.parity import ParityCell, ParityReport
+
+    ok_cell = ParityCell(
+        frame="f1", event="PreToolUse", hook="h", direct_exit=0, bridged_exit=0,
+        direct_sha="a", bridged_sha="a", ok=True,
+    )
+    bad_cell = ParityCell(
+        frame="f2", event="PostToolUse", hook="h", direct_exit=0, bridged_exit=1,
+        direct_sha="a", bridged_sha="b", ok=False, detail="exit 0 != 1",
+    )
+    report = ParityReport(cells=(ok_cell, bad_cell), failures=("x", "y", "z"), frames=2)
+    assert report.mismatched == 1
+    assert report.to_dict()["counts"]["mismatches"] == 1
+
+
 def test_a_refusal_without_a_refusal_directive_fails() -> None:
     check = _judge("frame", run_of(exit_code=2, directives=(Directive.silent(),)))
     assert check.ok is False

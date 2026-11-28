@@ -652,7 +652,7 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
         if parity is not None:
             print(
                 f"byte parity  : {len(parity.cells)} cells across {parity.frames} frames, "
-                f"{len(parity.failures)} mismatch(es)"
+                f"{parity.mismatched} mismatch(es)"
             )
             for failure in parity.failures:
                 print(f"  diverged: {failure}")
@@ -927,11 +927,23 @@ def _cmd_hook(args: argparse.Namespace) -> int:
     manifest_event = manifest_event_for(event.kind)
     registry = HookRegistry.from_plugin_root(plugin_root)
     wanted = args.hook_id.removesuffix(".py")
+    tool_name = tool_name_for(event)
     candidates = [
         registration
-        for registration in registry.for_event(manifest_event, tool_name=tool_name_for(event))
+        for registration in registry.for_event(manifest_event, tool_name=tool_name)
         if registration.hook == wanted or registration.script.stem == wanted
     ]
+    if not candidates:
+        # Degenerate frames (upstream's own adversarial tests send these) can
+        # yield a tool name that matches no matcher group, or none at all. The
+        # host only runs a matcher-gated hook when its matcher already matched,
+        # so running the named registration is the faithful thing to do;
+        # refusing here would diverge from running the hook directly.
+        candidates = [
+            registration
+            for registration in registry.for_event(manifest_event)
+            if registration.hook == wanted or registration.script.stem == wanted
+        ]
     if not candidates:
         modules = ", ".join(registry.modules())
         print(

@@ -109,6 +109,36 @@ def test_missing_recordings_raise(tmp_path: Path) -> None:
         load_recorded_frames(tmp_path / "absent.jsonl")
 
 
+def test_already_prefixed_names_are_not_double_prefixed(tmp_path: Path) -> None:
+    frame = {"hook_event_name": "PreToolUse"}
+    document = {
+        "v": 1,
+        "frames": [{"name": "upstream:hooks_x.py:3", "event": "PreToolUse", "frame": frame}],
+    }
+    path = tmp_path / "corpus.json"
+    path.write_text(json.dumps(document))
+    frames = load_recorded_frames(path)
+    assert frames[0].name.startswith("upstream:hooks_x.py")
+    assert "upstream:upstream" not in frames[0].name
+
+
+def test_the_committed_upstream_corpus_loads() -> None:
+    root = paths.find_harness_root()
+    if root is None:
+        pytest.skip("not running inside the harness checkout")
+    path = root / "harness" / "corpus" / "upstream" / "pact-4.8.38.json"
+    if not path.is_file():
+        pytest.skip("no committed upstream corpus for this pin")
+    frames = load_recorded_frames(path)
+    assert len(frames) >= 100
+    assert len({frame.name for frame in frames}) == len(frames)
+    events = {frame.event for frame in frames}
+    assert {"PreToolUse", "PostToolUse", "UserPromptSubmit"} <= events
+    text = path.read_text()
+    assert "/home/runner" not in text
+    assert "/Users/" not in text
+
+
 def test_the_cli_converts_a_recording(tmp_path: Path) -> None:
     frame = {"hook_event_name": "SessionStart", "session_id": "s", "cwd": str(tmp_path / "x")}
     record = {"hook": "hooks/session_init.py", "event": "SessionStart", "cwd": frame["cwd"], "frame": frame}

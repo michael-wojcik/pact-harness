@@ -84,3 +84,17 @@ corpus. The qualify workflow does both when record_corpus is set and uploads the
 frames as an artifact, so a person can review and commit them; it does not
 commit them automatically because frames carry the paths they were recorded under
 and need review.
+
+## The committed recorded corpus
+
+harness/corpus/upstream/pact-4.8.38.json holds 131 frames recorded from the
+suite at that tag (bulk payloads above 64 KiB are omitted; see the README beside
+it). Running
+
+    pact conformance --upstream-corpus harness/corpus/upstream/pact-4.8.38.json --parity
+
+replays them through the direct and bridged paths. The first replay found two
+real gaps the synthetic corpus could not: the shim refused frames whose tool
+name matched no matcher group (upstream tests send such frames on purpose), and
+the CLI counted failure lines as mismatched cells. Both are fixed and pinned by
+tests; the corpus stays committed so neither can return silently.

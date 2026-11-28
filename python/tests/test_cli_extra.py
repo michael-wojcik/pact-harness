@@ -65,6 +65,31 @@ def test_hook_raw_reports_the_process_result(monkeypatch, capsys) -> None:
     assert set(payload) == {"hook", "event", "exit", "duration_ms", "stdout", "stderr"}
 
 
+def test_hook_runs_a_matcher_gated_hook_when_no_tool_name_resolves(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    plugin = pin_plugin_root()
+    frame = {"hook_event_name": "PostToolUse", "tool_input": "nope"}
+    code, out, err = run_cli(
+        monkeypatch,
+        capsys,
+        [
+            "hook",
+            "track_files",
+            "--adapter",
+            "claude-code",
+            "--passthrough",
+            "--plugin-root",
+            str(plugin),
+            "--state-root",
+            str(tmp_path),
+        ],
+        json.dumps(frame),
+    )
+    assert code == 0, err
+    assert out.strip() == '{"suppressOutput": true}'
+
+
 def test_hook_rejects_an_unknown_name(monkeypatch, capsys) -> None:
     plugin = pin_plugin_root()
     code, out, err = run_cli(

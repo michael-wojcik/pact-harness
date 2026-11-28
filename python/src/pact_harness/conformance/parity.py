@@ -74,6 +74,11 @@ class ParityReport:
     frames: int = 0
 
     @property
+    def mismatched(self) -> int:
+        """How many cells diverged (a cell can add several failure lines)."""
+        return sum(1 for cell in self.cells if not cell.ok)
+
+    @property
     def ok(self) -> bool:
         """Whether every cell was byte-identical in the decision channel."""
         return not self.failures and all(cell.ok for cell in self.cells)
@@ -83,7 +88,7 @@ class ParityReport:
         return {
             "ok": self.ok,
             "frames": self.frames,
-            "counts": {"cells": len(self.cells), "mismatches": len(self.failures)},
+            "counts": {"cells": len(self.cells), "mismatches": self.mismatched},
             "cells": [cell.to_dict() for cell in self.cells],
             "failures": list(self.failures),
         }

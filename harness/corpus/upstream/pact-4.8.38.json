@@ -1,0 +1,2113 @@
+{
+ "v": 1,
+ "source": "PACT-Plugin test suite at v4.8.38 (recorded with tools/upstream_recorder)",
+ "recordedTag": "v4.8.38",
+ "selection": "Frames are recorded hook invocations from upstream's own tests, deduplicated per hook. Frames larger than 64 KiB are omitted from the committed copy because they carry bulk payloads rather than new decision shapes; regenerate with pact corpus harvest-upstream, or the record_corpus input of the qualify workflow.",
+ "frames": [
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:0",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "true"
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:1",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "true",
+     "run_in_background": true
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:2",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "true",
+     "run_in_background": false
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:3",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "true",
+     "run_in_background": "true"
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:4",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "sleep 5"
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:5",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "sleep 5",
+     "run_in_background": true
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:6",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "sleep 5",
+     "run_in_background": false
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_wait_filler_gate.py:7",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-test-engineer",
+    "cwd": "<project>",
+    "effort": {
+     "level": "xhigh"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "bypassPermissions",
+    "session_id": "6f9d8c47-f03d-4422-ab9c-87fdc8408103",
+    "tool_input": {
+     "command": "sleep 5",
+     "run_in_background": "true"
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GfyP2GZYrdWApmbcctBmZs",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:8",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first real prompt",
+    "session_id": "subproc-session-id",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:9",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt after session_init crashed",
+    "session_id": "deadbeef-4242-4242-4242-deadbeef4242",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:10",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "teammate frame",
+    "session_id": "deadbeef-4242-4242-4242-deadbeef4242",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:11",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_id": "",
+    "agent_type": "pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "ptu-subproc-session-id",
+    "tool_input": {
+     "subagent_type": "pact-secretary"
+    },
+    "tool_name": "Agent",
+    "tool_response": {
+     "content": [
+      {
+       "text": "ok",
+       "type": "text"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:12",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt after session_init crashed",
+    "session_id": "deadbeef-4242-4242-4242-deadbeef4242"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:13",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "696265ab-892b-4563-9c48-ec362820052e"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:14",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "e456b19b-a0e2-40a8-8671-182ed5fcf65e"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:15",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "f69a652a-c55e-438e-ae49-627b932a5fe7"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:16",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "54fb1af0-0276-42b4-ace8-f94d8b8f6d00"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:17",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "54fb1af0-0276-42b4-ace8-f94d8b8f6d00"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:18",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "f3e3ef87-9293-4588-a494-edfbd814a57c"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_prompt_gate.py:19",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "f3e3ef87-9293-4588-a494-edfbd814a57c"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:20",
+   "event": "SessionStart",
+   "frame": {
+    "cwd": "<project>",
+    "hook_event_name": "SessionStart",
+    "session_id": "4dc7ff37-4af3-4f28-9116-103438743d0e",
+    "source": "fork"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:21",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "SessionStart",
+    "session_id": "ec0c0f66-209f-4b11-b80f-ce7f4ca00207",
+    "source": "fork"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:22",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "SessionStart",
+    "session_id": "4f793c0d-44f0-49dd-a1f6-9a978583d059",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:23",
+   "event": "SessionStart",
+   "frame": {
+    "hook_event_name": "SessionStart",
+    "session_id": "bd1aac39-1985-47c6-952d-98c9665d0513",
+    "source": "fork"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:24",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "bd1aac39-1985-47c6-952d-98c9665d0513"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:25",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "SessionStart",
+    "session_id": "f80b3600-e31c-4fa5-90ff-23ac44103149",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:26",
+   "event": "SessionStart",
+   "frame": {
+    "hook_event_name": "SessionStart",
+    "session_id": "89e791cc-1af4-4804-9290-463834757322",
+    "source": "fork"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:27",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "89e791cc-1af4-4804-9290-463834757322"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:28",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "SessionStart",
+    "session_id": "1023e11b-6fe8-4748-ba6f-1d08b5198d3e",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_init.py:29",
+   "event": "SessionStart",
+   "frame": {
+    "hook_event_name": "SessionStart",
+    "session_id": "f612d29a-fe88-40c8-a406-c894457f268f",
+    "source": "fork"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_marker_writer.py:30",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first prompt",
+    "session_id": "40d08f22-9d34-4078-ac04-8aec626b1ff3"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:31",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "true"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:32",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "sed -i.bak 's/secret body 3/secret bodies 3/' CLAUDE.md && rm CLAUDE.md.bak"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:33",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "python3 - <<'EOF'\nimport pathlib\np = pathlib.Path('CLAUDE.md')\ns = p.read_text()\nmark = '## Working Memory'\ns = s.replace(mark, '<!-- pinned: 2026-04-21 -->\\n### Pin 12\\nsecret body 12\\n\\n' + mark, 1)\np.write_text(s)\nEOF"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:34",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "git checkout thirteen -- CLAUDE.md && git add CLAUDE.md"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:35",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "git merge -q --ff-only more"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:36",
+   "event": "PostToolUseFailure",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "duration_ms": 0,
+    "effort": {
+     "level": "<synthetic>"
+    },
+    "error": "<synthetic>",
+    "hook_event_name": "PostToolUseFailure",
+    "is_interrupt": false,
+    "permission_mode": "<synthetic>",
+    "prompt_id": "<synthetic>",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "python3 add_pin.py && false"
+    },
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_<synthetic>",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:37",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "drift-session",
+    "tool_input": {
+     "command": "cp grown.md CLAUDE.md"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_track_files.py:38",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "solo-session",
+    "tool_input": {
+     "command": "true"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_missed_wake_scan.py:39",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "hello",
+    "session_id": "drift-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_missed_wake_scan.py:40",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "SessionStart",
+    "prompt": "hello",
+    "session_id": "drift-session",
+    "source": "compact"
+   }
+  },
+  {
+   "name": "upstream:hooks_missed_wake_scan.py:41",
+   "event": "SessionStart",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "SessionStart",
+    "prompt": "hello",
+    "session_id": "drift-session",
+    "source": "startup"
+   }
+  },
+  {
+   "name": "upstream:hooks_missed_wake_scan.py:42",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "hello",
+    "session_id": "drift-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_missed_wake_scan.py:43",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "drift-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_postcompact_archive.py:44",
+   "event": "PostCompact",
+   "frame": {
+    "_meta": {
+     "capture_method": "live hook heartbeat, capture lead started with --agent PACT:pact-orchestrator, in-process teammates, 2026-09-14",
+     "note": "An in-process haiku teammate auto-compacted. Its frames are lead-shaped: the lead agent_type, session_id and transcript_path, and no agent_id, agent_name or agent_transcript_path. Paths and prompt_id are placeholders; compact_summary is a synthetic stand-in of the same shape, not the captured text."
+    },
+    "agent_type": "PACT:pact-orchestrator",
+    "compact_summary": "<analysis>\nThe conversation so far: a file-reading task.\n</analysis>\n\n<summary>\n1. Primary Request and Intent: the teammate was asked to read three short text files in a scratch project and report their line counts to the team-lead.\n2. Key Technical Concepts: reading files, counting lines, reporting through SendMessage.\n3. Current Work: the three counts were gathered and sent.\n4. Pending Tasks: none.\n</summary>",
+    "cwd": "<project>",
+    "hook_event_name": "PostCompact",
+    "prompt_id": "<prompt_id>",
+    "scratchpad_dir": "<scratchpad_dir>",
+    "session_id": "4ec31948-bbe5-4ef4-841c-631d1ef31e61",
+    "transcript_path": "/tmp/pytest-of-runner/pytest-0/test_a_teammate_compaction_nev0/.claude/projects/-cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61.jsonl",
+    "trigger": "auto"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_gate.py:45",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "4ec31948-bbe5-4ef4-841c-631d1ef31e61",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_a_teammate_compaction_nev0/.claude/pact-sessions/cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61/compact-summary.txt"
+    },
+    "tool_name": "Read",
+    "transcript_path": "/tmp/pytest-of-runner/pytest-0/test_a_teammate_compaction_nev0/.claude/projects/-cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61.jsonl"
+   }
+  },
+  {
+   "name": "upstream:hooks_postcompact_archive.py:46",
+   "event": "PostCompact",
+   "frame": {
+    "_meta": {
+     "capture_method": "live hook heartbeat, capture lead started with --agent PACT:pact-orchestrator, in-process teammates, 2026-09-14",
+     "note": "The capture lead ran /compact. Its frames carry the same key set as the teammate compaction frames. Paths and prompt_id are placeholders; compact_summary is a synthetic stand-in of the same shape, not the captured text."
+    },
+    "agent_type": "PACT:pact-orchestrator",
+    "compact_summary": "<analysis>\nThe conversation so far: coordinating one teammate.\n</analysis>\n\n<summary>\n1. Primary Request and Intent: the orchestrator spawned one teammate to read three short text files in a scratch project and waited for its report.\n2. Key Technical Concepts: teammate dispatch, task tracking, compaction.\n3. Current Work: the report arrived and the task was completed.\n4. Pending Tasks: none.\n</summary>",
+    "cwd": "<project>",
+    "hook_event_name": "PostCompact",
+    "prompt_id": "<prompt_id>",
+    "scratchpad_dir": "<scratchpad_dir>",
+    "session_id": "4ec31948-bbe5-4ef4-841c-631d1ef31e61",
+    "transcript_path": "/tmp/pytest-of-runner/pytest-0/test_a_lead_compaction_reaches0/.claude/projects/-cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61.jsonl",
+    "trigger": "manual"
+   }
+  },
+  {
+   "name": "upstream:hooks_bootstrap_gate.py:47",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "4ec31948-bbe5-4ef4-841c-631d1ef31e61",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_a_lead_compaction_reaches0/.claude/pact-sessions/cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61/compact-summary.txt"
+    },
+    "tool_name": "Read",
+    "transcript_path": "/tmp/pytest-of-runner/pytest-0/test_a_lead_compaction_reaches0/.claude/projects/-cmp-lead/4ec31948-bbe5-4ef4-841c-631d1ef31e61.jsonl"
+   }
+  },
+  {
+   "name": "upstream:hooks_dispatch_gate.py:48",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "test",
+    "tool_input": {},
+    "tool_name": "Agent"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:49",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "# PACT Framework and Managed Project Memory\n\n<!-- PACT_MANAGED_START: Managed by pact-plugin - do not edit this block -->\n<!-- PACT_MEMORY_START -->\n## Pinned Context\n\n<!-- pinned: 2026-04-20 -->\n### Pin0\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin1\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin2\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin3\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin4\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin5\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin6\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin7\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin8\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin9\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin10\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin11\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin12\nxxxx\n## Working Memory\n<!-- PACT_MEMORY_END -->\n<!-- PACT_MANAGED_END -->\n",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:50",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "# PACT Framework and Managed Project Memory\n\n<!-- PACT_MANAGED_START: Managed by pact-plugin - do not edit this block -->\n<!-- PACT_MEMORY_START -->\n## Pinned Context\n\n<!-- pinned: 2026-04-20 -->\n### Pin0\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin1\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin2\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin3\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin4\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin5\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin6\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin7\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin8\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin9\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin10\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin11\nxxxx\n## Working Memory\n<!-- PACT_MEMORY_END -->\n<!-- PACT_MANAGED_END -->\n",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:51",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "# PACT Framework and Managed Project Memory\n\n<!-- PACT_MANAGED_START: Managed by pact-plugin - do not edit this block -->\n<!-- PACT_MEMORY_START -->\n## Pinned Context\n\n<!-- pinned: 2026-04-20 -->\n### Pin0\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin1\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin2\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin3\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin4\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin5\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin6\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin7\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin8\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin9\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin10\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin11\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin12\nxxxx\n## Working Memory\n<!-- PACT_MEMORY_END -->\n<!-- PACT_MANAGED_END -->\n",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:52",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "# PACT Framework and Managed Project Memory\n\n<!-- PACT_MANAGED_START: Managed by pact-plugin - do not edit this block -->\n<!-- PACT_MEMORY_START -->\n## Pinned Context\n\n<!-- pinned: 2026-04-20 -->\n### Pin0\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin1\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin2\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin3\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin4\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin5\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin6\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin7\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin8\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin9\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin10\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin11\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin12\nxxxx\n## Working Memory\n<!-- PACT_MEMORY_END -->\n<!-- PACT_MANAGED_END -->\n",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:53",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "# PACT Framework and Managed Project Memory\n\n<!-- PACT_MANAGED_START: Managed by pact-plugin - do not edit this block -->\n<!-- PACT_MEMORY_START -->\n## Pinned Context\n\n<!-- pinned: 2026-04-20 -->\n### Pin0\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin1\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin2\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin3\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin4\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin5\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin6\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin7\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin8\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin9\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin10\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin11\nxxxx\n\n<!-- pinned: 2026-04-20 -->\n### Pin12\nxxxx\n## Working Memory\n<!-- PACT_MEMORY_END -->\n<!-- PACT_MANAGED_END -->\n",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:54",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "\n\n<!-- pinned: 2026-04-21 -->\n### New\nbody",
+     "old_string": "",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:55",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "say \"hi\"\n\n<!-- pinned: 2026-04-21 -->\n### New\nbody",
+     "old_string": "say \"hi\"",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_caps_gate.py:56",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "session-real-hook",
+    "tool_input": {
+     "file_path": "<project>/CLAUDE.md",
+     "new_string": "say \u201chi\u201d\n\n<!-- pinned: 2026-04-21 -->\n### New\nbody",
+     "old_string": "say \u201chi\u201d",
+     "replace_all": false
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:57",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "task_id": "7",
+    "task_subject": "record subject",
+    "team_name": "session-emitsub",
+    "teammate_name": "architect"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:58",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "task_id": "7",
+    "task_subject": "another subject",
+    "team_name": "session-elsewhere",
+    "teammate_name": "architect"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:59",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "task_id": "7",
+    "task_subject": "record subject",
+    "team_name": "session-elsewhere",
+    "teammate_name": "architect"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:60",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "task_id": "7",
+    "task_subject": "record subject",
+    "team_name": "",
+    "teammate_name": "architect"
+   }
+  },
+  {
+   "name": "upstream:hooks_file_tracker.py:61",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "ft-session-a",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_a_separate_process_teamma1/shared.py"
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_file_tracker.py:62",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "ft-session-b",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_a_separate_process_teamma1/shared.py"
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_file_tracker.py:63",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "ft-session-a",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_two_same_name_separate_pr0/shared.py"
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_file_tracker.py:64",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "ft-session-b",
+    "tool_input": {
+     "file_path": "/tmp/pytest-of-runner/pytest-0/test_two_same_name_separate_pr0/shared.py"
+    },
+    "tool_name": "Edit"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:65",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])'"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:66",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])'` to merge this PR",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:67",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 - <<'EOF'\nimport subprocess\ncmd = [\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"]\nsubprocess.run(cmd)\nEOF"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:68",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 - <<'EOF'\nimport subprocess\ncmd = [\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"]\nsubprocess.run(cmd)\nEOF` to merge this PR",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:69",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import os; os.system(\"gh pr merge 5 --admin\")'"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:70",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 -c 'import os; os.system(\"gh pr merge 5 --admin\")'` to merge this PR",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:71",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 -c 'import os; os.system(\"gh pr merge 5 --admin\")'` to merge",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:72",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run this to merge:\n```bash\npython3 - <<'EOF'\nimport subprocess\ncmd = [\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"]\nsubprocess.run(cmd)\nEOF\n```",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:73",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])'\n"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:74",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])'` to merge",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:75",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import subprocess;\\\n    subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])'"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:76",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `gh pr merge 42 --squash` to merge this PR",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:77",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"6\", \"--squash\"])'"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:78",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\", \"--admin\"])'"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_pre.py:79",
+   "event": "PreToolUse",
+   "frame": {
+    "hook_event_name": "PreToolUse",
+    "tool_input": {
+     "command": "gh pr merge 5 --squash"
+    },
+    "tool_name": "Bash"
+   }
+  },
+  {
+   "name": "upstream:hooks_merge_guard_post.py:80",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": {
+     "questions": [
+      {
+       "header": "Run",
+       "multiSelect": false,
+       "options": [
+        {
+         "description": "Run `python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"5\", \"--squash\"])' && python3 -c 'import subprocess; subprocess.run([\"gh\", \"pr\", \"merge\", \"6\", \"--squash\"])'` now",
+         "label": "Yes, run"
+        },
+        {
+         "description": "Hold.",
+         "label": "No"
+        }
+       ],
+       "question": "Run this?"
+      }
+     ]
+    },
+    "tool_name": "AskUserQuestion",
+    "tool_response": {
+     "answers": {
+      "Run this?": "Yes, run"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_peer_inject.py:81",
+   "event": "SubagentStart",
+   "frame": {
+    "agent_id": "a0123456789abcdef",
+    "agent_type": "pact-architect",
+    "hook_event_name": "SubagentStart",
+    "session_id": "pi-teammate-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_peer_inject.py:82",
+   "event": "SubagentStart",
+   "frame": {
+    "agent_id": "a0123456789abcdef",
+    "agent_type": "Explore",
+    "hook_event_name": "SubagentStart",
+    "session_id": "pi-teammate-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_peer_inject.py:83",
+   "event": "SubagentStart",
+   "frame": {
+    "agent_id": "aarchitect-0123456789abcdef",
+    "agent_type": "architect",
+    "hook_event_name": "SubagentStart",
+    "session_id": "pi-name-lead-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_peer_inject.py:84",
+   "event": "SubagentStart",
+   "frame": {
+    "agent_id": "apact-backend-coder-0123456789abcdef",
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "SubagentStart",
+    "session_id": "pi-id-lead-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_peer_inject.py:85",
+   "event": "SubagentStart",
+   "frame": {
+    "agent_id": "a0123456789abcdef",
+    "agent_type": "claude",
+    "hook_event_name": "SubagentStart",
+    "session_id": "pi-id-lead-session"
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:86",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "tool_input": {
+     "metadata": {
+      "scope_contract": {
+       "boundaries": "backend only",
+       "files": [
+        "a.py"
+       ]
+      }
+     },
+     "taskId": "70"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {}
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:87",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "hook_event_name": "PostToolUse",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "tool_input": {
+     "metadata": {
+      "teachback_submit": {
+       "understanding": "u"
+      }
+     },
+     "taskId": "71"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {}
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:88",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "dddddddd-4444-5555-6666-777777777777",
+    "tool_input": {
+     "metadata": {
+      "scope_contract": {
+       "boundaries": "backend only",
+       "files": [
+        "a.py"
+       ]
+      }
+     },
+     "taskId": "../../marker-escape"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {}
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:90",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:91",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": 42
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:92",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": null
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:93",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "hello there"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:94",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/PACT:pin-memory-something"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:95",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/PACT:pin-memory some context"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:96",
+   "event": "UserPromptSubmit",
+   "frame": {
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/PACT:prune-memory"
+   }
+  },
+  {
+   "name": "upstream:hooks_pin_marker_writer.py:97",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_input": "nope"
+   }
+  },
+  {
+   "name": "upstream:hooks_postcompact_archive.py:98",
+   "event": "PostCompact",
+   "frame": {
+    "_meta": {
+     "capture_method": "synthesized-from-matrix (v4.4.0 / CC 2.1.158); not a captured frame"
+    },
+    "agent_type": "PACT:pact-orchestrator",
+    "compact_summary": "LEAD COUNTER-TEST SUMMARY",
+    "hook_event_name": "PostCompact"
+   }
+  },
+  {
+   "name": "upstream:hooks_postcompact_archive.py:99",
+   "event": "PostCompact",
+   "frame": {
+    "_meta": {
+     "capture_method": "synthesized-from-matrix (v4.4.0 / CC 2.1.158); not a captured frame"
+    },
+    "agent_type": "PACT:pact-orchestrator",
+    "compact_summary": "SCOPED LEAD SUMMARY",
+    "hook_event_name": "PostCompact",
+    "session_id": "aabb1122-0000-0000-0000-00000000cafe"
+   }
+  },
+  {
+   "name": "upstream:hooks_roster_writer.py:100",
+   "event": "SubagentStart",
+   "frame": {
+    "hook_event_name": "SubagentStart"
+   }
+  },
+  {
+   "name": "upstream:hooks_roster_writer.py:101",
+   "event": "PostToolUse",
+   "frame": {
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Agent"
+   }
+  },
+  {
+   "name": "upstream:hooks_session_end.py:102",
+   "event": "SessionEnd",
+   "frame": {
+    "cwd": "<project>",
+    "hook_event_name": "SessionEnd",
+    "reason": "exit",
+    "session_id": "merged-sid"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:103",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "task_id": "7",
+    "task_subject": "design X",
+    "team_name": "session-subproc"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:104",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "task_id": "8",
+    "task_subject": "design X",
+    "team_name": "session-subproc"
+   }
+  },
+  {
+   "name": "upstream:hooks_agent_handoff_emitter.py:105",
+   "event": "TaskCompleted",
+   "frame": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "task_id": "9",
+    "task_subject": "design X",
+    "team_name": "session-subproc"
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:106",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "tool_input": {
+     "status": "completed",
+     "taskId": "42"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {
+     "task": {
+      "id": "42",
+      "metadata": {
+       "consultation_analysis": "full five-section analysis text",
+       "teachback_submit": {
+        "first_action": "f",
+        "understanding": "u"
+       },
+       "variety": {
+        "novelty": 2,
+        "total": 8
+       }
+      },
+      "owner": "architect",
+      "subject": "design X"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:107",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "pact-devops-engineer",
+    "hook_event_name": "PostToolUse",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "tool_input": {
+     "status": "completed",
+     "taskId": "42"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {
+     "task": {
+      "id": "42",
+      "metadata": {
+       "consultation_analysis": "full five-section analysis text",
+       "teachback_submit": {
+        "first_action": "f",
+        "understanding": "u"
+       },
+       "variety": {
+        "novelty": 2,
+        "total": 8
+       }
+      },
+      "owner": "architect",
+      "subject": "design X"
+     }
+    }
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:108",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "tool_input": {
+     "metadata": {
+      "scope_contract": {
+       "boundaries": "backend only",
+       "files": [
+        "a.py"
+       ]
+      }
+     },
+     "taskId": "80"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {}
+   }
+  },
+  {
+   "name": "upstream:hooks_task_lifecycle_gate.py:109",
+   "event": "PostToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "hook_event_name": "PostToolUse",
+    "session_id": "bbbbbbbb-2222-3333-4444-555555555555",
+    "tool_input": {
+     "metadata": {
+      "note": "mid-task"
+     },
+     "taskId": "80"
+    },
+    "tool_name": "TaskUpdate",
+    "tool_response": {}
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:110",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:111",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     },
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob2)",
+      "id": "bjob2",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:112",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": true,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:113",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [
+     {
+      "cron": "*/5 * * * *",
+      "id": "c1",
+      "prompt": "check the job"
+     }
+    ],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:114",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "some-other-orchestrator",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:115",
+   "event": "Stop",
+   "frame": {
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "cccccccc-0000-4000-8000-000000000003",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:116",
+   "event": "Stop",
+   "frame": {
+    "agent_id": "ab997f00c7cd48288",
+    "agent_type": "general-purpose",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bjob1)",
+      "id": "bjob1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_stop_background_gate.py:117",
+   "event": "Stop",
+   "frame": {
+    "agent_type": "pact-backend-coder",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "cwd": "<project>",
+    "hook_event_name": "Stop",
+    "last_assistant_message": "done",
+    "permission_mode": "bypassPermissions",
+    "session_crons": [],
+    "session_id": "bbbbbbbb-0000-4000-8000-000000000002",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_task_claim_gate.py:118",
+   "event": "PreToolUse",
+   "frame": {
+    "_meta": {
+     "capture_method": "constructed: the key set of the captured in-process teammate PreToolUse Edit (CC 2.1.289, 2026-10-05) with other synthetic values; NOT captured. It also gives the Write variant, which no capture covers"
+    },
+    "agent_id": "afr-backend-0123456789abcdef",
+    "agent_type": "coder-a",
+    "cwd": "<project>",
+    "effort": {
+     "level": "<synthetic>"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "<synthetic>",
+    "prompt_id": "<synthetic>",
+    "scratchpad_dir": "<scratchpad_dir>",
+    "session_id": "0001639f-a74f-41c4-bd0b-93d9d206e7f7",
+    "tool_input": {
+     "file_path": "<abs path>",
+     "new_string": "<s>",
+     "old_string": "<s>",
+     "replace_all": false
+    },
+    "tool_name": "Edit",
+    "tool_use_id": "toolu_<synthetic>",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_task_claim_gate.py:119",
+   "event": "PreToolUse",
+   "frame": {
+    "_meta": {
+     "capture_method": "constructed: the key set of the captured in-process teammate PreToolUse Edit (CC 2.1.289, 2026-10-05) with other synthetic values; NOT captured. It also gives the Write variant, which no capture covers"
+    },
+    "agent_type": "coder-b",
+    "cwd": "<project>",
+    "effort": {
+     "level": "<synthetic>"
+    },
+    "hook_event_name": "PreToolUse",
+    "permission_mode": "<synthetic>",
+    "prompt_id": "<synthetic>",
+    "scratchpad_dir": "<scratchpad_dir>",
+    "session_id": "ffff8888-bbbb-4ccc-9ddd-eeeeeeeeeeee",
+    "tool_input": {
+     "file_path": "<abs path>",
+     "new_string": "<s>",
+     "old_string": "<s>",
+     "replace_all": false
+    },
+    "tool_name": "Edit",
+    "tool_use_id": "toolu_<synthetic>",
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_handoff_ordering_gate.py:120",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "0001639f-a74f-41c4-bd0b-93d9d206e7f7",
+    "tool_input": {
+     "status": "completed",
+     "taskId": "20"
+    },
+    "tool_name": "TaskUpdate"
+   }
+  },
+  {
+   "name": "upstream:hooks_handoff_ordering_gate.py:121",
+   "event": "PreToolUse",
+   "frame": {
+    "agent_type": "PACT:pact-orchestrator",
+    "cwd": "<project>",
+    "hook_event_name": "PreToolUse",
+    "session_id": "0001639f-a74f-41c4-bd0b-93d9d206e7f7",
+    "tool_input": {
+     "status": "completed",
+     "taskId": "20"
+    },
+    "tool_name": "TaskUpdate"
+   }
+  },
+  {
+   "name": "upstream:hooks_teammate_idle.py:122",
+   "event": "TeammateIdle",
+   "frame": {
+    "hook_event_name": "TeammateIdle",
+    "session_id": "ti-tmux-session",
+    "team_name": "session-tiframe",
+    "teammate_name": "tmux-subject"
+   }
+  },
+  {
+   "name": "upstream:hooks_teammate_idle.py:123",
+   "event": "TeammateIdle",
+   "frame": {
+    "hook_event_name": "TeammateIdle",
+    "session_id": "ti-lead-session",
+    "team_name": "session-tiframe",
+    "teammate_name": "tmux-subject"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:124",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_validate_handoff_blocks_a0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (blead1)",
+      "id": "blead1",
+      "status": "running",
+      "type": "shell"
+     },
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:125",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_an_in_process_teammate_su0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:126",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_the_metadata_alone_identi0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "some-role",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:127",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_stop_hook_active_degrades0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": true,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:128",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "ab997f00c7cd48288",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_an_agent_tool_subagent_is0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-ab997f00c7cd48288.jsonl",
+    "agent_type": "general-purpose",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bsub1)",
+      "id": "bsub1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:129",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_an_unrecorded_job_does_no0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bunrecorded)",
+      "id": "bunrecorded",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:130",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_a_covering_wait_allows_th0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  },
+  {
+   "name": "upstream:hooks_validate_handoff.py:131",
+   "event": "SubagentStop",
+   "frame": {
+    "agent_id": "amate-0123456789abcdef",
+    "agent_transcript_path": "/tmp/pytest-of-runner/pytest-0/test_the_in_process_outlet_rem0/config/projects/-proj/aaaaaaaa-0000-4000-8000-000000000001/subagents/agent-amate-0123456789abcdef.jsonl",
+    "agent_type": "mate",
+    "background_tasks": [
+     {
+      "command": "sleep 300",
+      "description": "Sleep in the background (bmate1)",
+      "id": "bmate1",
+      "status": "running",
+      "type": "shell"
+     }
+    ],
+    "hook_event_name": "SubagentStop",
+    "last_assistant_message": "HANDOFF:\n1. Produced: hooks/example.py, a module that implements the requested endpoint.\n2. Key decisions: chose the simpler approach because it keeps the diff small.\n3. Next steps: the test engineer should cover the error path.\n",
+    "session_crons": [],
+    "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+    "stop_hook_active": false,
+    "transcript_path": "<transcript_path>"
+   }
+  }
+ ]
+}
