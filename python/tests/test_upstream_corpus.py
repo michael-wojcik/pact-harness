@@ -89,6 +89,21 @@ def test_a_recorded_home_is_placeholdered(tmp_path: Path) -> None:
     assert frames[0].frame["transcript_path"] == HOME_PLACEHOLDER + "/t.jsonl"
 
 
+def test_the_recorder_stays_out_of_dash_c_probes(tmp_path: Path) -> None:
+    recorder = harness_root() / "tools" / "upstream_recorder"
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(recorder)
+    env["PACT_CORPUS_OUT"] = str(tmp_path / "recorded.jsonl")
+    probe = subprocess.run(
+        [sys.executable, "-c", "import sys; print('subprocess' in sys.modules)"],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert probe.returncode == 0, probe.stderr
+    assert probe.stdout.strip() == "False", "the recorder leaked subprocess into a probe interpreter"
+
+
 def test_missing_recordings_raise(tmp_path: Path) -> None:
     with pytest.raises(UpstreamCorpusError):
         load_recorded_frames(tmp_path / "absent.jsonl")

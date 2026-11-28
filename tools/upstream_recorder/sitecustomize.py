@@ -14,7 +14,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import subprocess
 import sys
 import threading
 
@@ -22,7 +21,16 @@ _OUT = os.environ.get("PACT_CORPUS_OUT")
 _LIMIT = int(os.environ.get("PACT_CORPUS_LIMIT", "4000") or "4000")
 _PER_HOOK = int(os.environ.get("PACT_CORPUS_PER_HOOK", "8") or "8")
 
-if _OUT:
+# A recorder must not change what it observes. Upstream's suite spawns fresh
+# interpreters with -c to measure import closures, and one of those probes
+# asserts that subprocess is not pulled in. Importing subprocess here would make
+# that probe fail for a reason that has nothing to do with upstream's code, so
+# -c children stay untouched.
+_ACTIVE = bool(_OUT) and not (sys.argv and sys.argv[0] == "-c")
+
+if _ACTIVE:
+    import subprocess
+
     _lock = threading.Lock()
     _seen: set[str] = set()
     _per_hook: dict[str, int] = {}
