@@ -152,7 +152,13 @@ waits until the mapping is proven.
 
 Milestones M0–M6 are implemented: contract, adapters, warm transport, DSH
 bridge, playbook compiler, MCP adapter, the upstream compatibility pipeline, and
-the release surface. v0.1.2 is published with both artifacts.
+the release surface. v0.1.6 is published on GitHub, PyPI and npm.
+
+Four lanes guard it: contract (push, PR and tag: tests, pin invariant and
+upstream's own suite), release (tags: build and publish to PyPI and npm over
+OIDC), model-nightly (a real model-backed DSH session), and upstream (daily:
+upstream main still fits, plus a release radar that turns red when a PACT release
+is waiting and reports its L-level and pre-qualification evidence).
 
 The last assertion -- a live model-backed turn with the bridge mounted -- is
 covered by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an

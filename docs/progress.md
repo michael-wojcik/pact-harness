@@ -191,6 +191,12 @@ DSH has.
 Pin-dependent tests and the corpus baseline filename now follow the pin of
 record, so the next upstream bump needs no test edits.
 
+The daily upstream lane also runs a release radar: when the pin is behind
+upstream's latest tag it pre-qualifies that tag in a throwaway checkout (surface
+diff, verify, conformance/parity, corpus replay) and fails with the L-level and
+the named changes, so a waiting release turns the lane red with a work order
+instead of going unnoticed.
+
 ## Next
 
 Everything in plan.md is implemented and published. The project is public, and

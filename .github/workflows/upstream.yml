@@ -43,3 +43,29 @@ jobs:
 
       - name: Conformance against the pinned tree
         run: PYTHONPATH=python/src python -m pact_harness conformance
+
+  # The compatibility job asks whether upstream main still fits. This job asks
+  # the release question: is a tag waiting, and what will absorbing it cost?
+  # A red here means "absorb the waiting release", and the job summary carries
+  # the pre-qualification (L-level, verify, parity, corpus drift) so the work is
+  # known before anyone starts it. The pin is never changed here.
+  release-radar:
+    name: release-radar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the harness
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pre-qualify any waiting upstream release
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=python/src
+          python -m pact_harness upstream check --json > "$RUNNER_TEMP/upstream-check.json"
+          python tools/bump-radar.py "$RUNNER_TEMP/upstream-check.json"
