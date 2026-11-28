@@ -9,6 +9,7 @@ environment rather than pin problems.
 ```sh
 tools/run-upstream-tests.sh                    # full suite, expects Linux
 PACT_UPSTREAM_MACOS=1 tools/run-upstream-tests.sh   # deselect known platform gaps
+PACT_UPSTREAM_TAG=v4.8.39 tools/run-upstream-tests.sh  # qualify a tag that is not pinned
 ```
 
 The script clones the vendored submodule into a temporary directory and runs

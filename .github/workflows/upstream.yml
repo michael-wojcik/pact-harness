@@ -46,16 +46,25 @@ jobs:
 
   # The compatibility job asks whether upstream main still fits. This job asks
   # the release question: is a tag waiting, and what will absorbing it cost?
-  # A red here means "absorb the waiting release", and the job summary carries
-  # the pre-qualification (L-level, verify, parity, corpus drift) so the work is
-  # known before anyone starts it. The pin is never changed here.
+  # A red here means "absorb the waiting release". The pre-qualification
+  # (L-level, verify, parity, corpus drift) is in the job summary and in the
+  # tracker issue, so the work is known before anyone starts it. The pin is
+  # never changed here.
   release-radar:
     name: release-radar
     runs-on: ubuntu-latest
+    # contents: write is needed to push the auto-bump branch; pull-requests
+    # and actions to open the PR and dispatch the contract lane on it.
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      actions: write
     steps:
-      - name: Check out the harness
+      - name: Check out the harness with the vendored tree
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 1
 
       - name: Use Python 3.12
@@ -64,8 +73,77 @@ jobs:
           python-version: "3.12"
 
       - name: Pre-qualify any waiting upstream release
+        id: radar
+        continue-on-error: true
+        env:
+          PACT_RADAR_BODY: ${{ runner.temp }}/radar-body.md
         run: |
-          set -euo pipefail
+          set -uo pipefail
           export PYTHONPATH=python/src
           python -m pact_harness upstream check --json > "$RUNNER_TEMP/upstream-check.json"
           python tools/bump-radar.py "$RUNNER_TEMP/upstream-check.json"
+
+      - name: Update the bump tracker issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=python/src
+          if ! python -m pact_harness upstream check --json > "$RUNNER_TEMP/check.json" 2>/dev/null; then
+            echo "::warning::could not read upstream releases; leaving the tracker issue untouched"
+            exit 0
+          fi
+          BEHIND=$(python3 -c 'import json; print(int(json.load(open("$RUNNER_TEMP/check.json")).get("behind") or 0))')
+          TAG=$(python3 -c 'import json; print(json.load(open("$RUNNER_TEMP/check.json")).get("latest_tag") or "")')
+          gh label create upstream-bump --color BFD4F2 --description "A PACT release is waiting" >/dev/null 2>&1 || true
+          NUMBER=$(gh issue list --label upstream-bump --state open --json number --jq '.[0].number // empty')
+          if [ "$BEHIND" -gt 0 ]; then
+            {
+              echo "A new upstream PACT release is waiting: $TAG (pin is $BEHIND release(s) behind)."
+              echo
+              if [ -s "$RUNNER_TEMP/radar-body.md" ]; then cat "$RUNNER_TEMP/radar-body.md"; fi
+              echo
+              echo "Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            } > "$RUNNER_TEMP/issue.md"
+            if [ -n "$NUMBER" ]; then
+              gh issue edit "$NUMBER" --title "Upstream PACT release pending: $TAG" --body-file "$RUNNER_TEMP/issue.md"
+            else
+              gh issue create --title "Upstream PACT release pending: $TAG" --body-file "$RUNNER_TEMP/issue.md" --label upstream-bump
+            fi
+          elif [ -n "$NUMBER" ]; then
+            gh issue close "$NUMBER" --comment "The pin now matches upstream's latest release; closing the tracker."
+          fi
+
+
+      # The mechanical part only, and only for L0/L1 changes: open a pull request
+      # with pin, manifest, baseline, version and changelog. It never merges and
+      # never tags; a human does both. Off unless AUTO_BUMP=true.
+      - name: Prepare an L0/L1 bump pull request
+        id: bump
+        if: always() && vars.AUTO_BUMP == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -uo pipefail
+          export PYTHONPATH=python/src
+          if ! python -m pact_harness upstream check --json > "$RUNNER_TEMP/check.json" 2>/dev/null; then
+            echo "opened=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          TAG=$(python3 -c 'import json; print(json.load(open("$RUNNER_TEMP/check.json")).get("latest_tag") or "")')
+          BEHIND=$(python3 -c 'import json; print(int(json.load(open("$RUNNER_TEMP/check.json")).get("behind") or 0))')
+          if [ "$BEHIND" -eq 0 ]; then
+            echo "opened=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python tools/auto-bump.py --tag "$TAG" --publish \
+            --github-output "$GITHUB_OUTPUT" --body-file "$RUNNER_TEMP/bump-body.md"
+
+      - name: Fail when a release needs a human
+        if: always() && steps.radar.outcome == 'failure' && steps.bump.outputs.opened != 'true'
+        run: |
+          echo "::error::a PACT release is waiting and was not auto-absorbable; see the job summary and the upstream-bump issue"
+          exit 1

@@ -37,6 +37,11 @@ fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 git clone --quiet --no-hardlinks "$SOURCE" "$WORK/repo"
+if [ -n "${PACT_UPSTREAM_TAG:-}" ]; then
+  echo "run-upstream-tests: qualifying tag $PACT_UPSTREAM_TAG instead of the pin"
+  git -C "$WORK/repo" fetch --quiet --tags origin
+  git -C "$WORK/repo" checkout --quiet "$PACT_UPSTREAM_TAG"
+fi
 cd "$WORK/repo/pact-plugin"
 
 GAPS_FILE="$ROOT/tools/upstream-known-macos-gaps.txt"

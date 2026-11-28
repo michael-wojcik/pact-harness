@@ -51,6 +51,10 @@ def write_summary(lines: list[str]) -> None:
     if target:
         with open(target, "a", encoding="utf-8") as handle:
             handle.write(text)
+    body = os.environ.get("PACT_RADAR_BODY")
+    if body:
+        with open(body, "w", encoding="utf-8") as handle:
+            handle.write(text)
     print(text)
 
 

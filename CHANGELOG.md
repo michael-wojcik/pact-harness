@@ -6,6 +6,15 @@
   points at while it restricts 2FA-bypass tokens (account changes August 2026,
   direct publishing January 2027).
 
+## Unreleased
+
+- Upstream automation completes the loop around the pin. The daily release radar
+  now records a waiting release as an upstream-bump issue, and for L0/L1 bumps
+  it prepares a pull request (pin, surface manifest, corpus baseline, version,
+  changelog) that a person still merges and tags. A new on-demand qualify
+  workflow runs PACT's own suite at any upstream tag, and PACT_UPSTREAM_TAG
+  gives the local runner the same ability.
+
 ## v0.1.6: upstream PACT v4.8.38
 
 - Absorbs upstream PACT v4.8.38 (1befafb3), a feature release. The surface diff

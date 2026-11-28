@@ -5,6 +5,9 @@ name: contract
 # vendored PACT tree drifts from harness/pact-pin.json.
 
 on:
+  # The release radar dispatches this lane on an auto-bump branch, because pushes
+  # made with the workflow token do not trigger workflows on their own.
+  workflow_dispatch:
   push:
     branches: [main]
     # The upstream suite takes most of an hour; a docs-only change cannot move

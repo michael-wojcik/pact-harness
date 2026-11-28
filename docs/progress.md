@@ -191,6 +191,16 @@ DSH has.
 Pin-dependent tests and the corpus baseline filename now follow the pin of
 record, so the next upstream bump needs no test edits.
 
+The upstream loop is now end-to-end except for the decisions. The daily radar
+pre-qualifies a waiting release, reports its L-level, and tracks it in an
+upstream-bump issue (opened, updated and closed automatically). With the
+AUTO_BUMP repository variable set, an L0/L1 release also gets a prepared PR
+(pin, manifest, baseline, version, changelog) that a person merges and tags; the
+PR body names the tag and the release step. The on-demand qualify workflow runs
+PACT's own suite at a tag that is not pinned yet. The radar's failure rule is now
+"red when a release needs a human": mechanical bumps stay green once their PR is
+open, L2/L3 bumps stay red until reviewed.
+
 The daily upstream lane also runs a release radar: when the pin is behind
 upstream's latest tag it pre-qualifies that tag in a throwaway checkout (surface
 diff, verify, conformance/parity, corpus replay) and fails with the L-level and

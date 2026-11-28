@@ -157,8 +157,25 @@ the release surface. v0.1.6 is published on GitHub, PyPI and npm.
 Four lanes guard it: contract (push, PR and tag: tests, pin invariant and
 upstream's own suite), release (tags: build and publish to PyPI and npm over
 OIDC), model-nightly (a real model-backed DSH session), and upstream (daily:
-upstream main still fits, plus a release radar that turns red when a PACT release
-is waiting and reports its L-level and pre-qualification evidence).
+upstream main still fits, plus the release loop below).
+
+The upstream loop is automated as far as judgement allows:
+
+- The release radar runs pact upstream check, and when a PACT release is
+  waiting it pre-qualifies that tag (diff, verify, conformance/parity, corpus
+  drift), writes the L-level to the job summary, opens or updates an
+  upstream-bump issue, and turns the lane red unless the bump is mechanical.
+- With the repository variable AUTO_BUMP=true, an L0/L1 waiting release also
+  gets a prepared pull request: pin, surface manifest, corpus baseline, harness
+  version and changelog. The PR is never merged and no tag is created; a person
+  merges it and tags the release.
+- The qualify workflow is on demand: give it an upstream tag and it runs
+  PACT's own suite at that tag plus the harness compatibility probes, for when
+  the radar's cheap evidence is not enough before an L2/L3 absorb.
+
+The qualify workflow is on demand: give it an upstream tag and it runs PACT's
+own suite at that tag plus the harness's compatibility probes, which is the
+expensive pre-qualification for an L2/L3 absorb.
 
 The last assertion -- a live model-backed turn with the bridge mounted -- is
 covered by `.github/workflows/model-nightly.yml`, which installs DSH from npm on an

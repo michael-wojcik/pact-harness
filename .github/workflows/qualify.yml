@@ -1,0 +1,82 @@
+name: qualify
+
+# On demand: qualify a tag that is not pinned yet. Runs PACT's own suite at that
+# tag, then the harness's compatibility probes against it. This is the expensive
+# pre-qualification for an L2/L3 absorb; it is not a gate and never changes the
+# pin. Use it when the release radar's evidence is not enough to start an
+# absorb.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Upstream tag to qualify (empty = upstream's latest release)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: qualify-upstream-tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out the harness
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve the tag
+        id: ref
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=python/src
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG=$(python -m pact_harness upstream check --json | python3 -c 'import json, sys; print(json.load(sys.stdin)["latest_tag"])')
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Qualifying $TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clone the tag
+        run: |
+          git clone --quiet --depth 1 --branch "${{ steps.ref.outputs.tag }}" \
+            https://github.com/Synaptic-Labs-AI/PACT-Plugin.git "$RUNNER_TEMP/upstream"
+
+      - name: Install upstream's pinned environment from the tag
+        run: |
+          python -m pip install --only-binary=:all: --require-hashes \
+            -r "$RUNNER_TEMP/upstream/constraints-ci.txt"
+
+      - name: Upstream suite, unmodified
+        run: |
+          cd "$RUNNER_TEMP/upstream/pact-plugin"
+          python -m pytest tests -q -p no:cacheprovider
+
+      - name: Harness compatibility against the tag
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=python/src
+          TREE="$RUNNER_TEMP/upstream/pact-plugin"
+          {
+            echo ""
+            echo "### Harness compatibility"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          python -m pact_harness upstream inspect --portable --plugin-root "$TREE" --out "$RUNNER_TEMP/surface.json"
+          python -m pact_harness upstream diff harness/upstream-surface.v1.json "$RUNNER_TEMP/surface.json"
+          python -m pact_harness upstream verify --plugin-root "$TREE"
+          python -m pact_harness conformance --plugin-root "$TREE" --parity
+          PINNED=$(python3 -c 'import json; print(json.load(open("harness/pact-pin.json"))["pactVersion"])')
+          if [ -f "harness/corpus/pact-$PINNED.json" ]; then
+            python -m pact_harness corpus replay "harness/corpus/pact-$PINNED.json" --plugin-root "$TREE"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Surface, verify, conformance and replay output is in the step log." >> "$GITHUB_STEP_SUMMARY"
