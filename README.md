@@ -171,7 +171,9 @@ The upstream loop is automated as far as judgement allows:
   merges it and tags the release.
 - The qualify workflow is on demand: give it an upstream tag and it runs
   PACT's own suite at that tag plus the harness compatibility probes, for when
-  the radar's cheap evidence is not enough before an L2/L3 absorb.
+  the radar's cheap evidence is not enough before an L2/L3 absorb. With
+  record_corpus it also records the hook frames that suite exercises and uploads
+  them, so upstream's own tests can become parity cells.
 
 The qualify workflow is on demand: give it an upstream tag and it runs PACT's
 own suite at that tag plus the harness's compatibility probes, which is the

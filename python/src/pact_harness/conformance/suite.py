@@ -149,6 +149,7 @@ def collect_corpus_runs(
     adapter_id: str = "claude-code",
     python: str | None = None,
     state_root: Path | None = None,
+    extra_frames: tuple[CorpusFrame, ...] = (),
 ) -> tuple[tuple[CorpusRun, ...], tuple[str, ...]]:
     """Run every frame through every matching registration and return raw runs.
 
@@ -185,7 +186,12 @@ def collect_corpus_runs(
 
     collected: list[CorpusRun] = []
     failures: list[str] = []
-    for corpus_frame in corpus_frames(project):
+    frames = corpus_frames(project)
+    if extra_frames:
+        from .upstream_corpus import rebase
+
+        frames = frames + tuple(rebase(frame, project) for frame in extra_frames)
+    for corpus_frame in frames:
         event = adapter.normalize(corpus_frame.frame)
         legacy = adapter.legacy_stdin(event)
         try:
@@ -226,6 +232,7 @@ def run_conformance(
     adapter_id: str = "claude-code",
     python: str | None = None,
     state_root: Path | None = None,
+    extra_frames: tuple[CorpusFrame, ...] = (),
 ) -> ConformanceReport:
     """Run the corpus through every registration."""
     collected, frame_failures = collect_corpus_runs(
@@ -233,6 +240,7 @@ def run_conformance(
         adapter_id=adapter_id,
         python=python,
         state_root=state_root,
+        extra_frames=extra_frames,
     )
     checks: list[CheckResult] = []
     failures: list[str] = list(frame_failures)

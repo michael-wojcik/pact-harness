@@ -66,3 +66,21 @@ requirement on upstream.
 `.github/workflows/contract.yml` runs the suite on the platform upstream
 certifies — Ubuntu, Python 3.12 — with no deselects. A red there means the pin
 does not satisfy its own tests, which is a pin problem, not a harness problem.
+
+## Turning upstream tests into parity cells
+
+Upstream's tests call hooks as child processes, so the Claude-shaped stdin of
+every invocation can be recorded without changing the suite. The recorder lives
+in tools/upstream_recorder (a sitecustomize shim, active only when
+PACT_CORPUS_OUT names a file) and the harness has two commands around it:
+
+    pact corpus harvest-upstream --repo ../PACT-Plugin --out harness/corpus/upstream/pact-4.8.38.json
+    pact conformance --upstream-corpus harness/corpus/upstream/pact-4.8.38.json --parity
+
+The first runs the suite with the recorder (or converts an existing recording
+with --from-recorded). The second replays the recorded frames through the direct
+and bridged paths and compares the decision channel, exactly like the synthetic
+corpus. The qualify workflow does both when record_corpus is set and uploads the
+frames as an artifact, so a person can review and commit them; it does not
+commit them automatically because frames carry the paths they were recorded under
+and need review.

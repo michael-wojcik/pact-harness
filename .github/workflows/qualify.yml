@@ -13,6 +13,10 @@ on:
         description: "Upstream tag to qualify (empty = upstream's latest release)"
         required: false
         default: ""
+      record_corpus:
+        description: "Record the hook frames the suite exercises and upload them as a corpus artifact"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -56,9 +60,29 @@ jobs:
             -r "$RUNNER_TEMP/upstream/constraints-ci.txt"
 
       - name: Upstream suite, unmodified
+        env:
+          PACT_CORPUS_OUT: ${{ inputs.record_corpus && format('{0}/recorded.jsonl', runner.temp) || '' }}
+          PYTHONPATH: ${{ inputs.record_corpus && format('{0}/tools/upstream_recorder', github.workspace) || '' }}
         run: |
           cd "$RUNNER_TEMP/upstream/pact-plugin"
           python -m pytest tests -q -p no:cacheprovider
+
+      - name: Harvest the recorded frames
+        if: inputs.record_corpus
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=python/src
+          python -m pact_harness corpus harvest-upstream \
+            --from-recorded "$RUNNER_TEMP/recorded.jsonl" \
+            --out "$RUNNER_TEMP/upstream-corpus.json"
+
+      - name: Keep the recorded corpus
+        if: inputs.record_corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-corpus-${{ steps.ref.outputs.tag }}
+          path: ${{ runner.temp }}/upstream-corpus.json
+          if-no-files-found: error
 
       - name: Harness compatibility against the tag
         run: |
@@ -73,7 +97,12 @@ jobs:
           python -m pact_harness upstream inspect --portable --plugin-root "$TREE" --out "$RUNNER_TEMP/surface.json"
           python -m pact_harness upstream diff harness/upstream-surface.v1.json "$RUNNER_TEMP/surface.json"
           python -m pact_harness upstream verify --plugin-root "$TREE"
-          python -m pact_harness conformance --plugin-root "$TREE" --parity
+          if [ -f "$RUNNER_TEMP/upstream-corpus.json" ]; then
+            python -m pact_harness conformance --plugin-root "$TREE" --parity \
+              --upstream-corpus "$RUNNER_TEMP/upstream-corpus.json"
+          else
+            python -m pact_harness conformance --plugin-root "$TREE" --parity
+          fi
           PINNED=$(python3 -c 'import json; print(json.load(open("harness/pact-pin.json"))["pactVersion"])')
           if [ -f "harness/corpus/pact-$PINNED.json" ]; then
             python -m pact_harness corpus replay "harness/corpus/pact-$PINNED.json" --plugin-root "$TREE"

@@ -14,6 +14,11 @@
   changelog) that a person still merges and tags. A new on-demand qualify
   workflow runs PACT's own suite at any upstream tag, and PACT_UPSTREAM_TAG
   gives the local runner the same ability.
+- PACT's own test frames can become parity cells: tools/upstream_recorder
+  records the stdin of every hook invocation the suite makes, pact corpus
+  harvest-upstream stores them, and pact conformance --upstream-corpus replays
+  them through the direct and bridged paths. The qualify workflow records and
+  uploads a corpus when asked.
 
 ## v0.1.6: upstream PACT v4.8.38
 

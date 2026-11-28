@@ -165,6 +165,7 @@ def run_parity(
     adapter_id: str = "claude-code",
     python: str | None = None,
     timeout_s: float = 120.0,
+    extra_frames: tuple[CorpusFrame, ...] = (),
 ) -> ParityReport:
     """Run every corpus cell directly and through the shim, then compare."""
     if adapter_id != "claude-code":
@@ -197,6 +198,11 @@ def run_parity(
 
     direct_frames = corpus_frames(direct_project)
     bridged_frames = corpus_frames(bridged_project)
+    if extra_frames:
+        from .upstream_corpus import rebase
+
+        direct_frames = direct_frames + tuple(rebase(frame, direct_project) for frame in extra_frames)
+        bridged_frames = bridged_frames + tuple(rebase(frame, bridged_project) for frame in extra_frames)
 
     cells: list[ParityCell] = []
     failures: list[str] = []

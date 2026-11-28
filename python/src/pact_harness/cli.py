@@ -598,12 +598,23 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
         return EXIT_PROBLEM
+    extra_frames = ()
+    recorded = getattr(args, "upstream_corpus", None)
+    if recorded:
+        from .conformance.upstream_corpus import UpstreamCorpusError, load_recorded_frames
+
+        try:
+            extra_frames = load_recorded_frames(Path(recorded))
+        except UpstreamCorpusError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
     try:
         report = run_conformance(
             plugin_root,
             adapter_id=args.adapter,
             python=args.python,
             state_root=Path(args.state_root) if args.state_root else None,
+            extra_frames=extra_frames,
         )
     except PactHarnessError as exc:
         print(f"pact: {exc}", file=sys.stderr)
@@ -613,7 +624,12 @@ def _cmd_conformance(args: argparse.Namespace) -> int:
         from .conformance.parity import run_parity
 
         try:
-            parity = run_parity(plugin_root, adapter_id=args.adapter, python=args.python)
+            parity = run_parity(
+                plugin_root,
+                adapter_id=args.adapter,
+                python=args.python,
+                extra_frames=extra_frames,
+            )
         except PactHarnessError as exc:
             print(f"pact: {exc}", file=sys.stderr)
             return EXIT_PROBLEM
@@ -1090,6 +1106,50 @@ def _cmd_corpus(args: argparse.Namespace) -> int:
     )
     from .vendor import VendorError, load_pin
 
+    if args.action == "harvest-upstream":
+        from .conformance.upstream_corpus import UpstreamCorpusError, harvest, load_recorded_frames
+
+        try:
+            if args.from_recorded:
+                frames = load_recorded_frames(Path(args.from_recorded), limit=args.limit)
+                document = {
+                    "v": 1,
+                    "source": "recorded upstream frames",
+                    "frames": [
+                        {"name": frame.name, "event": frame.event, "frame": frame.frame}
+                        for frame in frames
+                    ],
+                }
+                destination = Path(args.out)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+                print(f"corpus       : {destination}")
+                print(f"frames       : {len(frames)}")
+                return EXIT_OK
+            if not args.repo:
+                print("pact: harvest-upstream needs --repo or --from-recorded", file=sys.stderr)
+                return EXIT_PROBLEM
+            harness = find_harness_root()
+            recorder = (
+                Path(args.recorder)
+                if args.recorder
+                else (harness or Path.cwd()) / "tools" / "upstream_recorder"
+            )
+            code, count = harvest(
+                Path(args.repo),
+                out=Path(args.out),
+                recorder=recorder,
+                select=args.select,
+                limit=args.limit,
+            )
+            print(f"corpus       : {args.out}")
+            print(f"frames       : {count}")
+            print(f"pytest exit  : {code}")
+            return EXIT_OK if code == 0 else EXIT_PROBLEM
+        except UpstreamCorpusError as exc:
+            print(f"pact: {exc}", file=sys.stderr)
+            return EXIT_PROBLEM
+
     plugin_root = _plugin_root_from(getattr(args, "plugin_root", None))
     if plugin_root is None:
         print("pact: plugin root unresolved; pass --plugin-root or set PACT_PLUGIN_ROOT", file=sys.stderr)
@@ -1378,6 +1438,11 @@ def build_parser() -> argparse.ArgumentParser:
     conformance.add_argument("--plugin-root", metavar="DIR")
     conformance.add_argument("--state-root", metavar="DIR")
     conformance.add_argument("--python", metavar="PATH")
+    conformance.add_argument(
+        "--upstream-corpus",
+        metavar="FILE",
+        help="add frames recorded from PACT's own tests to the corpus and parity run",
+    )
     conformance.add_argument("--json", action="store_true", help="print JSON")
     conformance.add_argument(
         "--parity",
@@ -1419,6 +1484,25 @@ def build_parser() -> argparse.ArgumentParser:
     corpus_replay.add_argument("--plugin-root", metavar="DIR")
     corpus_replay.add_argument("--json", action="store_true")
     corpus_replay.set_defaults(func=_cmd_corpus)
+    corpus_upstream = corpus_actions.add_parser(
+        "harvest-upstream",
+        help="record PACT's own test frames as parity cells",
+    )
+    corpus_upstream.add_argument("--repo", metavar="DIR", help="upstream checkout root")
+    corpus_upstream.add_argument("--out", metavar="PATH", required=True)
+    corpus_upstream.add_argument(
+        "--from-recorded",
+        metavar="FILE",
+        help="convert an existing recorder JSONL instead of running the suite",
+    )
+    corpus_upstream.add_argument(
+        "--recorder",
+        metavar="DIR",
+        help="recorder directory (default: tools/upstream_recorder in the harness)",
+    )
+    corpus_upstream.add_argument("--select", metavar="EXPR", help="pytest -k expression")
+    corpus_upstream.add_argument("--limit", type=int, default=2000)
+    corpus_upstream.set_defaults(func=_cmd_corpus)
 
     dev = subparsers.add_parser("dev", help="run against a working checkout")
     dev_actions = dev.add_subparsers(dest="action", required=True)

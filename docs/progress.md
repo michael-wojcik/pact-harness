@@ -197,7 +197,10 @@ upstream-bump issue (opened, updated and closed automatically). With the
 AUTO_BUMP repository variable set, an L0/L1 release also gets a prepared PR
 (pin, manifest, baseline, version, changelog) that a person merges and tags; the
 PR body names the tag and the release step. The on-demand qualify workflow runs
-PACT's own suite at a tag that is not pinned yet. The radar's failure rule is now
+PACT's own suite at a tag that is not pinned yet, and can record the hook frames
+that suite exercises into a parity corpus (pact corpus harvest-upstream /
+pact conformance --upstream-corpus), so the parity lane can grow beyond the 24
+hand-written frames from upstream's own traffic. The radar's failure rule is now
 "red when a release needs a human": mechanical bumps stay green once their PR is
 open, L2/L3 bumps stay red until reviewed.
 
