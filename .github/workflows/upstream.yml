@@ -95,8 +95,8 @@ jobs:
             echo "::warning::could not read upstream releases; leaving the tracker issue untouched"
             exit 0
           fi
-          BEHIND=$(python3 -c 'import json; print(int(json.load(open("$RUNNER_TEMP/check.json")).get("behind") or 0))')
-          TAG=$(python3 -c 'import json; print(json.load(open("$RUNNER_TEMP/check.json")).get("latest_tag") or "")')
+          BEHIND=$(python3 -c 'import json, sys; print(int(json.load(open(sys.argv[1])).get("behind") or 0))' "$RUNNER_TEMP/check.json")
+          TAG=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("latest_tag") or "")' "$RUNNER_TEMP/check.json")
           gh label create upstream-bump --color BFD4F2 --description "A PACT release is waiting" >/dev/null 2>&1 || true
           NUMBER=$(gh issue list --label upstream-bump --state open --json number --jq '.[0].number // empty')
           if [ "$BEHIND" -gt 0 ]; then
@@ -133,8 +133,8 @@ jobs:
             echo "opened=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          TAG=$(python3 -c 'import json; print(json.load(open("$RUNNER_TEMP/check.json")).get("latest_tag") or "")')
-          BEHIND=$(python3 -c 'import json; print(int(json.load(open("$RUNNER_TEMP/check.json")).get("behind") or 0))')
+          TAG=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("latest_tag") or "")' "$RUNNER_TEMP/check.json")
+          BEHIND=$(python3 -c 'import json, sys; print(int(json.load(open(sys.argv[1])).get("behind") or 0))' "$RUNNER_TEMP/check.json")
           if [ "$BEHIND" -eq 0 ]; then
             echo "opened=false" >> "$GITHUB_OUTPUT"
             exit 0
